@@ -140,6 +140,8 @@ rm $final_path/conf/zabbix.conf.php
 db_name=$(ynh_sanitize_dbid $app)
 db_user=$db_name
 ynh_app_setting_set $app db_name $db_name
+ynh_app_setting_set $app db_user $db_user
+ynh_app_setting_set $app db_pwd $db_pwd
 ynh_mysql_setup_db $db_user $db_name
 
 zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u$db_user -p$db_pwd $db_name
