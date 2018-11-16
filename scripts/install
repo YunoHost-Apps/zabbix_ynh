@@ -116,6 +116,11 @@ dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
 
 rm -fr zabbix-*.deb
 ynh_package_install zabbix-server-mysql
+if [ -f /etc/zabbix/zabbix-server.conf ] ;then 
+    mv  /etc/zabbix/zabbix-server.conf{,.bak}
+else
+    cp /usr/lib/tmpfiles.d/zabbix-server.conf /etc/zabbix/
+fi
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
 sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
