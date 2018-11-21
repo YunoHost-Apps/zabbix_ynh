@@ -52,7 +52,7 @@ systemctl disable zabbix-server
 killall zabbix_server
 rm -fr /etc/zabbix
 rm -fr /var/www/zabbix
-ynh_package_remove zabbix-release zabbix-server-mysql zabbix-frontend-php --allow-change-held-packages
+ynh_package_autopurge zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
