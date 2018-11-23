@@ -8,7 +8,7 @@ surname=$(ynh_user_get_info $user lastname)
 name=$(ynh_user_get_info $user firstname)
 db_name=$(ynh_app_setting_get $app db_name)
 db_user=$(ynh_app_setting_get $app db_user)
-db_pwd=$(ynh_app_setting_get $app db_pwd)
+db_pwd=$(ynh_app_setting_get $app mysqlpwd)
 language=$(ynh_app_setting_set $app language) 
 
 if [ "$language" == "fr" ];then
