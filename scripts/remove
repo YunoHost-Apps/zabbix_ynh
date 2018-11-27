@@ -50,8 +50,8 @@ fi
 timeout 5 systemctl stop zabbix-server
 systemctl disable zabbix-server
 killall zabbix_server
-rm -fr /etc/zabbix
-rm -fr /var/www/zabbix
+#rm -fr /etc/zabbix
+#rm -fr /var/www/zabbix
 ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release
 
 #=================================================
