@@ -18,4 +18,5 @@ else
 fi
 
 lastid=$(mysql -u$db_user -p$db_pwd $db_name -NB -e "select userid from users order by userid desc limit 1")
+lastid=$((lastid+1))
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ("$lastid",'"$user"', '"$name"', '"$surname"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$lang"', '30s', 1, 'default', 0, '', 0, 50);"
