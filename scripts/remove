@@ -57,9 +57,9 @@ ynh_remove_fpm_config
 timeout 5 systemctl stop zabbix-server
 systemctl disable zabbix-server
 killall zabbix_server
-#rm -fr /etc/zabbix
-#rm -fr /var/www/zabbix
 ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release ynhzabbix-ynh-deps
+ynh_secure_remove /var/www/zabbix
+ynh_secure_remove /var/log/ynhzabbix
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
@@ -67,13 +67,6 @@ ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-fr
 
 # Remove a database if it exists, along with the associated user
 ynh_mysql_remove_db $db_user $db_name
-
-#=================================================
-# REMOVE APP MAIN DIR
-#=================================================
-
-# Remove the app directory securely
-#ynh_secure_remove "$final_path"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
