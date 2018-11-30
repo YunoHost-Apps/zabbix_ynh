@@ -2,7 +2,7 @@
 source /usr/share/yunohost/helpers
 
 user=$1
-app=$YNH_APP_INSTANCE_NAME
+app="ynhzabbix"
 
 surname=$(ynh_user_get_info $user lastname)
 name=$(ynh_user_get_info $user firstname)
