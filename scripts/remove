@@ -58,7 +58,8 @@ timeout 5 systemctl stop zabbix-server
 systemctl disable zabbix-server
 killall zabbix_server
 ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release ynhzabbix-ynh-deps
-ynh_secure_remove /var/www/zabbix
+#remove symlink
+rm /var/www/zabbix
 ynh_secure_remove /var/log/ynhzabbix
 
 #=================================================
