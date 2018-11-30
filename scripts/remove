@@ -42,6 +42,13 @@ then
 fi
 
 #=================================================
+# REMOVE PHP-FPM CONFIGURATION
+#=================================================
+
+# Remove the dedicated php-fpm config
+ynh_remove_fpm_config
+
+#=================================================
 # REMOVE DEPENDENCIES
 #=================================================
 
@@ -52,7 +59,7 @@ systemctl disable zabbix-server
 killall zabbix_server
 #rm -fr /etc/zabbix
 #rm -fr /var/www/zabbix
-ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release
+ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release ynhzabbix-ynh-deps
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
@@ -74,13 +81,6 @@ ynh_mysql_remove_db $db_user $db_name
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
-
-#=================================================
-# REMOVE PHP-FPM CONFIGURATION
-#=================================================
-
-# Remove the dedicated php-fpm config
-ynh_remove_fpm_config
 
 #=================================================
 # REMOVE LOGROTATE CONFIGURATION
