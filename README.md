@@ -1,57 +1,30 @@
-# Usage of this package (REMOVE THIS SECTION BEFORE RELEASE)
-- Copy this app before working on it.
-- Edit `conf/nginx.conf` file to match application prerequisites.
-- Edit `manifest.json` with application specific information.
-- Edit the `install`, `upgrade`, `remove`, `backup`, and `restore` scripts.
-- Add a `LICENSE` file for the package.
-- Edit `README.md`.
+Integration Level -> 2
 
-# Example app for YunoHost
-
-[![Integration level](https://dash.yunohost.org/integration/REPLACEBYYOURAPP.svg)](https://ci-apps.yunohost.org/jenkins/job/REPLACEBYYOURAPP%20%28Community%29/lastBuild/consoleFull)  
-[![Install REPLACEBYYOURAPP with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=REPLACEBYYOURAPP)
-
-> *This package allow you to install REPLACEBYYOURAPP quickly and simply on a YunoHost server.  
+> *This package allow you to install zabbix quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
 ## Overview
-Quick description of this app.
-
-**Shipped version:** 1.0
-
-## Screenshots
-
-![](Link to an screenshot for this app)
-
-## Demo
-
-* [Official demo](Link to a demo site for this app)
+Zabbix integration to Yunohost.
+Zabbix is a great product to monitor your equipement, include your YunoHost server.
 
 ## Configuration
 
-How to configure this app: by an admin panel, a plain file with SSH, or any other way.
+Configuration at install. SSO works. You can add your users in a group in Zabbix (for permissions/rights).
 
 ## Documentation
 
- * Official documentation: Link to the official documentation of this app
- * YunoHost documentation: If specific documentation is needed, feel free to contribute.
-
-## YunoHost specific features
+See official documentation of Zabbix at https://www.zabbix.com/manuals(https://www.zabbix.com/manuals)
 
 #### Multi-users support
 
-Are LDAP and HTTP auth supported?
-Can the app be used by multiple users?
+Are LDAP auth supported
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/REPLACEBYYOURAPP%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/REPLACEBYYOURAPP%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/REPLACEBYYOURAPP%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/REPLACEBYYOURAPP%20(Community)%20(%7EARM%7E)/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/jenkins/job/REPLACEBYYOURAPP%20(Community)/badge/icon)](https://ci-stretch.nohost.me/jenkins/job/REPLACEBYYOURAPP%20(Community)/)
+Only Debian - Stretch 64b supported actually.
 
 ## Limitations
 
-* Any known limitations.
 
 ## Additional information
 
@@ -62,21 +35,5 @@ https://yunohost.org/packaging_apps
 
 ## Links
 
- * Report a bug: https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/issues
- * App website: Link to the official website of this app
+ * Report a bug: https://framagit.org/Mickael-Martin/zabbix_ynh/issues
  * YunoHost website: https://yunohost.org/
-
----
-
-Developers info
-----------------
-
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
-Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing).
-
-To try the testing branch, please proceed like that.
-```
-sudo yunohost app install https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-or
-sudo yunohost app upgrade REPLACEBYYOURAPP -u https://github.com/YunoHost-Apps/REPLACEBYYOURAPP_ynh/tree/testing --debug
-```
