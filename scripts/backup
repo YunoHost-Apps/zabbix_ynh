@@ -36,7 +36,15 @@ db_name=$(ynh_app_setting_get $app db_name)
 # BACKUP THE APP MAIN DIR
 #=================================================
 
-ynh_backup "$final_path"
+#backup frontend config
+ynh_backup "$final_path/conf/zabbix.conf.php"
+
+#backup server confif
+ynh_backup "/etc/zabbix/zabbix_server.conf"
+
+#backup agent config
+ynh_backup "/etc/zabbix/zabbix_agentd.conf"
+ynh_backup "/etc/zabbix/zabbix_agentd.d"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
