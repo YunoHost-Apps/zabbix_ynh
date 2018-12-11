@@ -71,6 +71,11 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+ynh_backup "/etc/zabbix/conf/zabbix.conf.php" 
+ynh_backup "/etc/zabbix/zabbix_server.conf" 
+ynh_backup "/etc/zabbix/zabbix_agentd.conf" 
+ynh_backup "/etc/zabbix/zabbix_agentd.d"
+
 
 DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 ynh_package_update
