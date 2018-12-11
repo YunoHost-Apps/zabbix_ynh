@@ -90,7 +90,7 @@ DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend
 # SPECIFIC UPGRADE
 #=================================================
 
-ynh_restore_file "/etc/conf/zabbix.conf.php" 
+ynh_restore_file "/etc/zabbix/conf/zabbix.conf.php" 
 ynh_restore_file "/etc/zabbix/zabbix_server.conf" 
 ynh_restore_file "/etc/zabbix/zabbix_agentd.conf" 
 ynh_restore_file "/etc/zabbix/zabbix_agentd.d"
