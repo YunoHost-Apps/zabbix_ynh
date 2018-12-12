@@ -71,26 +71,42 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-cp -rp /etc/zabbix /tmp/
-cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
 
-DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 ynh_package_update
-DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
-ar x *.deb
-tar xzf control.tar.gz
-sed -i 's/apache2 | httpd, //' control
-tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
-ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
-dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
-rm -fr zabbix-*.deb
-apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
-DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-rm /usr/share/zabbix/conf/zabbix.conf.php
-cp -rpf /tmp/zabbix /etc/
-cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
+zabbix-server-mysql-installedversion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
+zabbix-server-mysql-candidateversion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
 
-rm -fr /tmp/zabbix*
+zabbix-frontend-php-installedversion=$(apt-cache policy zabbix-frontend-php | grep -Po "Installed: \K(.*)")
+zabbix-frontend-php-candidateversion=$(apt-cache policy zabbix-frontend-php | grep -Po "Candidate: \K(.*)")
 
-systemctl reload nginx
+zabbix-agent-installedversion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
+zabbix-agent-candidateversion=$(apt-cache policy zabbix-zabbix-agent | grep -Po "Candidate: \K(.*)")
+
+if [ "$zabbix-server-mysql-installedversion" == "zabbix-server-mysql-installedversion" -a "$zabbix-frontend-php-installedversion" == "zabbix-frontend-php-installedversion" -a "$zabbix-agent-installedversion" == "zabbix-agent-installedversion" ] 
+then
+    cp -rp /etc/zabbix /tmp/
+    cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
+    
+    DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
+    DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
+    ar x *.deb
+    tar xzf control.tar.gz
+    sed -i 's/apache2 | httpd, //' control
+    tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
+    ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
+    dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
+    rm -fr zabbix-*.deb
+    apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
+    DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
+    
+    rm /usr/share/zabbix/conf/zabbix.conf.php
+    cp -rpf /tmp/zabbix /etc/
+    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
+    
+    rm -fr /tmp/zabbix*
+    
+    systemctl reload nginx
+else
+    ynh_print_info "Nothing to update !"
+fi
