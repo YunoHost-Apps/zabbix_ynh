@@ -71,8 +71,8 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-
-ynh_backup "/usr/share/zabbix/conf/zabbix.conf.php"
+filefrontendconf=$(mktemp /tmp/frontend-zabbix.conf.php.XXXXXX)
+cat /usr/share/zabbix/conf/zabbix.conf.php >$filefrontendconf
 
 DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 ynh_package_update
@@ -87,6 +87,7 @@ rm -fr zabbix-*.deb
 apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-ynh_restore_file "/usr/share/zabbix/conf/zabbix.conf.php"
+cat "$filefrontendconf" >"/usr/share/zabbix/conf/zabbix.conf.php"
+rm "$filefrontendconf"
 
 systemctl reload nginx
