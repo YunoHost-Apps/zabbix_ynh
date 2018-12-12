@@ -87,7 +87,8 @@ rm -fr zabbix-*.deb
 apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-cp -rpf /tmp/zabbix/* /etc/zabbix/ 
+rm /usr/share/zabbix/conf/zabbix.conf.php
+cp -rpf /tmp/zabbix /etc/
 cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
 
 rm -fr /tmp/zabbix*
