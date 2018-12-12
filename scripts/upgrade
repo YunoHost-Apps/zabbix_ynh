@@ -74,16 +74,16 @@ path_url=$(ynh_normalize_url_path $path_url)
 
 ynh_package_update
 
-zabbix-server-mysql-installedversion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
-zabbix-server-mysql-candidateversion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
+zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
+zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
 
-zabbix-frontend-php-installedversion=$(apt-cache policy zabbix-frontend-php | grep -Po "Installed: \K(.*)")
-zabbix-frontend-php-candidateversion=$(apt-cache policy zabbix-frontend-php | grep -Po "Candidate: \K(.*)")
+zabbixFrontendInstalledVersion=$(apt-cache policy zabbix-frontend-php | grep -Po "Installed: \K(.*)")
+zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | grep -Po "Candidate: \K(.*)")
 
-zabbix-agent-installedversion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
-zabbix-agent-candidateversion=$(apt-cache policy zabbix-zabbix-agent | grep -Po "Candidate: \K(.*)")
+zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
+zabbixagentCandidateVersion=$(apt-cache policy zabbix-zabbix-agent | grep -Po "Candidate: \K(.*)")
 
-if [ "$zabbix-server-mysql-installedversion" == "$zabbix-server-mysql-installedversion" -a "$zabbix-frontend-php-installedversion" == "$zabbix-frontend-php-installedversion" -a "$zabbix-agent-installedversion" == "$zabbix-agent-installedversion" ] 
+if [ "$zabbixServerInstalledVersion" == "$zabbixServerCandidateVersion" -a "$zabbixFrontendInstalledVersion" == "$zabbixFrontendCandidateVersion" -a "$zabbixagentInstalledVersion" == "$zabbixagentCandidateVersion" ] 
 then
     cp -rp /etc/zabbix /tmp/
     cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
