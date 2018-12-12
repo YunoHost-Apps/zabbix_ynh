@@ -83,7 +83,7 @@ zabbix-frontend-php-candidateversion=$(apt-cache policy zabbix-frontend-php | gr
 zabbix-agent-installedversion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
 zabbix-agent-candidateversion=$(apt-cache policy zabbix-zabbix-agent | grep -Po "Candidate: \K(.*)")
 
-if [ "$zabbix-server-mysql-installedversion" == "zabbix-server-mysql-installedversion" -a "$zabbix-frontend-php-installedversion" == "zabbix-frontend-php-installedversion" -a "$zabbix-agent-installedversion" == "zabbix-agent-installedversion" ] 
+if [ "$zabbix-server-mysql-installedversion" == "$zabbix-server-mysql-installedversion" -a "$zabbix-frontend-php-installedversion" == "$zabbix-frontend-php-installedversion" -a "$zabbix-agent-installedversion" == "$zabbix-agent-installedversion" ] 
 then
     cp -rp /etc/zabbix /tmp/
     cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
