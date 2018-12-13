@@ -34,7 +34,7 @@ language=$YNH_APP_ARG_LANGUAGE
 ### The app instance name is probably what interests you most, since this is
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names, ...
-app=$YNH_APP_INSTANCE_NAME
+app=ynhzabbix
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -56,11 +56,11 @@ ynh_webpath_register $app $domain $path_url
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app admin $admin
-ynh_app_setting_set $app is_public $is_public
-ynh_app_setting_set $app language $language
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+admin=$(ynh_app_setting_get $app admin)
+is_public=$(ynh_app_setting_get $app is_public)
+language=$(ynh_app_setting_get $app language)
 
 #=================================================
 # INSTALL DEPENDENCIES
