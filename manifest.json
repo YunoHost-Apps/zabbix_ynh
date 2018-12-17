@@ -1,6 +1,6 @@
 {
     "name": "Zabbix",
-    "id": "ynhzabbix",
+    "id": "zabbix",
     "packaging_format": 1,
     "description": {
         "en": "YunoHost port for Zabbix",
