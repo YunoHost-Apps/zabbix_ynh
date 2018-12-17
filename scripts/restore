@@ -1,127 +1,178 @@
-#!/bin/bash
-
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source ../settings/scripts/_common.sh
+#source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	#### Remove this function if there's nothing to clean before calling the remove script.
-	true
-}
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#ynh_abort_if_errors
+
+### If it's a multi-instance app, meaning it can be installed several times independently
+### The id of the app as stated in the manifest is available as $YNH_APP_ID
+### The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
+### The app instance name is available as $YNH_APP_INSTANCE_NAME
+###    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
+###    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
+###    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
+### The app instance name is probably what interests you most, since this is
+### guaranteed to be unique. This is a good unique identifier to define installation path,
+### db names, ...
+app="ynhzabbix"
 
 #=================================================
-# LOAD SETTINGS
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 
-app=$YNH_APP_INSTANCE_NAME
+### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
+### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
+rm -fr /var/www/zabbix
+
+# Normalize the url path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+# Check web path availability
+ynh_webpath_available $domain $path_url
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
+
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
 
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
-final_path=$(ynh_app_setting_get $app final_path)
+admin=$(ynh_app_setting_get $app admin)
+is_public=$(ynh_app_setting_get $app is_public)
+language=$(ynh_app_setting_get $app language)
+
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
+dpkg -i zabbix-release_*.deb
+rm zabbix-release_*.deb
+echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
+ynh_package_update
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype
+yunohost service add snmpd -d "Management of SNMP Daemon"
+DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
+ar x *.deb
+tar xzf control.tar.gz
+sed -i 's/apache2 | httpd, //' control
+tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
+ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
+
+dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
+
+rm -fr zabbix-*.deb
+ynh_package_install zabbix-server-mysql zabbix-agent
+DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
+
+sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
+locale-gen
+
+ln -s /usr/share/zabbix /var/www/zabbix
+rm $final_path/conf/zabbix.conf.php
+
+ynh_app_setting_set $app final_path $final_path
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+### `ynh_add_nginx_config` will use the file conf/nginx.conf
+
+# Create a dedicated nginx config
+
+ynh_restore_file "/etc/nginx/conf.d/mike.test.d/ynhzabbix.conf"
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+
+ynh_restore_file "/etc/php/7.0/fpm/pool.d/ynhzabbix.conf"
+
+
+# Reload SSOwat config
+yunohost app ssowatconf
+
+# Reload Nginx
+systemctl reload nginx
+
+# Remove the public access
+if [ $is_public -eq 0 ]
+then
+	ynh_app_setting_delete $app skipped_uris
+fi
+
+#=================================================
+# Restore db
+#================================================= 
+
 db_name=$(ynh_app_setting_get $app db_name)
-
-#=================================================
-# CHECK IF THE APP CAN BE RESTORED
-#=================================================
-
-ynh_webpath_available $domain $path_url \
-	|| ynh_die "Path not available: ${domain}${path_url}"
-test ! -d $final_path \
-	|| ynh_die "There is already a directory: $final_path "
-
-#=================================================
-# STANDARD RESTORATION STEPS
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-
-ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-
-ynh_restore_file "$final_path"
-
-#=================================================
-# RESTORE THE MYSQL DATABASE
-#=================================================
-
+db_user=$(ynh_app_setting_get $app db_user)
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
-ynh_mysql_setup_db $db_name $db_name $db_pwd
+
+ynh_mysql_setup_db $db_user $db_name $db_pwd
 ynh_mysql_connect_as $db_name $db_pwd $db_name < ./db.sql
 
 #=================================================
-# RECREATE THE DEDICATED USER
+# Restore configs files
 #=================================================
 
-# Create the dedicated user (if not existing)
-ynh_system_user_create $app
+### `ynh_replace_string` is used to replace a string in a file.
+### (It's compatible with sed regular expressions syntax)
+
+ynh_restore_file "/usr/share/zabbix/conf/zabbix.conf.php"
+
+chown -R www-data. /usr/share/zabbix
+
+ynh_restore_file "/etc/zabbix"
+
+systemctl enable zabbix-server && systemctl start zabbix-server
+
+
+
 
 #=================================================
-# RESTORE USER RIGHTS
+# SETUP LOGROTATE
 #=================================================
 
-# Restore permissions on app files
-chown -R root: $final_path
+### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
+### Use this helper only if there is effectively a log file for this app.
+### If you're not using this helper:
+###		- Remove the section "BACKUP LOGROTATE" in the backup script
+###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
+###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
+###		- And the section "SETUP LOGROTATE" in the upgrade script
+
+# Use logrotate to manage application logfile(s)
+ynh_use_logrotate
 
 #=================================================
-# RESTORE THE PHP-FPM CONFIGURATION
+# SETUP SSOWAT
 #=================================================
 
-ynh_restore_file "/etc/php5/fpm/pool.d/$app.conf"
-ynh_restore_file "/etc/php5/fpm/conf.d/20-$app.ini"
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
 
 #=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# REINSTALL DEPENDENCIES
+# RELOAD NGINX
 #=================================================
 
-# Define and install dependencies
-ynh_install_app_dependencies deb1 deb2
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-yunohost service add $app --log "/var/log/$app/APP.log"
-
-#=================================================
-# RESTORE SYSTEMD
-#=================================================
-
-ynh_restore_file "/etc/systemd/system/$app.service"
-systemctl enable $app.service
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
-
-ynh_restore_file "/etc/cron.d/$app"
-
-#=================================================
-# RESTORE THE LOGROTATE CONFIGURATION
-#=================================================
-
-ynh_restore_file "/etc/logrotate.d/$app"
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# RELOAD NGINX AND PHP-FPM
-#=================================================
-
-systemctl reload php5-fpm
 systemctl reload nginx
+systemctl reload php7.0-fpm
+
+
