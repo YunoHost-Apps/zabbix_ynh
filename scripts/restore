@@ -24,7 +24,7 @@ ynh_abort_if_errors
 ### The app instance name is probably what interests you most, since this is
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names, ...
-app="ynhzabbix"
+app="zabbix"
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -33,14 +33,6 @@ app="ynhzabbix"
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
 rm -fr /var/www/zabbix
-
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
-
-# Check web path availability
-ynh_webpath_available $domain $path_url
-# Register (book) web path
-ynh_webpath_register $app $domain $path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
