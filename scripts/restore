@@ -25,14 +25,14 @@ ynh_abort_if_errors
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names, ...
 app="zabbix"
-
+final_path="/var/www/zabbix"
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
-rm -fr /var/www/zabbix
+rm -fr $final_path
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
