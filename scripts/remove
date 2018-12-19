@@ -55,13 +55,13 @@ ynh_remove_fpm_config
 # Remove metapackage and its dependencies
 #ynh_remove_app_dependencies
 
-timeout 5 systemctl stop zabbix-server
+timeout 5 systemctl stop zabbix-server || killall zabbix_server
 systemctl disable zabbix-server
 killall zabbix_server
 
-timeout 5 systemctl stop zabbix-server
-systemctl disable zabbix-server
-killall zabbix_server
+timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
+systemctl disable zabbix-agent
+
 
 ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php ynhzabbix-ynh-deps zabbix-release ynhzabbix-ynh-deps zabbix-agent
 #remove symlink
