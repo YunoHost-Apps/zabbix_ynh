@@ -96,7 +96,7 @@ dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
 ynh_package_update
-ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent
 yunohost service add snmpd -d "Management of SNMP Daemon"
 DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
 ar x *.deb
@@ -108,7 +108,6 @@ ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.g
 dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
 
 rm -fr zabbix-*.deb
-ynh_package_install zabbix-server-mysql zabbix-agent
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
 sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
