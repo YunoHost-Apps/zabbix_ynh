@@ -98,6 +98,7 @@ echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.
 ynh_package_update
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent
 yunohost service add snmpd -d "Management of SNMP Daemon"
+yunohost service add php7-fpm -d "PHP7 FPM Daemon"
 DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
 ar x *.deb
 tar xzf control.tar.gz
