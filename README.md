@@ -31,7 +31,7 @@ Only Debian - Stretch 64b supported actually.
 **More information on the documentation page:**  
 https://yunohost.org/packaging_apps
 
-##LICENSE
+## LICENSE
 GNU AFFERO GENERAL PUBLIC LICENSE Version 3
 
 got to https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/LICENSE
