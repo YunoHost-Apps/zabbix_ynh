@@ -24,7 +24,7 @@ ynh_abort_if_errors
 # LOAD SETTINGS
 #=================================================
 
-app=$YNH_APP_INSTANCE_NAME
+app="zabbix"
 
 final_path=$(ynh_app_setting_get $app final_path)
 domain=$(ynh_app_setting_get $app domain)
@@ -51,7 +51,6 @@ ynh_backup "/etc/zabbix/zabbix_agentd.d"
 #=================================================
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
-
 #=================================================
 # BACKUP THE PHP-FPM CONFIGURATION
 #=================================================
