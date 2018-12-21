@@ -30,6 +30,9 @@ final_path=$(ynh_app_setting_get $app final_path)
 # Remove the dedicated systemd config
 ynh_remove_systemd_config
 
+yunohost service remove snmpd
+yunohost service remove php7-fpm
+
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
