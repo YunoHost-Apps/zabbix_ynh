@@ -66,7 +66,6 @@ systemctl disable zabbix-agent
 ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php zabbix-release zabbix-ynh-deps zabbix-agent
 #remove symlink
 rm /var/www/zabbix
-ynh_secure_remove /var/log/zabbix
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
