@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-
+trustedversion="4.0.3-1+stretch"
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 admin=$(ynh_app_setting_get $app admin)
@@ -70,43 +70,49 @@ zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | grep -Po
 zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
 zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | grep -Po "Candidate: \K(.*)")
 
-if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" -o "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" -o "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
+if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
 then
-    #=================================================
-    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-    #=================================================
+
+	if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" -o "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" -o "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
+	then
+	    #=================================================
+	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+	    #=================================================
+	    
+	    # Backup the current version of the app
+	    ynh_backup_before_upgrade
+	    ynh_clean_setup () {
+		# restore it if the upgrade fails
+		ynh_restore_upgradebackup
+	    }
+	    # Exit if an error occurs during the execution of the script
+	    ynh_abort_if_errors
+	    
+	    cp -rp /etc/zabbix /tmp/
+	    cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
+	    
+	    DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
+	    DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
+	    ar x *.deb
+	    tar xzf control.tar.gz
+	    sed -i 's/apache2 | httpd, //' control
+	    tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
+	    ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
+	    dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
+	    rm -fr zabbix-*.deb
+	    apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
+	    DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
+	    
+	    rm /usr/share/zabbix/conf/zabbix.conf.php
+	    cp -rpf /tmp/zabbix /etc/
+	    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
+	    
+	    rm -fr /tmp/zabbix*
     
-    # Backup the current version of the app
-    ynh_backup_before_upgrade
-    ynh_clean_setup () {
-    	# restore it if the upgrade fails
-    	ynh_restore_upgradebackup
-    }
-    # Exit if an error occurs during the execution of the script
-    ynh_abort_if_errors
-    
-    cp -rp /etc/zabbix /tmp/
-    cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
-    
-    DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
-    DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
-    ar x *.deb
-    tar xzf control.tar.gz
-    sed -i 's/apache2 | httpd, //' control
-    tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
-    ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
-    dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
-    rm -fr zabbix-*.deb
-    apt-get -y --only-upgrade install zabbix-server-mysql zabbix-agent
-    DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
-    
-    rm /usr/share/zabbix/conf/zabbix.conf.php
-    cp -rpf /tmp/zabbix /etc/
-    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
-    
-    rm -fr /tmp/zabbix*
-    
-    systemctl reload nginx
+	    systemctl reload nginx
+	else
+		ynh_print_info "Nothing to update ! (Already up to date)"
+	fi
 else
-    ynh_print_info "Nothing to update !"
+	ynh_print_info "Nothing to update ! (Trusted version)"
 fi
