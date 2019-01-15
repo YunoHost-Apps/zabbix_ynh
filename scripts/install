@@ -165,6 +165,11 @@ do
     fi
 done
 
+#disable default admin 
+lastid=$(mysql -u$db_user -p$db_pwd $db_name -e "mysql -BN -u root -p zabbix -e "SELECT max(id) from \`users_groups\`"")
+lastid=$(($lastid + 1 ))
+mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
