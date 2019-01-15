@@ -2,7 +2,7 @@
 source /usr/share/yunohost/helpers
 
 user=$1
-app="zabbix"
+app="ynhzabbix"
 
 db_name=$(ynh_app_setting_get $app db_name)
 db_user=$(ynh_app_setting_get $app db_user)
