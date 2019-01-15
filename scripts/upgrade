@@ -51,9 +51,9 @@ fi
 #=================================================
 # Disable default admin for security issue
 #=================================================
-haveDefaultAdminEnabled=$(mysql -BN -u root -psMquHFoRof zabbix -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
+haveDefaultAdminDisabled=$(mysql -BN -u root -psMquHFoRof zabbix -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
 
-if [ "$haveDefaultAdminEnabled" -eq 1 ] ;then
+if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
     echo "Disable default admin"
     #disable default admin 
     lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
