@@ -52,6 +52,66 @@ if [ -z $final_path ]; then
 fi
 
 #=================================================
+# Enable default admin temporaly
+#=================================================
+haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
+
+if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
+    echo "Enable default admin"
+    #enable default admin temporaly
+    mysql -u$db_user -p$db_pwd $db_name -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
+else
+    echo "default admin already enabled"
+fi
+
+#=================================================
+# Import Yunohost template
+#=================================================
+zabbixFullpath=https://$domain/$path_url
+localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
+
+curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form "enter=Enter" \
+                --form "name=Admin" \
+                --form "password=zabbix" \
+                '$zabbixFullpath/index.php?login=1'
+        # 0 - update , 1 - skip, 0 - add
+
+sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                "$zabbixFullpath/conf.import.php" \
+                |grep sid |head -n 1  \
+                |awk -Fsid= '{print $2}' \
+                |awk -F\" '{print $1}' \
+                |cut -c -16 ) 
+
+curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form "config=1" \
+                --form "import_file=@$localpath"  \
+                --form rules[groups][createMissing]=1 \
+                --form rules[templates][updateExisting]=1 \
+                --form rules[templates][createMissing]=1 \
+                --form rules[templateScreens][updateExisting]=1 \
+                --form rules[templateScreens][createMissing]=1 \
+                --form rules[templateLinkage][createMissing]=1 \
+                --form rules[applications][createMissing]=1 \
+                --form rules[items][updateExisting]=1 \
+                --form rules[items][createMissing]=1 \
+                --form rules[discoveryRules][updateExisting]=1 \
+                --form rules[discoveryRules][createMissing]=1 \
+                --form rules[triggers][updateExisting]=1 \
+                --form rules[triggers][createMissing]=1 \
+                --form rules[graphs][updateExisting]=1 \
+                --form rules[graphs][createMissing]=1 \
+                --form rules[httptests][updateExisting]=1 \
+                --form rules[httptests][createMissing]=1 \
+                --form rules[valueMaps][createMissing]=1 \
+                --form "import=Import"  \
+                --form "backurl=templates.php"  \
+                --form "form_refresh=1"  \
+                --form "sid=${sid}" \  \
+                'https://$zabbixFullpath/zabbix/conf.import.php?rules_preset=template'
+
+#=================================================
 # Disable default admin for security issue
 #=================================================
 haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
@@ -65,6 +125,9 @@ if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
 else
     echo "default admin already disabled"
 fi
+
+
+
 
 #=================================================
 # CHECK THE PATH
@@ -129,8 +192,8 @@ then
     
 	    systemctl reload nginx
 	else
-		ynh_print_info "Nothing to update ! (Already up to date)"
+		ynh_print_info "No update from repo ! (Already up to date)"
 	fi
 else
-	ynh_print_info "Nothing to update ! (Trusted version)"
+	ynh_print_info ""No update from repo ! (Trusted version)"
 fi
