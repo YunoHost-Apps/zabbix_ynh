@@ -195,5 +195,5 @@ then
 		ynh_print_info "No update from repo ! (Already up to date)"
 	fi
 else
-	ynh_print_info ""No update from repo ! (Trusted version)"
+	ynh_print_info "No update from repo ! (Trusted version)"
 fi
