@@ -71,11 +71,10 @@ zabbixFullpath=https://$domain/$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "enter=Enter" \
+                --form "enter=Sign+in" \
                 --form "name=Admin" \
                 --form "password=zabbix" \
-                '$zabbixFullpath/index.php?login=1'
-        # 0 - update , 1 - skip, 0 - add
+                '$zabbixFullpath/index.php'
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/conf.import.php" \
@@ -109,7 +108,7 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
                 --form "sid=${sid}" \  \
-                'https://$zabbixFullpath/zabbix/conf.import.php?rules_preset=template'
+                'https://$zabbixFullpath/conf.import.php?rules_preset=template'
 
 #=================================================
 # Disable default admin for security issue
