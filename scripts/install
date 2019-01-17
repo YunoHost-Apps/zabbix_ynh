@@ -165,6 +165,57 @@ do
     fi
 done
 
+#=================================================
+# Import Yunohost template
+#=================================================
+zabbixFullpath=https://$domain$path_url
+localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
+
+curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form "enter=Sign+in" \
+                --form "name=Admin" \
+                --form "password=zabbix" \
+                "$zabbixFullpath/index.php"
+
+sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                "$zabbixFullpath/conf.import.php?rules_preset=template" \
+                | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+
+importState=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form "config=1" \
+                --form "import_file=@$localpath"  \
+                --form rules[groups][createMissing]=1 \
+                --form rules[templates][updateExisting]=1 \
+                --form rules[templates][createMissing]=1 \
+                --form rules[templateScreens][updateExisting]=1 \
+                --form rules[templateScreens][createMissing]=1 \
+                --form rules[templateLinkage][createMissing]=1 \
+                --form rules[applications][createMissing]=1 \
+                --form rules[items][updateExisting]=1 \
+                --form rules[items][createMissing]=1 \
+                --form rules[discoveryRules][updateExisting]=1 \
+                --form rules[discoveryRules][createMissing]=1 \
+                --form rules[triggers][updateExisting]=1 \
+                --form rules[triggers][createMissing]=1 \
+                --form rules[graphs][updateExisting]=1 \
+                --form rules[graphs][createMissing]=1 \
+                --form rules[httptests][updateExisting]=1 \
+                --form rules[httptests][createMissing]=1 \
+                --form rules[valueMaps][createMissing]=1 \
+                --form "import=Import"  \
+                --form "backurl=templates.php"  \
+                --form "form_refresh=1"  \
+                --form "sid=${sid}" \  \
+                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
+                | grep -c "Imported successfully")
+
+if [ "$importState" -eq "1" ];then
+    ynh_print_info "Template Yunohost imported !"
+else
+    ynh_print_warn "Template Yunohost imported !"
+fi
+
+
 #disable default admin 
 lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
 lastid=$(($lastid + 1 ))
