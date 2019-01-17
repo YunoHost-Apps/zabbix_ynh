@@ -77,7 +77,7 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/index.php"
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                "$zabbixFullpath/import.php" \
+                "$zabbixFullpath/conf.import.php?rules_preset=template" \
                 | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
