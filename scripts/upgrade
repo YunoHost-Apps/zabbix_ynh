@@ -56,7 +56,7 @@ fi
 #=================================================
 haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
 
-if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
+if [ "$haveDefaultAdminDisabled" -eq 1 ] ;then
     echo "Enable default admin"
     #enable default admin temporaly
     mysql -u$db_user -p$db_pwd $db_name -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
