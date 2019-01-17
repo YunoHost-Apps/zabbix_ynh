@@ -74,7 +74,7 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "enter=Sign+in" \
                 --form "name=Admin" \
                 --form "password=zabbix" \
-                '$zabbixFullpath/index.php'
+                "$zabbixFullpath/index.php"
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/conf.import.php" \
