@@ -80,7 +80,7 @@ sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/conf.import.php?rules_preset=template" \
                 | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
 
-curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+importState=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "config=1" \
                 --form "import_file=@$localpath"  \
                 --form rules[groups][createMissing]=1 \
@@ -105,7 +105,14 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
                 --form "sid=${sid}" \  \
-                "${zabbixFullpath}/conf.import.php?rules_preset=template"
+                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
+                | grep -c "Imported successfully")
+
+if [ "$importState" -eq "1" ];then
+    ynh_print_info "Template Yunohost imported !"
+else
+    ynh_print_warn "Template Yunohost imported !"
+fi
 
 #=================================================
 # Disable default admin for security issue
