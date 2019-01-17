@@ -67,7 +67,7 @@ fi
 #=================================================
 # Import Yunohost template
 #=================================================
-zabbixFullpath=https://$domain/$path_url
+zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
@@ -105,7 +105,7 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
                 --form "sid=${sid}" \  \
-                "${zabbixFullpath}conf.import.php?rules_preset=template"
+                "${zabbixFullpath}/conf.import.php?rules_preset=template"
 
 #=================================================
 # Disable default admin for security issue
