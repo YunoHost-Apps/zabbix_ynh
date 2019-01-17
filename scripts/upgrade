@@ -74,10 +74,10 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "enter=Sign+in" \
                 --form "name=Admin" \
                 --form "password=zabbix" \
-                "${zabbixFullpath}index.php"
+                "$zabbixFullpath/index.php"
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                "${zabbixFullpath}/import.php" \
+                "$zabbixFullpath/import.php" \
                 | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
@@ -105,7 +105,7 @@ curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
                 --form "sid=${sid}" \  \
-                'https://${zabbixFullpath}conf.import.php?rules_preset=template'
+                "${zabbixFullpath}conf.import.php?rules_preset=template"
 
 #=================================================
 # Disable default admin for security issue
