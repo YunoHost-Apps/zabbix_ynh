@@ -419,7 +419,7 @@ importState=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
 if [ "$importState" -eq "1" ];then
     ynh_print_info "Template Yunohost imported !"
 else
-    ynh_print_warn "Template Yunohost imported !"
+    ynh_print_warn "Template Yunohost not imported !"
 fi
 
 #=================================================
