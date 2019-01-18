@@ -371,6 +371,7 @@ fi
 #=================================================
 
 systemctl reload nginx
+( tail -f -n0 /var/log/syslog & ) | grep -q "Reloaded A high performance web server and a reverse proxy server."
 
 #=================================================
 # Import Yunohost template
