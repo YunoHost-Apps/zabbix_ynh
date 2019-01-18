@@ -67,6 +67,21 @@ else
 fi
 
 #=================================================
+# Disable default guest for security issue
+#=================================================
+haveDefaultGuestDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
+
+if [ "$haveDefaultGuestDisabled" -eq 0 ] ;then
+    echo "Disable default guest"
+    #disable default guest 
+    lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
+    lastid=$(($lastid + 1 ))
+    mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
+else
+    echo "default guest already disabled"
+fi
+
+#=================================================
 # CHECK THE PATH
 #=================================================
 
