@@ -379,9 +379,9 @@ zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "enter=Sign+in" \
-                --form "name=Admin" \
-                --form "password=zabbix" \
+                --form enter=Sign+in \
+                --form name=Admin \
+                --form password=zabbix \
                 "$zabbixFullpath/index.php"
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
