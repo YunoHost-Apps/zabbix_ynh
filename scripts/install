@@ -424,10 +424,10 @@ else
 fi
 
 #apply template to host
-tokenapi=$(curl -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result')
-zabbixHostID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result[0].hostid')
-zabbixTemplateID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["	Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result[0].templateid')
-applyTemplate=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.update","params":{"hostid":"'$zabbixHostID'","templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result.hostids[]')
+tokenapi=$(curl -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
+zabbixHostID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
+zabbixTemplateID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["	Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
+applyTemplate=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.update","params":{"hostid":"'$zabbixHostID'","templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/zabbix/api_jsonrpc.php | jq -r '.result.hostids[]')
 
 if [ "$applyTemplate" -eq "$zabbixHostID" ];then
     ynh_print_info "Template Yunohost linked to Zabbix server !"
