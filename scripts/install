@@ -423,10 +423,23 @@ else
     ynh_print_warn "Template Yunohost not imported !"
 fi
 
+#apply template to host
+tokenapi=$(curl -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result')
+zabbixHostID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result[0].hostid')
+zabbixTemplateID=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["	Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result[0].templateid')
+applyTemplate=$(curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.update","params":{"hostid":"'$zabbixHostID'","templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result.hostids[]')
+
+if [ "$applyTemplate" -eq "$zabbixHostID" ];then
+    ynh_print_info "Template Yunohost linked to Zabbix server !"
+else
+    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+fi
+
+
 #=================================================
 # disable default admin 
 #=================================================
 
-#lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-#lastid=$(($lastid + 1 ))
-#mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
+lastid=$(($lastid + 1 ))
+mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
