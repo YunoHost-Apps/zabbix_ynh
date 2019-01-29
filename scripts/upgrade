@@ -71,9 +71,9 @@ zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "enter=Sign+in" \
-                --form "name=Admin" \
-                --form "password=zabbix" \
+                --form enter=Sign+in \
+                --form name=Admin \
+                --form password=zabbix \
                 "$zabbixFullpath/index.php"
 
 sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
@@ -113,6 +113,18 @@ if [ "$importState" -eq "1" ];then
 else
     ynh_print_warn "Template Yunohost not imported !"
 fi
+
+#apply template to host
+tokenapi=$(curl -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
+zabbixHostID=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
+zabbixTemplateID=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
+applyTemplate=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'$zabbixHostID'"}],"templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' http://mike.test/zabbix/api_jsonrpc.php | jq -r '.result.hostids[]')
+if [ "$applyTemplate" -eq "$zabbixHostID" ];then
+    ynh_print_info "Template Yunohost linked to Zabbix server !"
+else
+    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+fi
+
 
 #=================================================
 # Disable default admin for security issue
