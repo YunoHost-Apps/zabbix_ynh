@@ -378,6 +378,14 @@ yunohost app ssowatconf
 #=================================================
 zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
+sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
+confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
+bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
+
+cp $sudoUserPpath /etc/sudoers.d/zabbix
+cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
+cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
+chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form enter=Sign+in \
