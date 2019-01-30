@@ -388,17 +388,17 @@ cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
 cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
 chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
-curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form enter=Sign+in \
                 --form name=Admin \
                 --form password=zabbix \
                 "$zabbixFullpath/index.php"
 
-sid=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+sid=$(curl-k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/conf.import.php?rules_preset=template" \
                 | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
 
-importState=$(curl -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "config=1" \
                 --form "import_file=@$localpath"  \
                 --form rules[groups][createMissing]=1 \
@@ -433,10 +433,10 @@ else
 fi
 
 #apply template to host
-tokenapi=$(curl -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
-zabbixHostID=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
-zabbixTemplateID=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
-applyTemplate=$(curl -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'$zabbixHostID'"}],"templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result.hostids[]')
+tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
+zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
+zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
+applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'$zabbixHostID'"}],"templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result.hostids[]')
 if [ "$applyTemplate" -eq "$zabbixHostID" ];then
     ynh_print_info "Template Yunohost linked to Zabbix server !"
 else
