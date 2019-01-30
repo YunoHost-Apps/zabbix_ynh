@@ -365,10 +365,11 @@ then
 fi
 
 #=================================================
-# RELOAD NGINX
+# RELOAD NGINX AND PHP-FPM
 #=================================================
 
 systemctl reload nginx
+systemctl reload php7.0-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf
