@@ -12,7 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 # Exit if an error occurs during the execution of the script
-#ynh_abort_if_errors
+ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
@@ -73,6 +73,9 @@ ynh_app_setting_set $app language $language
 ### `ynh_find_port` will find the first available port starting from the given port.
 ### If you're not using these lines:
 ###		- Remove the section "CLOSE A PORT" in the remove script
+
+### Zabbix server is not opened by default for external usage.
+### if you want use zabbix server with external agent (in active mode), setup the listen address in server configuration and open port on firewall via the cmd yunohost firewall
 
 # Find a free port
 #port=$(ynh_find_port 8095)
@@ -153,7 +156,7 @@ name=$(ynh_user_get_info $admin firstname)
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'"$admin"', '"$admin"', '"$admin"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$lang"', '30s', 3, 'default', 0, '', 0, 50);"
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
-#users creation
+#users creation in zabbix database
 i=4
 for u in $(ynh_user_list); 
 do 
@@ -164,8 +167,6 @@ do
         i=$(($i+1))
     fi
 done
-
-
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -194,6 +195,8 @@ ynh_add_nginx_config
 
 # Create a system user
 #ynh_system_user_create $app
+#
+### zabbix user created in zabbix server dpkg install
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -236,6 +239,8 @@ ynh_add_fpm_config
 
 # Create a dedicated systemd config
 #ynh_add_systemd_config
+
+### Systemd service created when dpkg install
 
 #=================================================
 # SETUP APPLICATION WITH CURL
@@ -391,6 +396,8 @@ cp $sudoUserPpath /etc/sudoers.d/zabbix
 cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
 cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
 chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
+
+systemctl restart zabbix-agent
 
 curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form enter=Sign+in \
