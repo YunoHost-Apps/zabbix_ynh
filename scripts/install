@@ -300,6 +300,10 @@ sed -i "126a DBPassword=$db_pwd"  /etc/zabbix/zabbix_server.conf
 
 systemctl enable zabbix-server && systemctl start zabbix-server
 
+yunohost service add zabbix-server -d "Management of Zabbix Server - Monitoring server"
+yunohost service add zabbix-agent -d "Management of Zabbix Agent"
+
+
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
 #=================================================
