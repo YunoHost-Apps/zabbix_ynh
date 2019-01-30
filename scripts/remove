@@ -115,6 +115,9 @@ ynh_secure_remove "/var/log/zabbix"
 # Remove the pid/socket files
 ynh_secure_remove "/run/zabbix"
 
+# Remove the sudoers file
+ynh_secure_remove "/etc/sudoers.d/zabbix"
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
