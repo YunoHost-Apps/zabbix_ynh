@@ -398,7 +398,7 @@ curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form password=zabbix \
                 "$zabbixFullpath/index.php"
 
-sid=$(curl-k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 "$zabbixFullpath/conf.import.php?rules_preset=template" \
                 | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
 
