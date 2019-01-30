@@ -50,6 +50,8 @@ fi
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
 
+systemctl reload php7.0-fpm
+
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
