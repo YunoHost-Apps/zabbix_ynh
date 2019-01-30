@@ -84,6 +84,12 @@ ynh_mysql_remove_db $db_user $db_name
 ynh_remove_nginx_config
 
 #=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
+
+#=================================================
 # REMOVE LOGROTATE CONFIGURATION
 #=================================================
 
@@ -126,3 +132,4 @@ ynh_secure_remove "/etc/sudoers.d/zabbix"
 
 # Delete a system user
 ynh_system_user_delete zabbix
+
