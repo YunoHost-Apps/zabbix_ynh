@@ -10,11 +10,11 @@ if [ "$1" == "yunohost.user.quota" ] ;then
 fi
 
 if [ "$1" == "yunohost.domains.discover" ] ;then
-	domains=$($yunobin domain list --plain);echo -n "{\"data\":[";for domain in $domains;do echo -n "{\"{#DOMAIN}\":\"$domain\"},";done | sed 's/,$//' ;echo "]}"
+	domains=$($yunobin domain list --output-as plain);echo -n "{\"data\":[";for domain in $domains;do echo -n "{\"{#DOMAIN}\":\"$domain\"},";done | sed 's/,$//' ;echo "]}"
 fi
 
 if [ "$1" == "yunohost.domain.cert" ] ;then
-	$yunobin domain cert-status "$2" --plain --full| awk '/#/{ next;} {printf "%s;",$0} END {print ""}'
+	$yunobin domain cert-status "$2" --output-as plain --full| awk '/#/{ next;} {printf "%s;",$0} END {print ""}'
 fi
 
 if [ "$1" == "yunohost.services.discover" ] ;then
@@ -22,29 +22,33 @@ if [ "$1" == "yunohost.services.discover" ] ;then
 fi
 
 if [ "$1" == "yunohost.service.status" ] ;then
-	service=$($yunobin service status "$2" --plain 2>/dev/null | awk '/#/{ next;} {printf "%s;",$0} END {print ""}')
-	if [[ "$service" == *"doesn't exists for systemd"* ]] ;then
-		echo "$service" | sed 's/\(.*;.*;.*;.*;.*;\).*\(;.*;\)/\1disabled\2/g' 
-	else
-		echo "$service"
-	fi
+        service=$($yunobin service status "$2" --output-as json 2>/dev/null)
+        if [[ "$(echo $service | jq -r '.description')" == *"doesn't exists for systemd"* ]] ;then
+                echo "$service" | jq -c '.active = "disabled"' 
+        else
+                echo "$service"
+        fi
 fi
 
 if [ "$1" == "yunohost.backups.number" ] ;then
-	$yunobin backup list --plain | wc -l
+	$yunobin backup list --output-as plain | wc -l
 fi
 
 if [ "$1" == "yunohost.backups.ageoflastbackup" ] ;then
-	timestamp=$(date +"%d/%m/%Y %H:%M" -d"$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')")
-	echo $(( ($(date +%s) - $(date -d"$timestamp" +%s))/(60*60*24) ))
+	if [ $($yunobin backup list --output-as plain | wc -l) -ne 0 ] ;then
+		timestamp=$(date +"%d/%m/%Y %H:%M" -d"$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')")
+		echo $(( ($(date +%s) - $(date -d"$timestamp" +%s))/(60*60*24) ))
+	else
+		echo "No backup detected"
+	fi
 fi
 
 if [ "$1" == "yunohost.ports.tcp.discovery" ] ;then
-	ports=$($yunobin  firewall list -r --plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##TCP/{flag=1;next}/##TCP/{flag=0}flag');echo -n "{\"data\":[";for port in $ports;do echo -n "{\"{#PORT}\":\"$port\"},";done | sed 's/,$//' ;echo "]}"
+	ports=$($yunobin  firewall list -r --output-as plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##TCP/{flag=1;next}/##TCP/{flag=0}flag');echo -n "{\"data\":[";for port in $ports;do echo -n "{\"{#PORT}\":\"$port\"},";done | sed 's/,$//' ;echo "]}"
 fi
 
 if [ "$1" == "yunohost.ports.udp.discovery" ] ;then
-	ports=$($yunobin  firewall list -r --plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##UDP/{flag=1;next}/##TCP/{flag=0}flag');echo -n "{\"data\":[";for port in $ports;do echo -n "{\"{#PORT}\":\"$port\"},";done | sed 's/,$//' ;echo "]}"
+	ports=$($yunobin  firewall list -r --output-as plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##UDP/{flag=1;next}/##TCP/{flag=0}flag');echo -n "{\"data\":[";for port in $ports;do echo -n "{\"{#PORT}\":\"$port\"},";done | sed 's/,$//' ;echo "]}"
 fi
 
 if [ "$1" == "yunohost.migrations.lastinstalled" ] ;then
