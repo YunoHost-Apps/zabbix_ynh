@@ -225,6 +225,8 @@ then
         then
         	# unprotected_uris allows SSO credentials to be passed anyway.
         	ynh_app_setting_set $app unprotected_uris "/"
+        else
+            ynh_app_setting_set $app unprotected_uris ""
         fi
 
 	    systemctl reload nginx
