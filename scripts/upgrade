@@ -217,25 +217,26 @@ then
 	    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
 	    
 	    rm -fr /tmp/zabbix*
-	    
-	    #=================================================
-        # SETUP SSOWAT
-        #=================================================
-        
-        # Make app public if necessary
-        if [ $is_public -eq 1 ]
-        then
-        	# unprotected_uris allows SSO credentials to be passed anyway.
-        	ynh_app_setting_set $app unprotected_uris "/"
-        else
-            ynh_app_setting_set $app unprotected_uris ""
-        fi
-
-	    systemctl reload nginx
-	    yunohost app ssowatconf
+	   
 	else
 		ynh_print_info "No update from repo ! (Already up to date)"
 	fi
 else
 	ynh_print_info "No update from repo ! (Trusted version)"
 fi
+
+#=================================================
+# RE-ENABLE SSOWAT
+#=================================================
+
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+    # unprotected_uris allows SSO credentials to be passed anyway.
+    ynh_app_setting_set $app unprotected_uris "/"
+else
+    ynh_app_setting_set $app unprotected_uris ""
+fi
+
+systemctl reload nginx
+yunohost app ssowatconf
