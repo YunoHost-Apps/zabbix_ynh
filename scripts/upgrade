@@ -70,6 +70,8 @@ fi
 #disable sso temporaly
 ynh_app_setting_set $app unprotected_uris "/"
 systemctl reload nginx
+yunohost app ssowatconf
+
 zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
