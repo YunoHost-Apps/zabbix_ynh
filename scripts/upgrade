@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="4.0.3-1+stretch"
+trustedversion="1:4.0.4-1+stretch"
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 admin=$(ynh_app_setting_get $app admin)
