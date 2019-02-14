@@ -94,6 +94,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 
 ynh_package_update
 
+#REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
+ynh_remove_logrotate
+
 zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
 zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
 
