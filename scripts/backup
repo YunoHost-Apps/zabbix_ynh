@@ -46,6 +46,9 @@ ynh_backup "/etc/zabbix/zabbix_server.conf"
 ynh_backup "/etc/zabbix/zabbix_agentd.conf"
 ynh_backup "/etc/zabbix/zabbix_agentd.d"
 
+#backup sudo file
+ynh_backup "/etc/sudoers.d/zabbix"
+
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================

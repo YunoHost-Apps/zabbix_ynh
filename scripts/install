@@ -74,6 +74,9 @@ ynh_app_setting_set $app language $language
 ### If you're not using these lines:
 ###		- Remove the section "CLOSE A PORT" in the remove script
 
+### Zabbix server is not opened by default for external usage.
+### if you want use zabbix server with external agent (in active mode), setup the listen address in server configuration and open port on firewall via the cmd yunohost firewall
+
 # Find a free port
 #port=$(ynh_find_port 8095)
 # Open this port
@@ -96,7 +99,7 @@ dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
 ynh_package_update
-ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent jq
 yunohost service add snmpd -d "Management of SNMP Daemon"
 DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
 ar x *.deb
@@ -153,7 +156,7 @@ name=$(ynh_user_get_info $admin firstname)
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'"$admin"', '"$admin"', '"$admin"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$lang"', '30s', 3, 'default', 0, '', 0, 50);"
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
-#users creation
+#users creation in zabbix database
 i=4
 for u in $(ynh_user_list); 
 do 
@@ -164,11 +167,6 @@ do
         i=$(($i+1))
     fi
 done
-
-#disable default admin 
-lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-lastid=$(($lastid + 1 ))
-mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
 
 #disable default guest 
 lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
@@ -202,6 +200,8 @@ ynh_add_nginx_config
 
 # Create a system user
 #ynh_system_user_create $app
+#
+### zabbix user created in zabbix server dpkg install
 
 #=================================================
 # PHP-FPM CONFIGURATION
@@ -245,6 +245,8 @@ ynh_add_fpm_config
 # Create a dedicated systemd config
 #ynh_add_systemd_config
 
+### Systemd service created when dpkg install
+
 #=================================================
 # SETUP APPLICATION WITH CURL
 #=================================================
@@ -260,8 +262,6 @@ ynh_add_fpm_config
 # Set the app as temporarily public for curl call
 #ynh_app_setting_set $app skipped_uris "/"
 
-# Reload SSOwat config
-yunohost app ssowatconf
 
 # Reload Nginx
 systemctl reload nginx
@@ -309,6 +309,10 @@ sed -i "s/DBUser=zabbix/DBUser=$db_user/g"   /etc/zabbix/zabbix_server.conf
 sed -i "126a DBPassword=$db_pwd"  /etc/zabbix/zabbix_server.conf
 
 systemctl enable zabbix-server && systemctl start zabbix-server
+
+yunohost service add zabbix-server -d "Management of Zabbix Server - Monitoring server"
+yunohost service add zabbix-agent -d "Management of Zabbix Agent"
+
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -376,7 +380,91 @@ then
 fi
 
 #=================================================
-# RELOAD NGINX
+# RELOAD NGINX AND PHP-FPM
 #=================================================
 
 systemctl reload nginx
+systemctl reload php7.0-fpm
+
+# Reload SSOwat config
+yunohost app ssowatconf
+
+#=================================================
+# Import Yunohost template
+#=================================================
+zabbixFullpath=https://$domain$path_url
+localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
+sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
+confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
+bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
+
+cp $sudoUserPpath /etc/sudoers.d/zabbix
+cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
+cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
+chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
+
+systemctl restart zabbix-agent
+
+curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form enter=Sign+in \
+                --form name=Admin \
+                --form password=zabbix \
+                "$zabbixFullpath/index.php"
+
+sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                "$zabbixFullpath/conf.import.php?rules_preset=template" \
+                | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+
+importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                --form "config=1" \
+                --form "import_file=@$localpath"  \
+                --form rules[groups][createMissing]=1 \
+                --form rules[templates][updateExisting]=1 \
+                --form rules[templates][createMissing]=1 \
+                --form rules[templateScreens][updateExisting]=1 \
+                --form rules[templateScreens][createMissing]=1 \
+                --form rules[templateLinkage][createMissing]=1 \
+                --form rules[applications][createMissing]=1 \
+                --form rules[items][updateExisting]=1 \
+                --form rules[items][createMissing]=1 \
+                --form rules[discoveryRules][updateExisting]=1 \
+                --form rules[discoveryRules][createMissing]=1 \
+                --form rules[triggers][updateExisting]=1 \
+                --form rules[triggers][createMissing]=1 \
+                --form rules[graphs][updateExisting]=1 \
+                --form rules[graphs][createMissing]=1 \
+                --form rules[httptests][updateExisting]=1 \
+                --form rules[httptests][createMissing]=1 \
+                --form rules[valueMaps][createMissing]=1 \
+                --form "import=Import"  \
+                --form "backurl=templates.php"  \
+                --form "form_refresh=1"  \
+                --form "sid=${sid}" \  \
+                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
+                | grep -c "Imported successfully")
+
+if [ "$importState" -eq "1" ];then
+    ynh_print_info "Template Yunohost imported !"
+else
+    ynh_print_warn "Template Yunohost not imported !"
+fi
+
+#apply template to host
+tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
+zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
+zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
+applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'$zabbixHostID'"}],"templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result.hostids[]')
+if [ "$applyTemplate" -eq "$zabbixHostID" ];then
+    ynh_print_info "Template Yunohost linked to Zabbix server !"
+else
+    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+fi
+
+
+#=================================================
+# disable default admin 
+#=================================================
+
+lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
+lastid=$(($lastid + 1 ))
+mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
