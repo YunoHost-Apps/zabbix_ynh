@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="4.0.3-1+stretch"
+trustedversion="1:4.0.4-1+stretch"
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 admin=$(ynh_app_setting_get $app admin)
@@ -93,6 +93,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 
 ynh_package_update
+
+#REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
+ynh_remove_logrotate
 
 zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
 zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
