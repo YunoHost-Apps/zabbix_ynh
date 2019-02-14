@@ -159,6 +159,21 @@ fi
 
 
 #=================================================
+# Disable default guest for security issue
+#=================================================
+haveDefaultGuestDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
+
+if [ "$haveDefaultGuestDisabled" -eq 0 ] ;then
+    echo "Disable default guest"
+    #disable default guest 
+    lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
+    lastid=$(($lastid + 1 ))
+    mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
+else
+    echo "default guest already disabled"
+fi
+
+#=================================================
 # CHECK THE PATH
 #=================================================
 
@@ -170,6 +185,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 ynh_print_info "Check if new zabbix version is available on repo"
 ynh_package_update
+
+#REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
+ynh_remove_logrotate
 
 zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
 zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")

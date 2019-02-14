@@ -168,6 +168,11 @@ do
     fi
 done
 
+#disable default guest 
+lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
+lastid=$(($lastid + 1 ))
+mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
@@ -346,7 +351,8 @@ yunohost service add zabbix-agent -d "Management of Zabbix Agent"
 ###		- And the section "SETUP LOGROTATE" in the upgrade script
 
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate
+#native logrotate because install officials packages.
+#ynh_use_logrotate
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL

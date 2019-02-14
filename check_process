@@ -32,7 +32,7 @@
 # https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/scripts/install#L141
 	Level 4=1
 	Level 5=auto
-	Level 6=auto
+	Level 6=1
 	Level 7=auto
 	Level 8=0
 	Level 9=0
