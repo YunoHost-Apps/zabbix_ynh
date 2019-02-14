@@ -347,7 +347,8 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 ###		- And the section "SETUP LOGROTATE" in the upgrade script
 
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate
+#native logrotate because install officials packages.
+#ynh_use_logrotate
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
