@@ -24,14 +24,11 @@ Are LDAP auth supported
 Only Debian - Stretch 64b supported actually.
 
 ## Limitations
-Do not change admin password.
+
 
 ## Additional information
 
-* Do not change the default admin user password. The user is disabled juste after the install but used to update templates.
-* The Zabbix server port is not opened by default for external monitoring (active agent).
-* Install or update apply a template yunohost on the host "Zabbix-server" (127.0.0.1) for basic monitoring for Yunohost.
-* If you want more information about Yunohost in the template, please open an issue on git.
+* Other information you would add about this application
 
 **More information on the documentation page:**  
 https://yunohost.org/packaging_apps

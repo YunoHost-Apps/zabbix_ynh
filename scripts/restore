@@ -75,9 +75,6 @@ rm $final_path/conf/zabbix.conf.php
 
 ynh_app_setting_set $app final_path $final_path
 
-yunohost service add zabbix-server -d "Management of Zabbix Server - Monitoring server"
-yunohost service add zabbix-agent -d "Management of Zabbix Agent"
-
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -94,8 +91,6 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
 
-# Restore sudo file
-ynh_restore_file "/etc/sudoers.d/zabbix"
 
 # Reload SSOwat config
 yunohost app ssowatconf

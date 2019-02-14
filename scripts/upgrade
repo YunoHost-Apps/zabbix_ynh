@@ -52,111 +52,19 @@ if [ -z $final_path ]; then
 fi
 
 #=================================================
-# Enable default admin temporaly
-#=================================================
-haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
-
-if [ "$haveDefaultAdminDisabled" -eq 1 ] ;then
-    ynh_print_info "Enable default admin"
-    #enable default admin temporaly
-    mysql -u$db_user -p$db_pwd $db_name -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
-else
-    ynh_print_info "default admin already enabled"
-fi
-
-#=================================================
-# Import Yunohost template
-#=================================================
-ynh_print_info "Import Yunohost template"
-#disable sso temporaly
-ynh_app_setting_set $app unprotected_uris "/"
-systemctl reload nginx
-yunohost app ssowatconf
-
-zabbixFullpath=https://$domain$path_url
-localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
-sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
-confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
-bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
-
-cp $sudoUserPpath /etc/sudoers.d/zabbix
-cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
-cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
-chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
-
-systemctl restart zabbix-agent
-
-curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form enter=Sign+in \
-                --form name=Admin \
-                --form password=zabbix \
-                "$zabbixFullpath/index.php"
-
-sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                "$zabbixFullpath/conf.import.php?rules_preset=template" \
-                | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
-
-importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "config=1" \
-                --form "import_file=@$localpath"  \
-                --form rules[groups][createMissing]=1 \
-                --form rules[templates][updateExisting]=1 \
-                --form rules[templates][createMissing]=1 \
-                --form rules[templateScreens][updateExisting]=1 \
-                --form rules[templateScreens][createMissing]=1 \
-                --form rules[templateLinkage][createMissing]=1 \
-                --form rules[applications][createMissing]=1 \
-                --form rules[items][updateExisting]=1 \
-                --form rules[items][createMissing]=1 \
-                --form rules[discoveryRules][updateExisting]=1 \
-                --form rules[discoveryRules][createMissing]=1 \
-                --form rules[triggers][updateExisting]=1 \
-                --form rules[triggers][createMissing]=1 \
-                --form rules[graphs][updateExisting]=1 \
-                --form rules[graphs][createMissing]=1 \
-                --form rules[httptests][updateExisting]=1 \
-                --form rules[httptests][createMissing]=1 \
-                --form rules[valueMaps][createMissing]=1 \
-                --form "import=Import"  \
-                --form "backurl=templates.php"  \
-                --form "form_refresh=1"  \
-                --form "sid=${sid}" \  \
-                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
-                | grep -c "Imported successfully")
-
-if [ "$importState" -eq "1" ];then
-    ynh_print_info "Template Yunohost imported !"
-else
-    ynh_print_warn "Template Yunohost not imported !"
-fi
-
-#apply template to host
-tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result')
-zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].hostid')
-zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result[0].templateid')
-applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'$zabbixHostID'"}],"templates":[{"templateid":"'$zabbixTemplateID'"}]},"auth":"'$tokenapi'","id":1}' ${zabbixFullpath}/api_jsonrpc.php | jq -r '.result.hostids[]')
-if [ "$applyTemplate" -eq "$zabbixHostID" ];then
-    ynh_print_info "Template Yunohost linked to Zabbix server !"
-else
-    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
-fi
-
-
-#=================================================
 # Disable default admin for security issue
 #=================================================
 haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
 
 if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
-    ynh_print_info "Disable default admin"
+    echo "Disable default admin"
     #disable default admin 
     lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
     lastid=$(($lastid + 1 ))
     mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
 else
-    ynh_print_info "default admin already disabled"
+    echo "default admin already disabled"
 fi
-
 
 #=================================================
 # Disable default guest for security issue
@@ -183,7 +91,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-ynh_print_info "Check if new zabbix version is available on repo"
+
 ynh_package_update
 
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
@@ -236,26 +144,11 @@ then
 	    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
 	    
 	    rm -fr /tmp/zabbix*
-	   
+    
+	    systemctl reload nginx
 	else
-		ynh_print_info "No update from repo ! (Already up to date)"
+		ynh_print_info "Nothing to update ! (Already up to date)"
 	fi
 else
-	ynh_print_info "No update from repo ! (Trusted version)"
+	ynh_print_info "Nothing to update ! (Trusted version)"
 fi
-
-#=================================================
-# RE-ENABLE SSOWAT
-#=================================================
-ynh_print_info "re-enable SSOWAT"
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-    # unprotected_uris allows SSO credentials to be passed anyway.
-    ynh_app_setting_set $app unprotected_uris "/"
-else
-    ynh_app_setting_set $app unprotected_uris ""
-fi
-
-systemctl reload nginx
-yunohost app ssowatconf

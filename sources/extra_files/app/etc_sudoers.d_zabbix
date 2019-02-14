@@ -1,1 +1,0 @@
-zabbix    ALL=(ALL) NOPASSWD: /etc/zabbix/zabbix_agentd.d/yunohost.sh
