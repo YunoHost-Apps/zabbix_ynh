@@ -6,7 +6,7 @@
         "en": "YunoHost port for Zabbix",
         "fr": "Zabbix pour Yunohost"
     },
-    "version": "1.2",
+    "version": "1.2.1",
     "url": "https://framagit.org/Mickael-Martin/zabbix_ynh",
     "license": "free",
     "maintainer": {
