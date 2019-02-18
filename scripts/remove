@@ -37,11 +37,8 @@ yunohost service remove snmpd
 #=================================================
 
 # Remove a service from the admin panel, added by `yunohost service add`
-if yunohost service status | grep -q $app
-then
-	echo "Remove $app service"
-	yunohost service remove $app
-fi
+yunohost service remove zabbix-server
+yunohost service remove zabbix-agent
 
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
@@ -49,6 +46,8 @@ fi
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
+
+systemctl reload php7.0-fpm
 
 #=================================================
 # REMOVE DEPENDENCIES
@@ -84,6 +83,12 @@ ynh_mysql_remove_db $db_user $db_name
 ynh_remove_nginx_config
 
 #=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
+
+#=================================================
 # REMOVE LOGROTATE CONFIGURATION
 #=================================================
 
@@ -114,6 +119,9 @@ ynh_secure_remove "/var/log/zabbix"
 
 # Remove the pid/socket files
 ynh_secure_remove "/run/zabbix"
+
+# Remove the sudoers file
+ynh_secure_remove "/etc/sudoers.d/zabbix"
 
 #=================================================
 # GENERIC FINALIZATION

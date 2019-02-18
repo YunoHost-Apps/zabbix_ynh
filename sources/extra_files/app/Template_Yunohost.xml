@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.0</version>
-    <date>2019-01-15T12:48:48Z</date>
+    <date>2019-01-31T12:45:57Z</date>
     <groups>
         <group>
             <name>Templates/Applications</name>
@@ -32,7 +32,6 @@ cat /etc/zabbix/zabbix_agentd.d/yunohost.sh &#13;
 #!/bin/bash&#13;
 yunobin=$(which yunohost)&#13;
 &#13;
-&#13;
 if [ &quot;$1&quot; == &quot;yunohost.users.discover&quot; ];then&#13;
 	users=$($yunobin user list --fields 'uid' | awk -F ': ' '/username: / {print $2}');echo -n &quot;{\&quot;data\&quot;:[&quot;;for user in $users;do echo -n &quot;{\&quot;{#USERNAME}\&quot;:\&quot;$user\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
 fi&#13;
@@ -42,37 +41,45 @@ if [ &quot;$1&quot; == &quot;yunohost.user.quota&quot; ] ;then&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.domains.discover&quot; ] ;then&#13;
-	domains=$($yunobin domain list --plain);echo -n &quot;{\&quot;data\&quot;:[&quot;;for domain in $domains;do echo -n &quot;{\&quot;{#DOMAIN}\&quot;:\&quot;$domain\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
+	domains=$($yunobin domain list --output-as plain);echo -n &quot;{\&quot;data\&quot;:[&quot;;for domain in $domains;do echo -n &quot;{\&quot;{#DOMAIN}\&quot;:\&quot;$domain\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.domain.cert&quot; ] ;then&#13;
-	$yunobin domain cert-status &quot;$2&quot; --plain | awk '/#/{ next;} {printf &quot;%s;&quot;,$0} END {print &quot;&quot;}'&#13;
+	$yunobin domain cert-status &quot;$2&quot; --output-as plain --full| awk '/#/{ next;} {printf &quot;%s;&quot;,$0} END {print &quot;&quot;}'&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.services.discover&quot; ] ;then&#13;
-	services=$($yunobin service status | grep -Po '^([A-Za-z]+)(?=(:))');echo -n &quot;{\&quot;data\&quot;:[&quot;;for service in $services;do echo -n &quot;{\&quot;{#SERVICE}\&quot;:\&quot;$service\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
+	services=$($yunobin service status 2&gt;/dev/null| grep -Po '^([A-Za-z]+)(?=(:))');echo -n &quot;{\&quot;data\&quot;:[&quot;;for service in $services;do echo -n &quot;{\&quot;{#SERVICE}\&quot;:\&quot;$service\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.service.status&quot; ] ;then&#13;
-	$yunobin service status &quot;$2&quot; --plain | awk '/#/{ next;} {printf &quot;%s;&quot;,$0} END {print &quot;&quot;}'&#13;
+        service=$($yunobin service status &quot;$2&quot; --output-as json 2&gt;/dev/null)&#13;
+        if [[ &quot;$(echo $service | jq -r '.description')&quot; == *&quot;doesn't exists for systemd&quot;* ]] ;then&#13;
+                echo &quot;$service&quot; | jq -c '.active = &quot;disabled&quot;' &#13;
+        else&#13;
+                echo &quot;$service&quot;&#13;
+        fi&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.backups.number&quot; ] ;then&#13;
-	$yunobin backup list --plain | wc -l&#13;
+	$yunobin backup list --output-as plain | wc -l&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.backups.ageoflastbackup&quot; ] ;then&#13;
-	timestamp=$(date +&quot;%d/%m/%Y %H:%M&quot; -d&quot;$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')&quot;)&#13;
-	echo $(( ($(date +%s) - $(date -d&quot;$timestamp&quot; +%s))/(60*60*24) ))&#13;
+	if [ $($yunobin backup list --output-as plain | wc -l) -ne 0 ] ;then&#13;
+		timestamp=$(date +&quot;%d/%m/%Y %H:%M&quot; -d&quot;$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')&quot;)&#13;
+		echo $(( ($(date +%s) - $(date -d&quot;$timestamp&quot; +%s))/(60*60*24) ))&#13;
+	else&#13;
+		echo &quot;No backup detected&quot;&#13;
+	fi&#13;
 fi&#13;
 &#13;
-&#13;
 if [ &quot;$1&quot; == &quot;yunohost.ports.tcp.discovery&quot; ] ;then&#13;
-	ports=$($yunobin  firewall list -r --plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##TCP/{flag=1;next}/##TCP/{flag=0}flag');echo -n &quot;{\&quot;data\&quot;:[&quot;;for port in $ports;do echo -n &quot;{\&quot;{#PORT}\&quot;:\&quot;$port\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
+	ports=$($yunobin  firewall list -r --output-as plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##TCP/{flag=1;next}/##TCP/{flag=0}flag');echo -n &quot;{\&quot;data\&quot;:[&quot;;for port in $ports;do echo -n &quot;{\&quot;{#PORT}\&quot;:\&quot;$port\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.ports.udp.discovery&quot; ] ;then&#13;
-	ports=$($yunobin  firewall list -r --plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##UDP/{flag=1;next}/##TCP/{flag=0}flag');echo -n &quot;{\&quot;data\&quot;:[&quot;;for port in $ports;do echo -n &quot;{\&quot;{#PORT}\&quot;:\&quot;$port\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
+	ports=$($yunobin  firewall list -r --output-as plain | awk '/#ipv4/{flag=1;next}/#uPnP/{flag=0}flag' | awk '/##UDP/{flag=1;next}/##TCP/{flag=0}flag');echo -n &quot;{\&quot;data\&quot;:[&quot;;for port in $ports;do echo -n &quot;{\&quot;{#PORT}\&quot;:\&quot;$port\&quot;},&quot;;done | sed 's/,$//' ;echo &quot;]}&quot;&#13;
 fi&#13;
 &#13;
 if [ &quot;$1&quot; == &quot;yunohost.migrations.lastinstalled&quot; ] ;then&#13;
@@ -963,9 +970,13 @@ fi</description>
                             <logtimefmt/>
                             <preprocessing>
                                 <step>
+                                    <type>12</type>
+                                    <params>$.active</params>
+                                </step>
+                                <step>
                                     <type>5</type>
-                                    <params>(.*);(.*);(.*);(.*);(.*);(.*);(.*);
-\6:inactive=0:active=1:unknown=2;disabled=3</params>
+                                    <params>(.*)
+\1:inactive=0:active=1:unknown=2;disabled=3</params>
                                 </step>
                                 <step>
                                     <type>5</type>
