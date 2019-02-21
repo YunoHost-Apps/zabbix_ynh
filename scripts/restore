@@ -151,7 +151,8 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 ###		- And the section "SETUP LOGROTATE" in the upgrade script
 
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate
+#ynh_use_logrotate
+#no need, use native logrotate in zabbix packages
 
 #=================================================
 # SETUP SSOWAT

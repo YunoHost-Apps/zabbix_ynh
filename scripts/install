@@ -262,6 +262,8 @@ ynh_add_fpm_config
 # Set the app as temporarily public for curl call
 #ynh_app_setting_set $app skipped_uris "/"
 
+# Reload SSOwat config
+yunohost app ssowatconf
 
 # Reload Nginx
 systemctl reload nginx

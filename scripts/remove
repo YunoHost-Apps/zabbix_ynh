@@ -131,4 +131,3 @@ ynh_secure_remove "/etc/sudoers.d/zabbix"
 
 # Delete a system user
 ynh_system_user_delete zabbix
-
