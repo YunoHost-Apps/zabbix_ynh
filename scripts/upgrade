@@ -15,15 +15,15 @@ source /usr/share/yunohost/helpers
 
 app=$YNH_APP_INSTANCE_NAME
 trustedversion="1:4.0.4-1+stretch"
-domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-admin=$(ynh_app_setting_get $app admin)
-is_public=$(ynh_app_setting_get $app is_public)
-final_path=$(ynh_app_setting_get $app final_path)
-language=$(ynh_app_setting_get $app language)
-db_name=$(ynh_app_setting_get $app db_name)
-db_user=$(ynh_app_setting_get $app db_user)
-db_pwd=$(ynh_app_setting_get $app mysqlpwd)
+domain=$(ynh_app_setting_get "$app" domain)
+path_url=$(ynh_app_setting_get "$app" path)
+#admin=$(ynh_app_setting_get "$app" admin) #not used
+is_public=$(ynh_app_setting_get "$app" is_public)
+final_path=$(ynh_app_setting_get "$app" final_path)
+#language=$(ynh_app_setting_get "$app" language) #not used
+db_name=$(ynh_app_setting_get "$app" db_name)
+db_user=$(ynh_app_setting_get "$app" db_user)
+db_pwd=$(ynh_app_setting_get "$app" mysqlpwd)
 
 
 #=================================================
@@ -32,34 +32,34 @@ db_pwd=$(ynh_app_setting_get $app mysqlpwd)
 
 # Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set $app is_public 1
+	ynh_app_setting_set "$app" is_public 1
 	is_public=1
 elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set $app is_public 0
+	ynh_app_setting_set "$app" is_public 0
 	is_public=0
 fi
 
 # If db_name doesn't exist, create it
-if [ -z $db_name ]; then
-	db_name=$(ynh_sanitize_dbid $app)
-	ynh_app_setting_set $app db_name $db_name
+if [ -z "$db_name" ]; then
+	db_name=$(ynh_sanitize_dbid "$app")
+	ynh_app_setting_set "$app" db_name "$db_name"
 fi
 
 # If final_path doesn't exist, create it
-if [ -z $final_path ]; then
+if [ -z "$final_path" ]; then
 	final_path=/var/www/$app
-	ynh_app_setting_set $app final_path $final_path
+	ynh_app_setting_set "$app" final_path "$final_path"
 fi
 
 #=================================================
 # Enable default admin temporaly
 #=================================================
-haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
+haveDefaultAdminDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
 
 if [ "$haveDefaultAdminDisabled" -eq 1 ] ;then
     ynh_print_info "Enable default admin"
     #enable default admin temporaly
-    mysql -u$db_user -p$db_pwd $db_name -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
+    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
 else
     ynh_print_info "default admin already enabled"
 fi
@@ -69,7 +69,7 @@ fi
 #=================================================
 ynh_print_info "Import Yunohost template"
 #disable sso temporaly
-ynh_app_setting_set $app unprotected_uris "/"
+ynh_app_setting_set "$app" unprotected_uris "/"
 systemctl reload nginx
 yunohost app ssowatconf
 
@@ -79,17 +79,17 @@ sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
 confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
 bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
 
-cp $sudoUserPpath /etc/sudoers.d/zabbix
-cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
-cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
+cp "$sudoUserPpath" /etc/sudoers.d/zabbix
+cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
+cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
 chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 systemctl restart zabbix-agent
 
 curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form enter=Sign+in \
-                --form name=Admin \
-                --form password=zabbix \
+                --form "enter=Sign+in" \
+                --form "name=Admin" \
+                --form "password=zabbix" \
                 "$zabbixFullpath/index.php"
 
 sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
@@ -99,24 +99,24 @@ sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
 importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "config=1" \
                 --form "import_file=@$localpath"  \
-                --form rules[groups][createMissing]=1 \
-                --form rules[templates][updateExisting]=1 \
-                --form rules[templates][createMissing]=1 \
-                --form rules[templateScreens][updateExisting]=1 \
-                --form rules[templateScreens][createMissing]=1 \
-                --form rules[templateLinkage][createMissing]=1 \
-                --form rules[applications][createMissing]=1 \
-                --form rules[items][updateExisting]=1 \
-                --form rules[items][createMissing]=1 \
-                --form rules[discoveryRules][updateExisting]=1 \
-                --form rules[discoveryRules][createMissing]=1 \
-                --form rules[triggers][updateExisting]=1 \
-                --form rules[triggers][createMissing]=1 \
-                --form rules[graphs][updateExisting]=1 \
-                --form rules[graphs][createMissing]=1 \
-                --form rules[httptests][updateExisting]=1 \
-                --form rules[httptests][createMissing]=1 \
-                --form rules[valueMaps][createMissing]=1 \
+                --form "rules[groups][createMissing]=1" \
+                --form "rules[templates][updateExisting]=1" \
+                --form "rules[templates][createMissing]=1" \
+                --form "rules[templateScreens][updateExisting]=1" \
+                --form "rules[templateScreens][createMissing]=1" \
+                --form "rules[templateLinkage][createMissing]=1" \
+                --form "rules[applications][createMissing]=1" \
+                --form "rules[items][updateExisting]=1" \
+                --form "rules[items][createMissing]=1" \
+                --form "rules[discoveryRules][updateExisting]=1" \
+                --form "rules[discoveryRules][createMissing]=1" \
+                --form "rules[triggers][updateExisting]=1" \
+                --form "rules[triggers][createMissing]=1" \
+                --form "rules[graphs][updateExisting]=1" \
+                --form "rules[graphs][createMissing]=1" \
+                --form "rules[httptests][updateExisting]=1" \
+                --form "rules[httptests][createMissing]=1" \
+                --form "rules[valueMaps][createMissing]=1" \
                 --form "import=Import"  \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
@@ -145,14 +145,14 @@ fi
 #=================================================
 # Disable default admin for security issue
 #=================================================
-haveDefaultAdminDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
+haveDefaultAdminDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
 
 if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
     ynh_print_info "Disable default admin"
     #disable default admin 
-    lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-    lastid=$(($lastid + 1 ))
-    mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+    lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
+    lastid=$((lastid + 1 ))
+    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
 else
     ynh_print_info "default admin already disabled"
 fi
@@ -161,14 +161,14 @@ fi
 #=================================================
 # Disable default guest for security issue
 #=================================================
-haveDefaultGuestDisabled=$(mysql -BN -u$db_user -p$db_pwd $db_name -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
+haveDefaultGuestDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
 
 if [ "$haveDefaultGuestDisabled" -eq 0 ] ;then
     echo "Disable default guest"
     #disable default guest 
-    lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-    lastid=$(($lastid + 1 ))
-    mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
+    lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
+    lastid=$((lastid + 1 ))
+    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
 else
     echo "default guest already disabled"
 fi
@@ -178,7 +178,7 @@ fi
 #=================================================
 
 # Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path $path_url)
+path_url=$(ynh_normalize_url_path "$path_url")
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -201,7 +201,7 @@ zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | grep -Po "Candidat
 if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
 then
 
-	if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" -o "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" -o "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
+	if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" ] || [ "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" ] || [ "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
 	then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -221,9 +221,9 @@ then
 	    
 	    DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 	    DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
-	    ar x *.deb
+	    ar x ./*.deb
 	    tar xzf control.tar.gz
-	    sed -i 's/apache2 | httpd, //' control
+	    ynh_replace_string "apache2 | httpd, " "" control
 	    tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
 	    ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
 	    dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
@@ -252,9 +252,9 @@ ynh_print_info "re-enable SSOWAT"
 if [ $is_public -eq 1 ]
 then
     # unprotected_uris allows SSO credentials to be passed anyway.
-    ynh_app_setting_set $app unprotected_uris "/"
+    ynh_app_setting_set "$app" unprotected_uris "/"
 else
-    ynh_app_setting_set $app unprotected_uris ""
+    ynh_app_setting_set "$app" unprotected_uris ""
 fi
 
 systemctl reload nginx

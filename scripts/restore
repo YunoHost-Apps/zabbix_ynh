@@ -5,7 +5,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-#source _common.sh
+source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -40,10 +40,10 @@ rm -fr $final_path
 #=================================================
 
 domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-admin=$(ynh_app_setting_get $app admin)
+#path_url=$(ynh_app_setting_get $app path) #not used
+#admin=$(ynh_app_setting_get $app admin) #not used
 is_public=$(ynh_app_setting_get $app is_public)
-language=$(ynh_app_setting_get $app language)
+#language=$(ynh_app_setting_get $app language) #not used
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -57,9 +57,9 @@ ynh_package_update
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent
 yunohost service add snmpd -d "Management of SNMP Daemon"
 DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
-ar x *.deb
+ar x ./*.deb
 tar xzf control.tar.gz
-sed -i 's/apache2 | httpd, //' control
+ynh_replace_string "apache2 | httpd, " "" control
 tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
 ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
 
@@ -68,7 +68,7 @@ dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
 rm -fr zabbix-*.deb
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
+ynh_replace_string "# fr_FR.UTF-8 UTF-8" "fr_FR.UTF-8 UTF-8" /etc/locale.gen
 locale-gen
 
 ln -s /usr/share/zabbix /var/www/zabbix
@@ -105,7 +105,7 @@ yunohost app ssowatconf
 systemctl reload nginx
 
 # Remove the public access
-if [ $is_public -eq 0 ]
+if [ "$is_public" -eq 0 ]
 then
 	ynh_app_setting_delete $app skipped_uris
 fi
@@ -118,8 +118,8 @@ db_name=$(ynh_app_setting_get $app db_name)
 db_user=$(ynh_app_setting_get $app db_user)
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
 
-ynh_mysql_setup_db $db_user $db_name $db_pwd
-ynh_mysql_connect_as $db_name $db_pwd $db_name < ./db.sql
+ynh_mysql_setup_db "$db_user" "$db_name" "$db_pwd"
+ynh_mysql_connect_as "$db_name" "$db_pwd" "$db_name" < ./db.sql
 
 #=================================================
 # Restore configs files
@@ -160,7 +160,7 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 #=================================================
 
 # Make app public if necessary
-if [ $is_public -eq 1 ]
+if [ "$is_public" -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
 	ynh_app_setting_set $app unprotected_uris "/"

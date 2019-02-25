@@ -19,11 +19,11 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
-is_public=$YNH_APP_ARG_IS_PUBLIC
-language=$YNH_APP_ARG_LANGUAGE
+domain="$YNH_APP_ARG_DOMAIN"
+path_url="$YNH_APP_ARG_PATH"
+admin="$YNH_APP_ARG_ADMIN"
+is_public="$YNH_APP_ARG_IS_PUBLIC"
+language="$YNH_APP_ARG_LANGUAGE"
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -35,7 +35,7 @@ language=$YNH_APP_ARG_LANGUAGE
 ### The app instance name is probably what interests you most, since this is
 ### guaranteed to be unique. This is a good unique identifier to define installation path,
 ### db names, ...
-app=$YNH_APP_INSTANCE_NAME
+app="$YNH_APP_INSTANCE_NAME"
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -47,22 +47,22 @@ final_path=/var/www/zabbix
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
 # Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
+path_url=$(ynh_normalize_url_path "$path_url")
 
 # Check web path availability
-ynh_webpath_available $domain $path_url
+ynh_webpath_available "$domain" "$path_url"
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register "$app" "$domain" "$path_url"
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app admin $admin
-ynh_app_setting_set $app is_public $is_public
-ynh_app_setting_set $app language $language
+ynh_app_setting_set "$app" domain "$domain"
+ynh_app_setting_set "$app" path "$path_url"
+ynh_app_setting_set "$app" admin "$admin"
+ynh_app_setting_set "$app" is_public "$is_public"
+ynh_app_setting_set "$app" language "$language"
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -103,7 +103,7 @@ ynh_package_update
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent jq
 yunohost service add snmpd -d "Management of SNMP Daemon"
 DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
-ar x *.deb
+ar x ./*.deb
 tar xzf control.tar.gz
 sed -i 's/apache2 | httpd, //' control
 tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
@@ -117,8 +117,8 @@ DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend
 sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
 locale-gen
 
-ln -s /usr/share/zabbix $final_path
-rm $final_path/conf/zabbix.conf.php
+ln -s /usr/share/zabbix "$final_path"
+rm "$final_path/conf/zabbix.conf.php"
 
 #=================================================
 # CREATE A MYSQL DATABASE
@@ -133,46 +133,47 @@ rm $final_path/conf/zabbix.conf.php
 ###		- Remove also the section "REMOVE THE MYSQL DATABASE" in the remove script
 ###		- As well as the section "RESTORE THE MYSQL DATABASE" in the restore script
 
-db_name=$(ynh_sanitize_dbid $app)
-db_user=$db_name
-ynh_app_setting_set $app db_name $db_name
-ynh_app_setting_set $app db_user $db_user
-ynh_mysql_setup_db $db_user $db_name
+declare db_pwd
+db_name=$(ynh_sanitize_dbid "$app")
+db_user="$db_name"
+ynh_app_setting_set "$app" db_name "$db_name"
+ynh_app_setting_set "$app" db_user "$db_user"
+ynh_mysql_setup_db "$db_user" "$db_name"
 
-zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u$db_user -p$db_pwd $db_name
+zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -u"$db_user" -p"$db_pwd" "$db_name"
 
 #sso integration
-mysql -u$db_user -p$db_pwd $db_name -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
+mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 
-if [ $language == "fr" ];then
+if [ "$language" == "fr" ];then
     lang="fr_FR"
 else
     lang="en_GB"
 fi
 
 #admin creation
-surname=$(ynh_user_get_info $admin lastname)
-name=$(ynh_user_get_info $admin firstname)
+surname=$(ynh_user_get_info "$admin" lastname)
+name=$(ynh_user_get_info "$admin" firstname)
 
-mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'"$admin"', '"$admin"', '"$admin"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$lang"', '30s', 3, 'default', 0, '', 0, 50);"
-mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
+mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$lang', '30s', 3, 'default', 0, '', 0, 50);"
+mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
 #users creation in zabbix database
 i=4
-for u in $(ynh_user_list); 
+for user in $(ynh_user_list); 
 do 
-    if [ "$u" != "$admin" ];then
-        surname=$(ynh_user_get_info $u lastname)
-        name=$(ynh_user_get_info $u firstname)
-        mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ("$i",'"$u"', '"$name"', '"$surname"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$lang"', '30s', 1, 'default', 0, '', 0, 50);"
-        i=$(($i+1))
+    if [ "$user" != "$admin" ];then
+        surname=$(ynh_user_get_info "$user" lastname)
+        name=$(ynh_user_get_info "$user" firstname)
+        mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$lang', '30s', 1, 'default', 0, '', 0, 50);"
+        i=$((i+1))
     fi
 done
 
 #disable default guest 
-lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-lastid=$(($lastid + 1 ))
-mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
+lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
+lastid=$(("$lastid" + 1 ))
+mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -182,7 +183,7 @@ mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \
 ### downloaded from an upstream source, like a git repository.
 ### `ynh_setup_source` use the file conf/app.src
 
-ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set "$app" final_path "$final_path"
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
 
@@ -273,9 +274,9 @@ systemctl reload nginx
 #ynh_local_curl "/INSTALL_PATH" "key1=value1" "key2=value2" "key3=value3"
 
 # Remove the public access
-if [ $is_public -eq 0 ]
+if [ "$is_public" -eq 0 ]
 then
-	ynh_app_setting_delete $app skipped_uris
+	ynh_app_setting_delete "$app" skipped_uris
 fi
 
 #=================================================
@@ -292,9 +293,9 @@ global \$DB;
 \$DB['TYPE']     = 'MYSQL';
 \$DB['SERVER']   = 'localhost';
 \$DB['PORT']     = '0';
-\$DB['DATABASE'] = '"$db_name"';
-\$DB['USER']     = '"$db_user"';
-\$DB['PASSWORD'] = '"$db_pwd"';
+\$DB['DATABASE'] = '$db_name';
+\$DB['USER']     = '$db_user';
+\$DB['PASSWORD'] = '$db_pwd';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
 \$DB['SCHEMA'] = '';
@@ -376,10 +377,10 @@ yunohost service add zabbix-agent -d "Management of Zabbix Agent"
 #=================================================
 
 # Make app public if necessary
-if [ $is_public -eq 1 ]
+if [ "$is_public" -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
+	ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
 #=================================================
@@ -401,17 +402,17 @@ sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
 confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
 bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
 
-cp $sudoUserPpath /etc/sudoers.d/zabbix
-cp $confUserPpath /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
-cp $bashUserPpath /etc/zabbix/zabbix_agentd.d/yunohost.sh
+cp "$sudoUserPpath" /etc/sudoers.d/zabbix
+cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
+cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
 chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 systemctl restart zabbix-agent
 
 curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form enter=Sign+in \
-                --form name=Admin \
-                --form password=zabbix \
+                --form "enter=Sign+in" \
+                --form "name=Admin" \
+                --form "password=zabbix" \
                 "$zabbixFullpath/index.php"
 
 sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
@@ -421,24 +422,24 @@ sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
 importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "config=1" \
                 --form "import_file=@$localpath"  \
-                --form rules[groups][createMissing]=1 \
-                --form rules[templates][updateExisting]=1 \
-                --form rules[templates][createMissing]=1 \
-                --form rules[templateScreens][updateExisting]=1 \
-                --form rules[templateScreens][createMissing]=1 \
-                --form rules[templateLinkage][createMissing]=1 \
-                --form rules[applications][createMissing]=1 \
-                --form rules[items][updateExisting]=1 \
-                --form rules[items][createMissing]=1 \
-                --form rules[discoveryRules][updateExisting]=1 \
-                --form rules[discoveryRules][createMissing]=1 \
-                --form rules[triggers][updateExisting]=1 \
-                --form rules[triggers][createMissing]=1 \
-                --form rules[graphs][updateExisting]=1 \
-                --form rules[graphs][createMissing]=1 \
-                --form rules[httptests][updateExisting]=1 \
-                --form rules[httptests][createMissing]=1 \
-                --form rules[valueMaps][createMissing]=1 \
+                --form "rules[groups][createMissing]=1" \
+                --form "rules[templates][updateExisting]=1" \
+                --form "rules[templates][createMissing]=1" \
+                --form "rules[templateScreens][updateExisting]=1" \
+                --form "rules[templateScreens][createMissing]=1" \
+                --form "rules[templateLinkage][createMissing]=1" \
+                --form "rules[applications][createMissing]=1" \
+                --form "rules[items][updateExisting]=1" \
+                --form "rules[items][createMissing]=1" \
+                --form "rules[discoveryRules][updateExisting]=1" \
+                --form "rules[discoveryRules][createMissing]=1" \
+                --form "rules[triggers][updateExisting]=1" \
+                --form "rules[triggers][createMissing]=1" \
+                --form "rules[graphs][updateExisting]=1" \
+                --form "rules[graphs][createMissing]=1" \
+                --form "rules[httptests][updateExisting]=1" \
+                --form "rules[httptests][createMissing]=1" \
+                --form "rules[valueMaps][createMissing]=1" \
                 --form "import=Import"  \
                 --form "backurl=templates.php"  \
                 --form "form_refresh=1"  \
@@ -468,6 +469,6 @@ fi
 # disable default admin 
 #=================================================
 
-lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
-lastid=$(($lastid + 1 ))
-mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
+lastid=$((lastid + 1 ))
+mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"

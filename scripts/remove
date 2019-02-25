@@ -15,11 +15,11 @@ source /usr/share/yunohost/helpers
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-port=$(ynh_app_setting_get $app port)
-db_name=$(ynh_app_setting_get $app db_name)
+#domain=$(ynh_app_setting_get "$app" domain) #not used
+port=$(ynh_app_setting_get "$app" port)
+db_name=$(ynh_app_setting_get "$app" db_name)
 db_user=$db_name
-final_path=$(ynh_app_setting_get $app final_path)
+#final_path=$(ynh_app_setting_get "$app" final_path) #not used
 
 #=================================================
 # STANDARD REMOVE
@@ -73,7 +73,7 @@ rm /var/www/zabbix
 #=================================================
 
 # Remove a database if it exists, along with the associated user
-ynh_mysql_remove_db $db_user $db_name
+ynh_mysql_remove_db "$db_user" "$db_name"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
@@ -102,7 +102,7 @@ ynh_remove_logrotate
 if yunohost firewall list | grep -q "\- $port$"
 then
 	echo "Close port $port" >&2
-	yunohost firewall disallow TCP $port 2>&1
+	yunohost firewall disallow TCP "$port" 2>&1
 fi
 
 #=================================================
