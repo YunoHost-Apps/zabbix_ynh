@@ -470,11 +470,11 @@ mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id
 # SETUP SSOWAT
 #=================================================
 
-# Make app public if necessary
-if [ "$is_public" -eq 1 ]
+# Make app private if necessary
+if [ "$is_public" -eq 0 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set "$app" unprotected_uris "/"
+	ynh_app_setting_delete "$app" unprotected_uris
 fi
 #=================================================
 # RELOAD NGINX AND PHP-FPM
