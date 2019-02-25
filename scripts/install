@@ -372,6 +372,9 @@ yunohost service add zabbix-agent -d "Management of Zabbix Agent"
 
 #yunohost service add NAME_INIT.D --log "/var/log/FILE.log"
 
+# Make app public if for importing template
+# unprotected_uris allows SSO credentials to be passed anyway
+ynh_app_setting_set "$app" unprotected_uris "/"
 
 #=================================================
 # RELOAD NGINX AND PHP-FPM
