@@ -402,19 +402,20 @@ cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
 chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 systemctl restart zabbix-agent
+curlOptions="-k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
 
-curl -L -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+curl -L $curlOptions \
                 --form "enter=Sign+in" \
                 --form "name=Admin" \
                 --form "password=zabbix" \
                 "$zabbixFullpath/index.php"
                 
 if [ $? -eq 0 ];then
-    sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+    sid=$(curl $curlOptions \
                     "$zabbixFullpath/conf.import.php?rules_preset=template" \
                     | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
     
-    importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+    importState=$(curl $curlOptions \
                     --form "config=1" \
                     --form "import_file=@$localpath"  \
                     --form "rules[groups][createMissing]=1" \
@@ -450,10 +451,10 @@ if [ $? -eq 0 ];then
 
 
     #apply template to host
-    tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
-    zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
-    zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
-    applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
+    tokenapi=$(curl -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
+    zabbixHostID=$(curl -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
+    zabbixTemplateID=$(curl -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
+    applyTemplate=$(curl -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
     if [ "$applyTemplate" -eq "$zabbixHostID" ];then
         ynh_print_info "Template Yunohost linked to Zabbix server !"
     else
@@ -470,7 +471,7 @@ fi
 ynh_print_info "disable default admin"
 lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
 lastid=$((lastid + 1 ))
-mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+#mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
 
 #=================================================
 # SETUP SSOWAT
