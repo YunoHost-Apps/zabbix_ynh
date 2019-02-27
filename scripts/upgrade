@@ -86,7 +86,7 @@ chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 systemctl restart zabbix-agent
 
-curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+curl -L -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "enter=Sign+in" \
                 --form "name=Admin" \
                 --form "password=zabbix" \
