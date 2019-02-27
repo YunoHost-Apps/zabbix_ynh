@@ -57,6 +57,7 @@ ynh_webpath_register "$app" "$domain" "$path_url"
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_print_info "Get infos from manifest"
 
 ynh_app_setting_set "$app" domain "$domain"
 ynh_app_setting_set "$app" path "$path_url"
@@ -94,6 +95,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+ynh_print_info "Install dependencies"
 
 wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
 dpkg -i zabbix-release_*.deb
@@ -123,6 +125,7 @@ rm "$final_path/conf/zabbix.conf.php"
 #=================================================
 # CREATE A MYSQL DATABASE
 #=================================================
+ynh_print_info "Create and add default data in db"
 
 ### Use these lines if you need a database for the application.
 ### `ynh_mysql_setup_db` will create a database, an associated user and a ramdom password.
@@ -186,6 +189,8 @@ mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id
 ynh_app_setting_set "$app" final_path "$final_path"
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
+
+ynh_print_info "Generate web config"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -273,18 +278,13 @@ systemctl reload nginx
 # Installation with curl
 #ynh_local_curl "/INSTALL_PATH" "key1=value1" "key2=value2" "key3=value3"
 
-# Remove the public access
-if [ "$is_public" -eq 0 ]
-then
-	ynh_app_setting_delete "$app" skipped_uris
-fi
-
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
 
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
+ynh_print_info "Generate zabbix config files"
 
 echo "<?php
 // Zabbix GUI configuration file.
@@ -389,6 +389,7 @@ yunohost app ssowatconf
 #=================================================
 # Import Yunohost template
 #=================================================
+ynh_print_info "Import yunohost template"
 zabbixFullpath=https://$domain$path_url
 localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
 sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
@@ -407,61 +408,66 @@ curl -L -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
                 --form "name=Admin" \
                 --form "password=zabbix" \
                 "$zabbixFullpath/index.php"
+                
+if [ $? -eq 0 ];then
+    sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                    "$zabbixFullpath/conf.import.php?rules_preset=template" \
+                    | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+    
+    importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
+                    --form "config=1" \
+                    --form "import_file=@$localpath"  \
+                    --form "rules[groups][createMissing]=1" \
+                    --form "rules[templates][updateExisting]=1" \
+                    --form "rules[templates][createMissing]=1" \
+                    --form "rules[templateScreens][updateExisting]=1" \
+                    --form "rules[templateScreens][createMissing]=1" \
+                    --form "rules[templateLinkage][createMissing]=1" \
+                    --form "rules[applications][createMissing]=1" \
+                    --form "rules[items][updateExisting]=1" \
+                    --form "rules[items][createMissing]=1" \
+                    --form "rules[discoveryRules][updateExisting]=1" \
+                    --form "rules[discoveryRules][createMissing]=1" \
+                    --form "rules[triggers][updateExisting]=1" \
+                    --form "rules[triggers][createMissing]=1" \
+                    --form "rules[graphs][updateExisting]=1" \
+                    --form "rules[graphs][createMissing]=1" \
+                    --form "rules[httptests][updateExisting]=1" \
+                    --form "rules[httptests][createMissing]=1" \
+                    --form "rules[valueMaps][createMissing]=1" \
+                    --form "import=Import"  \
+                    --form "backurl=templates.php"  \
+                    --form "form_refresh=1"  \
+                    --form "sid=${sid}" \  \
+                    "${zabbixFullpath}/conf.import.php?rules_preset=template" \
+                    | grep -c "Imported successfully")
 
-sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                "$zabbixFullpath/conf.import.php?rules_preset=template" \
-                | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+    if [ "$importState" -eq "1" ];then
+        ynh_print_info "Template Yunohost imported !"
+    else
+        ynh_print_warn "Template Yunohost not imported !"
+    fi
 
-importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "config=1" \
-                --form "import_file=@$localpath"  \
-                --form "rules[groups][createMissing]=1" \
-                --form "rules[templates][updateExisting]=1" \
-                --form "rules[templates][createMissing]=1" \
-                --form "rules[templateScreens][updateExisting]=1" \
-                --form "rules[templateScreens][createMissing]=1" \
-                --form "rules[templateLinkage][createMissing]=1" \
-                --form "rules[applications][createMissing]=1" \
-                --form "rules[items][updateExisting]=1" \
-                --form "rules[items][createMissing]=1" \
-                --form "rules[discoveryRules][updateExisting]=1" \
-                --form "rules[discoveryRules][createMissing]=1" \
-                --form "rules[triggers][updateExisting]=1" \
-                --form "rules[triggers][createMissing]=1" \
-                --form "rules[graphs][updateExisting]=1" \
-                --form "rules[graphs][createMissing]=1" \
-                --form "rules[httptests][updateExisting]=1" \
-                --form "rules[httptests][createMissing]=1" \
-                --form "rules[valueMaps][createMissing]=1" \
-                --form "import=Import"  \
-                --form "backurl=templates.php"  \
-                --form "form_refresh=1"  \
-                --form "sid=${sid}" \  \
-                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
-                | grep -c "Imported successfully")
 
-if [ "$importState" -eq "1" ];then
-    ynh_print_info "Template Yunohost imported !"
+    #apply template to host
+    tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
+    zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
+    zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
+    applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
+    if [ "$applyTemplate" -eq "$zabbixHostID" ];then
+        ynh_print_info "Template Yunohost linked to Zabbix server !"
+    else
+        ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+    fi
 else
-    ynh_print_warn "Template Yunohost not imported !"
-fi
-
-#apply template to host
-tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
-zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
-zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
-applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
-if [ "$applyTemplate" -eq "$zabbixHostID" ];then
-    ynh_print_info "Template Yunohost linked to Zabbix server !"
-else
-    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+    ynh_print_warn "Template Yunohost not imported ! (cannot connect admin)"
 fi
 
 
 #=================================================
 # disable default admin 
 #=================================================
-
+ynh_print_info "disable default admin"
 lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
 lastid=$((lastid + 1 ))
 mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
