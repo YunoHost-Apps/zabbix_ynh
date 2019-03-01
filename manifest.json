@@ -72,7 +72,7 @@
                 },
                 "choices": ["fr", "en"],
                 "default": "en"
-            }
+            },
              {
                 "name": "accept_licence_non-free",
 		        "type": "boolean",
