@@ -61,91 +61,21 @@ enable_admin_user
 #=================================================
 # Import Yunohost template
 #=================================================
-ynh_print_info "Import Yunohost template"
-#disable sso temporaly
-ynh_app_setting_set "$app" unprotected_uris "/"
-systemctl reload nginx
-yunohost app ssowatconf
+import_template
 
-zabbixFullpath=https://$domain$path_url
-localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
-sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
-confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
-bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
-
-cp "$sudoUserPpath" /etc/sudoers.d/zabbix
-cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
-cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
-chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
-
-systemctl restart zabbix-agent
-
-curl -L -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "enter=Sign+in" \
-                --form "name=Admin" \
-                --form "password=zabbix" \
-                "$zabbixFullpath/index.php"
-
-sid=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                "$zabbixFullpath/conf.import.php?rules_preset=template" \
-                | grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
-
-importState=$(curl -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt \
-                --form "config=1" \
-                --form "import_file=@$localpath"  \
-                --form "rules[groups][createMissing]=1" \
-                --form "rules[templates][updateExisting]=1" \
-                --form "rules[templates][createMissing]=1" \
-                --form "rules[templateScreens][updateExisting]=1" \
-                --form "rules[templateScreens][createMissing]=1" \
-                --form "rules[templateLinkage][createMissing]=1" \
-                --form "rules[applications][createMissing]=1" \
-                --form "rules[items][updateExisting]=1" \
-                --form "rules[items][createMissing]=1" \
-                --form "rules[discoveryRules][updateExisting]=1" \
-                --form "rules[discoveryRules][createMissing]=1" \
-                --form "rules[triggers][updateExisting]=1" \
-                --form "rules[triggers][createMissing]=1" \
-                --form "rules[graphs][updateExisting]=1" \
-                --form "rules[graphs][createMissing]=1" \
-                --form "rules[httptests][updateExisting]=1" \
-                --form "rules[httptests][createMissing]=1" \
-                --form "rules[valueMaps][createMissing]=1" \
-                --form "import=Import"  \
-                --form "backurl=templates.php"  \
-                --form "form_refresh=1"  \
-                --form "sid=${sid}" \  \
-                "${zabbixFullpath}/conf.import.php?rules_preset=template" \
-                | grep -c "Imported successfully")
-
-if [ "$importState" -eq "1" ];then
-    ynh_print_info "Template Yunohost imported !"
-else
-    ynh_print_warn "Template Yunohost not imported !"
-fi
-
-#apply template to host
-tokenapi=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
-zabbixHostID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
-zabbixTemplateID=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
-applyTemplate=$(curl -k -s --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
-if [ "$applyTemplate" -eq "$zabbixHostID" ];then
-    ynh_print_info "Template Yunohost linked to Zabbix server !"
-else
-    ynh_print_warn "Template Yunohost no linked to Zabbix server !"
-fi
-
+#=================================================
+# Link Yunohost template to the ZAbbix Server Host
+#=================================================
+link_template
 
 #=================================================
 # Disable default admin for security issue
 #=================================================
-ynh_print_info "disable default admin"
 disable_admin_user
 
 #=================================================
 # Disable default guest for security issue
 #=================================================
-ynh_print_info "disable default guest"
 disable_guest_user
 
 #=================================================
