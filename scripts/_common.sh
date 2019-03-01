@@ -41,6 +41,11 @@ disable_admin_user(){
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$((lastid + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
+        ynh_print_info "Default admin disabled"
+
+    else
+        ynh_print_info "Default admin already disabled"
+
     fi
 }
 
@@ -48,6 +53,9 @@ enable_admin_user(){
     if [ get_state_admin_user -eq 1 ] ;then
         ynh_print_info "Enable default admin"
         #enable default admin temporaly
-        mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
+        $mysqlconn -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
+        ynh_print_info "Default admin enabled"
+    else
+        ynh_print_info "Default admin already enable"
     fi
 }
