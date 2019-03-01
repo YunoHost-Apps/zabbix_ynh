@@ -16,13 +16,13 @@ ynh_delete_file_checksum () {
 #===================GET GUEST DEFAULT USER STATE==============
 #return 0 if enable, else 1
 get_state_guest_user(){
-    $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9"
+    return $($mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
 }
 
 #================ DISABLE DEFAULT ZABBIX USER GUEST ===================
 
 disable_guest_user(){
-    if [ get_state_guest_user -eq 0 ];then
+    if [ get_state_guest_user = "0" ];then
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$(("$lastid" + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
@@ -32,12 +32,12 @@ disable_guest_user(){
 #===================GET ADMIN DEFAULT USER STATE==============
 #return 0 if enable, else 1
 get_state_admin_user(){
-    $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9"
+    return $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9"
 }
 
 #================ DISABLE DEFAULT ADMIN USER ===================
 disable_admin_user(){
-    if [ get_state_admin_user -eq 0 ] ;then
+    if [ get_state_admin_user = "0" ] ;then
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$((lastid + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
@@ -50,7 +50,7 @@ disable_admin_user(){
 }
 
 enable_admin_user(){
-    if [ get_state_admin_user -eq 1 ] ;then
+    if [ get_state_admin_user = "1" ] ;then
         ynh_print_info "Enable default admin"
         #enable default admin temporaly
         $mysqlconn -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
