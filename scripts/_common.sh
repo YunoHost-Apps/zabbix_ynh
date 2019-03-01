@@ -16,7 +16,7 @@ ynh_delete_file_checksum () {
 #===================GET GUEST DEFAULT USER STATE==============
 #return 0 if enable, else 1
 get_state_guest_user(){
-    return $($mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
+    $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9"
 }
 
 #================ DISABLE DEFAULT ZABBIX USER GUEST ===================
@@ -32,7 +32,7 @@ disable_guest_user(){
 #===================GET ADMIN DEFAULT USER STATE==============
 #return 0 if enable, else 1
 get_state_admin_user(){
-    return $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9"
+    $mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9"
 }
 
 #================ DISABLE DEFAULT ADMIN USER ===================
