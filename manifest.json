@@ -72,15 +72,6 @@
                 },
                 "choices": ["fr", "en"],
                 "default": "en"
-            },
-             {
-                "name": "accept_licence_non-free",
-		        "type": "boolean",
-                "ask": {
-                    "en": "This app can use non-free repo to install snmp-mibs-downloader package (help on OID resultion), do you want install this package ?",
-                    "fr": "Cette application peut utiliser le repo non-free pour installer snmp-mibs-downloader (qui aide à la résolution des OID), souhaitez vous installez ce packet ?"
-                },
-                "default": false
             }
         ]
     }
