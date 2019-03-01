@@ -51,18 +51,12 @@ if [ -z "$final_path" ]; then
 	ynh_app_setting_set "$app" final_path "$final_path"
 fi
 
+export mysqlconn="mysql -u $db_user -p $db_pwd $db_name"
+
 #=================================================
 # Enable default admin temporaly
 #=================================================
-haveDefaultAdminDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
-
-if [ "$haveDefaultAdminDisabled" -eq 1 ] ;then
-    ynh_print_info "Enable default admin"
-    #enable default admin temporaly
-    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
-else
-    ynh_print_info "default admin already enabled"
-fi
+enable_admin_user
 
 #=================================================
 # Import Yunohost template
@@ -145,33 +139,14 @@ fi
 #=================================================
 # Disable default admin for security issue
 #=================================================
-haveDefaultAdminDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9")
-
-if [ "$haveDefaultAdminDisabled" -eq 0 ] ;then
-    ynh_print_info "Disable default admin"
-    #disable default admin 
-    lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
-    lastid=$((lastid + 1 ))
-    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
-else
-    ynh_print_info "default admin already disabled"
-fi
-
+ynh_print_info "disable default admin"
+disable_admin_user
 
 #=================================================
 # Disable default guest for security issue
 #=================================================
-haveDefaultGuestDisabled=$(mysql -BN -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9")
-
-if [ "$haveDefaultGuestDisabled" -eq 0 ] ;then
-    echo "Disable default guest"
-    #disable default guest 
-    lastid=$(mysql -u"$db_user" -p"$db_pwd" "$db_name" -BN -e "SELECT max(id) from \`users_groups\`")
-    lastid=$((lastid + 1 ))
-    mysql -u"$db_user" -p"$db_pwd" "$db_name" -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
-else
-    echo "default guest already disabled"
-fi
+ynh_print_info "disable default guest"
+disable_guest_user
 
 #=================================================
 # CHECK THE PATH
