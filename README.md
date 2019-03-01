@@ -32,14 +32,16 @@ Do not change admin password.
 * The Zabbix server port is not opened by default for external monitoring (active agent).
 * Install or update apply a template yunohost on the host "Zabbix-server" (127.0.0.1) for basic monitoring for Yunohost.
 * If you want more information about Yunohost in the template, please open an issue on git.
+* This package install non-free (pinning for just snmp-mibs-downloader) and Zabbix repo (for last Zabbix stable version).
 
 **More information on the documentation page:**  
 https://yunohost.org/packaging_apps
 
 ## LICENSE
 GNU AFFERO GENERAL PUBLIC LICENSE Version 3
-
 got to https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/LICENSE
+
+snmp-mibs-downloader use this licence : https://metadata.ftp-master.debian.org/changelogs/non-free/s/snmp-mibs-downloader/snmp-mibs-downloader_1.1+nmu1_copyright
 
 ## Links
 
