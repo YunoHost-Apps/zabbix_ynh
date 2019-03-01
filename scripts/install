@@ -175,7 +175,7 @@ do
     fi
 done
 
-disable_guest_user()
+disable_guest_user
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -398,7 +398,7 @@ link_template
 #=================================================
 # disable default admin 
 #=================================================
-disable_admin_user()
+disable_admin_user
 
 #=================================================
 # SETUP SSOWAT
