@@ -96,15 +96,22 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
-ynh_print_info "Install dependencies"
+ynh_print_info "Install Zabbix repository"
 
 wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 
+ynh_print_info "Install non-free repository with pinning"
 if [ $nonfree ];then 
     echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
+    nonfreefilerepo=$(find /var/cache/yunohost/ -name "non-free_policy")
+    packagenonfreefilerepo=$(find /var/cache/yunohost/ -name "snmp-mibs-downloader_nonfree")
+    cp $nonfreefilerepo /etc/apt/preferences.d/
+    cp $packagenonfreefilerepo /etc/apt/preferences.d/
 fi
+
+ynh_print_info "Update and install dependencies"
 ynh_package_update
 if [ $nonfree ];then 
     ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype jq
