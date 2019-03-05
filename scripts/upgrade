@@ -95,14 +95,14 @@ ynh_package_update
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
 
-zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Installed: \K(.*)")
-zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | grep -Po "Candidate: \K(.*)")
+zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | sed -n '2p' | grep -Po ".*: \K(.*)")
+zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | sed -n '3p' | grep -Po ".*: \K(.*)")
 
-zabbixFrontendInstalledVersion=$(apt-cache policy zabbix-frontend-php | grep -Po "Installed: \K(.*)")
-zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | grep -Po "Candidate: \K(.*)")
+zabbixFrontendInstalledVersion=$(apt-cache policy zabbix-frontend-php | sed -n '2p' | grep -Po ".*: \K(.*)")
+zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | sed -n '3p' | grep -Po ".*: \K(.*)")
 
-zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | grep -Po "Installed: \K(.*)")
-zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | grep -Po "Candidate: \K(.*)")
+zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | sed -n '2p' | grep -Po ".*: \K(.*)")
+zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | sed -n '3p' | grep -Po ".*: \K(.*)")
 
 if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
 then
