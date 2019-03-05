@@ -1,0 +1,4 @@
+Explanation: Disable packages from non-free tree by default (Zabbix app install with non-free option enable)
+Package: *
+Pin: release o=Debian,a=stable,l=Debian,c=non-free
+Pin-Priority: -1
