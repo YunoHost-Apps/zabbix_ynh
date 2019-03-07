@@ -24,7 +24,6 @@ export path_url="$YNH_APP_ARG_PATH"
 admin="$YNH_APP_ARG_ADMIN"
 is_public="$YNH_APP_ARG_IS_PUBLIC"
 language="$YNH_APP_ARG_LANGUAGE"
-nonfree="$YNH_APP_ARG_ADD_NONFREE"
 
 ### If it's a multi-instance app, meaning it can be installed several times independently
 ### The id of the app as stated in the manifest is available as $YNH_APP_ID
@@ -102,23 +101,9 @@ wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbi
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 
-ynh_print_info "Install non-free repository with pinning"
-if [ $nonfree ];then 
-    echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
-    nonfreefilerepo=$(find /var/cache/yunohost/ -name "non-free_policy")
-    packagenonfreefilerepo=$(find /var/cache/yunohost/ -name "snmp-mibs-downloader_nonfree")
-    cp $nonfreefilerepo /etc/apt/preferences.d/
-    cp $packagenonfreefilerepo /etc/apt/preferences.d/
-fi
-
 ynh_print_info "Update and install dependencies"
 ynh_package_update
-if [ $nonfree ];then 
-    ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype jq
-else
-    ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq
-
-fi
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq
 
 ynh_package_install zabbix-server-mysql zabbix-agent zabbix-frontend-php
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
