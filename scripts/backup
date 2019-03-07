@@ -29,6 +29,8 @@ app="zabbix"
 final_path=$(ynh_app_setting_get $app final_path)
 domain=$(ynh_app_setting_get $app domain)
 db_name=$(ynh_app_setting_get $app db_name)
+nonfree=$(ynh_app_setting_get $app nonfree)
+
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -69,4 +71,8 @@ ynh_mysql_dump_db "$db_name" > db.sql
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
+if [ $nonfree ];then
+    ynh_backup /etc/apt/sources.list.d/non-free.list
+    ynh_backup /etc/apt/preferences.d
+fi
 
