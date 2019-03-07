@@ -22,7 +22,7 @@ get_state_guest_user(){
 #================ DISABLE DEFAULT ZABBIX USER GUEST ===================
 
 disable_guest_user(){
-    if [ get_state_guest_user = "0" ];then
+    if [ $(get_state_guest_user) = "0" ];then
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$(("$lastid" + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
@@ -37,7 +37,7 @@ get_state_admin_user(){
 
 #================ DISABLE DEFAULT ADMIN USER ===================
 disable_admin_user(){
-    if [ get_state_admin_user = "0" ] ;then
+    if [ $(get_state_admin_user) = "0" ] ;then
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$((lastid + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
@@ -50,7 +50,7 @@ disable_admin_user(){
 }
 
 enable_admin_user(){
-    if [ get_state_admin_user = "1" ] ;then
+    if [ $(get_state_admin_user) = "1" ] ;then
         ynh_print_info "Enable default admin"
         #enable default admin temporaly
         $mysqlconn -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
