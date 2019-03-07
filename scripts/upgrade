@@ -91,7 +91,8 @@ if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist
     sed -i.$(date "+%m%d%y") 's/ snmp-mibs-downloader,//g' /var/lib/dpkg/status
     DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader
     if [ -f /etc/apt/sources.list.d/non-free.list ];then
-    ynh_secure_remove /etc/apt/sources.list.d/non-free.list
+        ynh_secure_remove /etc/apt/sources.list.d/non-free.list
+    fi
 fi
 
 #=================================================
