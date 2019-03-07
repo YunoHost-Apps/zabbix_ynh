@@ -50,7 +50,7 @@ if [ -z "$final_path" ]; then
 	ynh_app_setting_set "$app" final_path "$final_path"
 fi
 
-export mysqlconn="mysql -u $db_user -p $db_pwd $db_name"
+export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
 
 #=================================================
 # Enable default admin temporaly
