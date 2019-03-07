@@ -7,7 +7,7 @@
         "fr": "Zabbix pour Yunohost"
     },
     "version": "2.0",
-    "url": "https://framagit.org/Mickael-Martin/zabbix_ynh",
+    "url": "https://www.zabbix.com",
     "license": "free",
     "maintainer": {
         "name": "Mickael Martin",
@@ -61,10 +61,11 @@
                     "en": "Is it a public application?",
                     "fr": "Est-ce une application publique ?"
                 },
-                "default": true
+                "default": false
             },
             {
                 "name": "language",
+		        "type": "string",
                 "ask": {
                     "en": "Choose the application language",
                     "fr": "Choisissez la langue de l'application"
