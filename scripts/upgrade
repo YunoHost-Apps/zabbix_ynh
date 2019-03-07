@@ -89,7 +89,7 @@ nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-fre
 if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ] ;then 
 	ynh_print_info "Removing snmp-mibs-downloader (non-free package)"
     sed -i.$(date "+%m%d%y") 's/ snmp-mibs-downloader,//g' /var/lib/dpkg/status
-    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader
+    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
     if [ -f /etc/apt/sources.list.d/non-free.list ];then
         ynh_secure_remove /etc/apt/sources.list.d/non-free.list
     fi
