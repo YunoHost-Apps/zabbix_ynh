@@ -72,19 +72,6 @@
                 },
                 "choices": ["fr", "en"],
                 "default": "en"
-            },
-            {
-                "name": "add_nonfree",
-                "type": "boolean",
-                "ask": {
-                    "en": "This application can install snmp-mibs-downloader from non-free repository to resolve many OID by default, do you want install this package ?",
-                    "fr": "Cette application peut installer snmp-mibs-downloader depuis le dépôt non-free afin de resoudre de nombreux OID par defaut, souhaitez vous installer ce package ?"
-                },
-                "help": { 
-                    "en" : "Zabbix works without problem without the package snmp-mibs-downloader, however it help to resolve OIDs to comprehensive strings. If you make the choice of installing it, the pinning method is used",
-                    "fr" : "Zabbix peut fonctionner sans le paquet snmp-mibs-downloader, cependant il aide à faire la résolution des OIDs en chaines de caractères compréhensibles. Si vous faites le choix de l'installer, il sera installé par méthode 'pinning'"
-                },
-                "default": false
             }
         ]
     }
