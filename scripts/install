@@ -7,6 +7,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+curl -o /usr/share/yunohost/helpers.d/ynh_add_secure_repos__2 https://raw.githubusercontent.com/YunoHost-Apps/Experimental_helpers/master/ynh_add_secure_repos/ynh_add_secure_repos__2 
 
 #=================================================
 # MANAGE SCRIPT FAILURE
