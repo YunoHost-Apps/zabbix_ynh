@@ -96,13 +96,9 @@ ynh_app_setting_set "$app" language "$language"
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_print_info "Install Zabbix repository"
-
-wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
-dpkg -i zabbix-release_*.deb
-rm zabbix-release_*.deb
+ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.0/debian" --key="https://repo.zabbix.com/zabbix/4.0/debian/dists/stretch/Release.gpg"
 
 ynh_print_info "Update and install dependencies"
-ynh_package_update
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq
 
 ynh_package_install zabbix-server-mysql zabbix-agent zabbix-frontend-php
