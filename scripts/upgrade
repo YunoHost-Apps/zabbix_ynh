@@ -53,6 +53,14 @@ fi
 export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
 
 #=================================================
+# DISABLED SSOWAT
+#=================================================
+ynh_print_info "disable SSOWAT temporaly"
+ynh_app_setting_set "$app" unprotected_uris "/"
+systemctl reload nginx
+yunohost app ssowatconf
+
+#=================================================
 # Enable default admin temporaly
 #=================================================
 enable_admin_user
