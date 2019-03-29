@@ -22,21 +22,11 @@ db_user=$db_name
 #final_path=$(ynh_app_setting_get "$app" final_path) #not used
 
 #=================================================
-# STANDARD REMOVE
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-
-# Remove the dedicated systemd config
-ynh_remove_systemd_config
-
-yunohost service remove snmpd
-
-#=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
-
 # Remove a service from the admin panel, added by `yunohost service add`
+
+yunohost service remove snmpd
 yunohost service remove zabbix-server
 yunohost service remove zabbix-agent
 
@@ -53,18 +43,17 @@ systemctl reload php7.0-fpm
 # REMOVE DEPENDENCIES
 #=================================================
 
-# Remove metapackage and its dependencies
-#ynh_remove_app_dependencies
-
 timeout 5 systemctl stop zabbix-server || killall zabbix_server
 systemctl disable zabbix-server
 killall zabbix_server
 
 timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
 systemctl disable zabbix-agent
+killall zabbix_agentd
 
 
-ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php zabbix-release zabbix-ynh-deps zabbix-agent
+ynh_remove_app_dependencies
+
 #remove symlink
 rm /var/www/zabbix
 
@@ -122,6 +111,18 @@ ynh_secure_remove "/run/zabbix"
 
 # Remove the sudoers file
 ynh_secure_remove "/etc/sudoers.d/zabbix"
+
+#REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
+nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
+if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ] ;then 
+	ynh_print_info "Removing snmp-mibs-downloader (non-free package)"
+    sed -i.$(date "+%m%d%y") 's/ snmp-mibs-downloader,//g' /var/lib/dpkg/status
+    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
+    if [ -f /etc/apt/sources.list.d/non-free.list ];then
+        ynh_secure_remove /etc/apt/sources.list.d/non-free.list
+    fi
+fi
+
 
 #=================================================
 # GENERIC FINALIZATION
