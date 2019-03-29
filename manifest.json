@@ -6,7 +6,7 @@
         "en": "YunoHost port for Zabbix",
         "fr": "Zabbix pour Yunohost"
     },
-    "version": "2.0.0",
+    "version": "1.2.1",
     "url": "https://framagit.org/Mickael-Martin/zabbix_ynh",
     "license": "free",
     "maintainer": {
@@ -15,7 +15,7 @@
         "url": "http://www.librement-votre.fr"
     },
     "requirements": {
-        "yunohost": ">= 3.4.2"
+        "yunohost": ">= 2.7.14"
     },
     "multi_instance": false,
     "services": [
@@ -59,10 +59,6 @@
                 "ask": {
                     "en": "Is it a public application?",
                     "fr": "Est-ce une application publique ?"
-                },
-                "help": {
-                    "en": "A public app doesn't need SSO auth : the auth page is opened for everyone",
-                    "fr": "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte au monde entier"
                 },
                 "default": true
             },
