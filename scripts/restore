@@ -57,23 +57,10 @@ wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbi
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 
-ynh_print_info "Install non-free repository with pinning"
-if [ $nonfree ];then 
-    ynh_restore_file "/etc/apt/sources.list.d/non-free.list"
-    ynh_restore_file "/etc/apt/preferences.d"
-
-fi
-
 ynh_print_info "Update and install dependencies"
 ynh_package_update
-if [ $nonfree ];then 
-    ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype jq
-else
-    ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 
-fi
-
-ynh_package_install zabbix-server-mysql zabbix-agent zabbix-frontend-php
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
 sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
@@ -106,18 +93,6 @@ ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 # Restore sudo file
 ynh_restore_file "/etc/sudoers.d/zabbix"
-
-# Reload SSOwat config
-yunohost app ssowatconf
-
-# Reload Nginx
-systemctl reload nginx
-
-# Remove the public access
-if [ "$is_public" -eq 0 ]
-then
-	ynh_app_setting_delete $app skipped_uris
-fi
 
 #=================================================
 # Restore db
@@ -179,4 +154,5 @@ fi
 systemctl reload nginx
 systemctl reload php7.0-fpm
 
-
+# Reload SSOwat config
+yunohost app ssowatconf
