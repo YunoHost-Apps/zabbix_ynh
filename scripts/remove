@@ -36,10 +36,6 @@ yunohost service remove zabbix-agent
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
-systemctl reload php7.0-fpm
-
-#sometimes php7.0-fpm crash on removing conf...
-systemctl start php7.0-fpm
 
 #=================================================
 # REMOVE DEPENDENCIES
@@ -52,7 +48,6 @@ killall zabbix_server
 timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
 systemctl disable zabbix-agent
 killall zabbix_agentd
-
 
 ynh_remove_app_dependencies
 
@@ -69,12 +64,6 @@ ynh_mysql_remove_db "$db_user" "$db_name"
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-
-systemctl reload nginx
 
 #=================================================
 # REMOVE LOGROTATE CONFIGURATION
