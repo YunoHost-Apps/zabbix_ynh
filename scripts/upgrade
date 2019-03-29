@@ -155,7 +155,13 @@ then
 	    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
 	    
 	    rm -fr /tmp/zabbix*
-	   
+	    
+	    #test if zabbix server is started
+        check_proc_zabbixagent
+        
+        #test if zabbix agent is started
+        check_proc_zabbixserver
+
 	else
 		ynh_print_info "No update from repo ! (Already up to date)"
 	fi
