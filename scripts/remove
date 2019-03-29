@@ -36,8 +36,10 @@ yunohost service remove zabbix-agent
 
 # Remove the dedicated php-fpm config
 ynh_remove_fpm_config
-
 systemctl reload php7.0-fpm
+
+#sometimes php7.0-fpm crash on removing conf...
+systemctl start php7.0-fpm
 
 #=================================================
 # REMOVE DEPENDENCIES
@@ -53,9 +55,6 @@ killall zabbix_agentd
 
 
 ynh_remove_app_dependencies
-
-#remove symlink
-rm /var/www/zabbix
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
@@ -99,6 +98,9 @@ fi
 #=================================================
 # REMOVE THE CRON FILE
 #=================================================
+
+#remove symlink
+rm /var/www/zabbix
 
 # Remove a directory securely
 ynh_secure_remove "/etc/zabbix"
