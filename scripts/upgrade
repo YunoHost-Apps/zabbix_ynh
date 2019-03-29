@@ -156,6 +156,11 @@ then
 	    
 	    rm -fr /tmp/zabbix*
 	    
+	    #If needed.
+	    yunohost service add snmpd -d "Management of SNMP Daemon"
+        yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
+        yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
+	    
 	    #test if zabbix server is started
         check_proc_zabbixagent
         
