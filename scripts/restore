@@ -120,6 +120,10 @@ ynh_restore_file "/etc/zabbix"
 
 systemctl enable zabbix-server && systemctl start zabbix-server
 
+yunohost service add snmpd -d "Management of SNMP Daemon"
+yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
+yunohost service add zabbix-client -d "Management Zabbix client daemon : send informations about this host to the server"
+
 #=================================================
 # SETUP LOGROTATE
 #=================================================
