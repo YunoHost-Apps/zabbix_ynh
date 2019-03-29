@@ -72,9 +72,6 @@ rm $final_path/conf/zabbix.conf.php
 
 ynh_app_setting_set $app final_path $final_path
 
-yunohost service add zabbix-server -d "Management of Zabbix Server - Monitoring server"
-yunohost service add zabbix-agent -d "Management of Zabbix Agent"
-
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -118,6 +115,7 @@ chown -R www-data. /usr/share/zabbix
 
 ynh_restore_file "/etc/zabbix"
 
+# systemd and yunohost service management
 systemctl enable zabbix-server && systemctl start zabbix-server
 
 yunohost service add snmpd -d "Management of SNMP Daemon"
