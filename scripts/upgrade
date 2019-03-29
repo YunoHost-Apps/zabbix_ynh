@@ -146,8 +146,7 @@ then
 
         ynh_print_info "Update and install dependencies"
         ynh_package_update
-        ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq
-        ynh_package_install zabbix-server-mysql zabbix-agent zabbix-frontend-php
+        ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
         DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
 	    
