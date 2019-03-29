@@ -158,3 +158,9 @@ systemctl reload php7.0-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf
+
+#test if zabbix server is started
+check_proc_zabbixagent
+
+#test if zabbix agent is started
+check_proc_zabbixserver
