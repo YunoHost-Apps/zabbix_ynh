@@ -138,3 +138,23 @@ link_template(){
     fi
 
 }
+
+check_proc_zabbixserver(){
+    pgrep zabbix_server >/dev/null
+    if [ $? -eq 0 ];then
+        ynh_print_info "zabbix server is started !"
+    else
+        ynh_print_err "Zabbix Server not started, try to start it with the yunohost interface."
+        ynh_print_err "If Zabbix Server can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
+    fi
+}
+
+check_proc_zabbixagent(){
+   pgrep zabbix_agentd >/dev/null
+   if [ $? -eq 0 ];then
+       ynh_print_info "zabbix agent is started"
+   else
+       ynh_print_err "Zabbix agent not started, try to start it with the yunohost interface."
+       ynh_print_err "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
+   fi
+}
