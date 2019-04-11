@@ -49,6 +49,7 @@ timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
 systemctl disable zabbix-agent
 killall zabbix_agentd
 
+DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
 ynh_remove_app_dependencies
 
 #=================================================
