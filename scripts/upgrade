@@ -107,6 +107,7 @@ fi
 timeout_ok=$(grep -c "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null)
 if [ $timeout_ok -ne 1 ] ;then
     ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+    systemctl enable zabbix-agent && systemctl restart zabbix-agent
 fi    
 
 #=================================================
