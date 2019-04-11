@@ -302,6 +302,8 @@ sed -i "s/DBName=zabbix/DBName=$db_name/g"  /etc/zabbix/zabbix_server.conf
 sed -i "s/DBUser=zabbix/DBUser=$db_user/g"   /etc/zabbix/zabbix_server.conf
 sed -i "126a DBPassword=$db_pwd"  /etc/zabbix/zabbix_server.conf
 
+ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+
 systemctl enable zabbix-server && systemctl start zabbix-server
 
 #=================================================
