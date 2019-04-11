@@ -103,6 +103,12 @@ if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist
     fi
 fi
 
+#Patch timeout too short for zabbix agent if needed
+timeout_ok=$(grep -c "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null)
+if [ $timeout_ok -ne 1 ] ;then
+    ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+fi    
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
