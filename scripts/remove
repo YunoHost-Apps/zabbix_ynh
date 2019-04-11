@@ -52,6 +52,12 @@ killall zabbix_agentd
 DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
 ynh_remove_app_dependencies
 
+#force removing if ynh_remove_app_dependencies not work (old zabbix version)
+for zabbix_pkg in $(apt list --installed | grep -Po "\K(zabbix-.*)(?=/)")
+do
+    DEBIAN_FRONTEND=noninteractive apt purge --allow-change-held-packages "$zabbix_pkg" -y
+done
+
 #=================================================
 # REMOVE THE MYSQL DATABASE
 #=================================================
