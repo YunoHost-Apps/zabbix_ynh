@@ -14,7 +14,8 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="1:4.0.7-1+stretch"
+trustedversion="1:4.2.1-1+stretch"
+trustedVersionRepo="4.2-1+stretch"
 export domain=$(ynh_app_setting_get "$app" domain)
 export path_url=$(ynh_app_setting_get "$app" path)
 #admin=$(ynh_app_setting_get "$app" admin) #not used
@@ -118,6 +119,18 @@ ynh_package_update
 
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
+
+zabbixRepoInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".*: \K(.*)")
+
+if [ "$trustedVersionRepo" != "zabbixRepoInstalledVersion" ];then
+    DEBIAN_FRONTEND=noninteractive apt remove zabbix-release -y
+    ynh_print_info "Install New Zabbix repository"
+    
+    wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
+    dpkg -i zabbix-release_*.deb
+    rm zabbix-release_*.deb
+fi
+
 
 zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | sed -n '2p' | grep -Po ".*: \K(.*)")
 zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | sed -n '3p' | grep -Po ".*: \K(.*)")
