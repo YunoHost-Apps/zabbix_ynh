@@ -114,9 +114,6 @@ fi
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
-ynh_print_info "Check if new zabbix version is available on repo"
-ynh_package_update
-
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
 
@@ -131,6 +128,8 @@ if [ "$trustedVersionRepo" != "zabbixRepoInstalledVersion" ];then
     rm zabbix-release_*.deb
 fi
 
+ynh_print_info "Check if new zabbix version is available on repo"
+ynh_package_update
 
 zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | sed -n '2p' | grep -Po ".*: \K(.*)")
 zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | sed -n '3p' | grep -Po ".*: \K(.*)")
