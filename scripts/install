@@ -97,7 +97,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_print_info "Install Zabbix repository"
 
-wget -q "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
+wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
 
