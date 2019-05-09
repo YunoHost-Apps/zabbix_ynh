@@ -119,7 +119,7 @@ ynh_remove_logrotate
 
 zabbixRepoInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".*: \K(.*)")
 
-if [ "$trustedVersionRepo" != "zabbixRepoInstalledVersion" ];then
+if [ "$trustedVersionRepo" !=zabbixRepoInstalledVersion" ];then
     DEBIAN_FRONTEND=noninteractive apt remove zabbix-release -y
     ynh_print_info "Install New Zabbix repository"
     
