@@ -187,10 +187,12 @@ then
         check_proc_zabbixserver
 
 	else
-		ynh_print_info "No update from repo ! (Already up to date)"
+		#ynh_print_info "No update from repo ! (Already up to date)"
+		echo "No update from repo ! (Already up to date)"
 	fi
 else
-	ynh_print_info "No update from repo ! (Trusted version)"
+	#ynh_print_info "No update from repo ! (Trusted version)"
+	echo "No update from repo ! (Trusted version)"
 fi
 
 #=================================================
