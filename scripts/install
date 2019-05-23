@@ -72,7 +72,7 @@ ynh_app_setting_set $app language $language
 ### Use these lines if you have to open a port for the application
 ### `ynh_find_port` will find the first available port starting from the given port.
 ### If you're not using these lines:
-###		- Remove the section "CLOSE A PORT" in the remove script
+###             - Remove the section "CLOSE A PORT" in the remove script
 
 # Find a free port
 #port=$(ynh_find_port 8095)
@@ -87,13 +87,18 @@ ynh_app_setting_set $app language $language
 ### `ynh_install_app_dependencies` allows you to add any "apt" dependencies to the package.
 ### Those deb packages will be installed as dependencies of this package.
 ### If you're not using this helper:
-###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
-###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
-###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+###             - Remove the section "REMOVE DEPENDENCIES" in the remove script
+###             - As well as the section "REINSTALL DEPENDENCIES" in the restore script
+###             - And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
 wget "https://repo.zabbix.com/zabbix/4.0/debian/pool/main/z/zabbix-release/zabbix-release_4.0-2+stretch_all.deb"
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
+echo '
+Package: zabbix*
+Pin: origin "repo.zabbix.com"
+Pin-Priority: 999'>/etc/apt/preferences.d/zabbix-pin-999
+
 echo "deb http://deb.debian.org/debian stretch non-free" >/etc/apt/sources.list.d/non-free.list
 ynh_package_update
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd snmp-mibs-downloader libjs-prototype zabbix-server-mysql zabbix-agent
@@ -102,10 +107,10 @@ DEBIAN_FRONTEND=noninteractive apt-get -y download zabbix-frontend-php
 ar x *.deb
 tar xzf control.tar.gz
 sed -i 's/apache2 | httpd, //' control
-tar --ignore-failed-read -cvzf control.tar.gz {post,pre}{inst,rm} md5sums control
+tar --ignore-failed-read -cvzf control.tar.gz {post,pre}rm md5sums control
 ar rcs zabbix-frontend-php+stretch_all-noapache2.deb debian-binary control.tar.gz data.tar.xz
 
-dpkg -i zabbix-frontend-php+stretch_all-noapache2.deb
+dpkg -i --force-confmiss zabbix-frontend-php+stretch_all-noapache2.deb
 
 rm -fr zabbix-*.deb
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
@@ -114,7 +119,7 @@ sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
 locale-gen
 
 ln -s /usr/share/zabbix $final_path
-rm $final_path/conf/zabbix.conf.php
+#rm $final_path/conf/zabbix.conf.php
 
 #=================================================
 # CREATE A MYSQL DATABASE
@@ -125,9 +130,9 @@ rm $final_path/conf/zabbix.conf.php
 ### The password will be stored as 'mysqlpwd' into the app settings,
 ### and will be available as $db_pwd
 ### If you're not using these lines:
-###		- Remove the section "BACKUP THE MYSQL DATABASE" in the backup script
-###		- Remove also the section "REMOVE THE MYSQL DATABASE" in the remove script
-###		- As well as the section "RESTORE THE MYSQL DATABASE" in the restore script
+###             - Remove the section "BACKUP THE MYSQL DATABASE" in the backup script
+###             - Remove also the section "REMOVE THE MYSQL DATABASE" in the remove script
+###             - As well as the section "RESTORE THE MYSQL DATABASE" in the restore script
 
 db_name=$(ynh_sanitize_dbid $app)
 db_user=$db_name
@@ -155,8 +160,8 @@ mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\`, \`
 
 #users creation
 i=4
-for u in $(ynh_user_list); 
-do 
+for u in $(ynh_user_list);
+do
     if [ "$u" != "$admin" ];then
         surname=$(ynh_user_get_info $u lastname)
         name=$(ynh_user_get_info $u firstname)
@@ -165,12 +170,12 @@ do
     fi
 done
 
-#disable default admin 
+#disable default admin
 lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
 lastid=$(($lastid + 1 ))
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
 
-#disable default guest 
+#disable default guest
 lastid=$(mysql -u$db_user -p$db_pwd $db_name -BN -e "SELECT max(id) from \`users_groups\`")
 lastid=$(($lastid + 1 ))
 mysql -u$db_user -p$db_pwd $db_name -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
@@ -211,12 +216,12 @@ ynh_add_nginx_config
 ### You can remove it if your app doesn't use PHP.
 ### `ynh_add_fpm_config` will use the files conf/php-fpm.conf and conf/php-fpm.ini
 ### If you're not using these lines:
-###		- You can remove these files in conf/.
-###		- Remove the section "BACKUP THE PHP-FPM CONFIGURATION" in the backup script
-###		- Remove also the section "REMOVE PHP-FPM CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE PHP-FPM CONFIGURATION" in the restore script
-###		With the reload at the end of the script.
-###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
+###             - You can remove these files in conf/.
+###             - Remove the section "BACKUP THE PHP-FPM CONFIGURATION" in the backup script
+###             - Remove also the section "REMOVE PHP-FPM CONFIGURATION" in the remove script
+###             - As well as the section "RESTORE THE PHP-FPM CONFIGURATION" in the restore script
+###             With the reload at the end of the script.
+###             - And the section "PHP-FPM CONFIGURATION" in the upgrade script
 
 # Create a dedicated php-fpm config
 ynh_add_fpm_config
@@ -236,11 +241,11 @@ ynh_add_fpm_config
 ### Have a look at the app to be sure this app needs a systemd script.
 ### `ynh_systemd_config` will use the file conf/systemd.service
 ### If you're not using these lines:
-###		- You can remove those files in conf/.
-###		- Remove the section "BACKUP SYSTEMD" in the backup script
-###		- Remove also the section "STOP AND REMOVE SERVICE" in the remove script
-###		- As well as the section "RESTORE SYSTEMD" in the restore script
-###		- And the section "SETUP SYSTEMD" in the upgrade script
+###             - You can remove those files in conf/.
+###             - Remove the section "BACKUP SYSTEMD" in the backup script
+###             - Remove also the section "STOP AND REMOVE SERVICE" in the remove script
+###             - As well as the section "RESTORE SYSTEMD" in the restore script
+###             - And the section "SETUP SYSTEMD" in the upgrade script
 
 # Create a dedicated systemd config
 #ynh_add_systemd_config
@@ -272,7 +277,7 @@ systemctl reload nginx
 # Remove the public access
 if [ $is_public -eq 0 ]
 then
-	ynh_app_setting_delete $app skipped_uris
+        ynh_app_setting_delete $app skipped_uris
 fi
 
 #=================================================
@@ -300,8 +305,9 @@ global \$DB;
 \$ZBX_SERVER_PORT = '10051';
 \$ZBX_SERVER_NAME = 'zabbix-server';
 
-\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;">/usr/share/zabbix/conf/zabbix.conf.php
-
+\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;">/etc/zabbix/web/zabbix.conf.php
+ln /etc/zabbix/web/zabbix.conf.php /var/www/zabbix/conf/zabbix.conf.php
+chown www-data. /etc/zabbix/web/zabbix.conf.php
 chown -R www-data. /usr/share/zabbix
 
 sed -i "s/DBName=zabbix/DBName=$db_name/g"  /etc/zabbix/zabbix_server.conf
@@ -341,10 +347,10 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 ### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
 ### Use this helper only if there is effectively a log file for this app.
 ### If you're not using this helper:
-###		- Remove the section "BACKUP LOGROTATE" in the backup script
-###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
-###		- And the section "SETUP LOGROTATE" in the upgrade script
+###             - Remove the section "BACKUP LOGROTATE" in the backup script
+###             - Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
+###             - As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
+###             - And the section "SETUP LOGROTATE" in the upgrade script
 
 # Use logrotate to manage application logfile(s)
 #native logrotate because install officials packages.
@@ -358,9 +364,9 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 ### You'll find the service in the 'services' section of YunoHost admin panel.
 ### This CLI command would be useless if the app does not have any services (systemd or sysvinit)
 ### If you're not using these lines:
-###		- You can remove these files in conf/.
-###		- Remove the section "REMOVE SERVICE FROM ADMIN PANEL" in the remove script
-###		- As well as the section ADVERTISE SERVICE IN ADMIN PANEL" in the restore script
+###             - You can remove these files in conf/.
+###             - Remove the section "REMOVE SERVICE FROM ADMIN PANEL" in the remove script
+###             - As well as the section ADVERTISE SERVICE IN ADMIN PANEL" in the restore script
 
 #yunohost service add NAME_INIT.D --log "/var/log/FILE.log"
 
@@ -371,8 +377,8 @@ systemctl enable zabbix-server && systemctl start zabbix-server
 # Make app public if necessary
 if [ $is_public -eq 1 ]
 then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
+        # unprotected_uris allows SSO credentials to be passed anyway.
+        ynh_app_setting_set $app unprotected_uris "/"
 fi
 
 #=================================================
