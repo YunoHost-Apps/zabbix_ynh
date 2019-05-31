@@ -305,9 +305,8 @@ global \$DB;
 \$ZBX_SERVER_PORT = '10051';
 \$ZBX_SERVER_NAME = 'zabbix-server';
 
-\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;">/etc/zabbix/web/zabbix.conf.php
-ln /etc/zabbix/web/zabbix.conf.php /var/www/zabbix/conf/zabbix.conf.php
-chown www-data. /etc/zabbix/web/zabbix.conf.php
+\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;">/var/www/zabbix/conf/zabbix.conf.php
+chown www-data. /var/www/zabbix/conf/zabbix.conf.php
 chown -R www-data. /usr/share/zabbix
 
 sed -i "s/DBName=zabbix/DBName=$db_name/g"  /etc/zabbix/zabbix_server.conf
