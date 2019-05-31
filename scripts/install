@@ -119,7 +119,6 @@ sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
 locale-gen
 
 ln -s /usr/share/zabbix $final_path
-#rm $final_path/conf/zabbix.conf.php
 
 #=================================================
 # CREATE A MYSQL DATABASE
@@ -286,6 +285,13 @@ fi
 
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
+
+if [ -f /etc/zabbix/web/zabbix.conf.php ];then
+    rm -f /etc/zabbix/web/zabbix.conf.php
+fi
+if [ -f /var/www/zabbix/conf/zabbix.conf.php ];then
+    rm -f /var/www/zabbix/conf/zabbix.conf.php
+fi
 
 echo "<?php
 // Zabbix GUI configuration file.
