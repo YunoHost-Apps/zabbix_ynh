@@ -288,12 +288,12 @@ fi
 
 if [ -L '/var/www/zabbix/conf/zabbix.conf.php' ];then
     unlink /var/www/zabbix/conf/zabbix.conf.php
-    echo "supp /var/www/zabbix/conf/zabbix.conf.php"
+    echo "delete link /var/www/zabbix/conf/zabbix.conf.php"
 fi
 
 if [ -e '/etc/zabbix/web/zabbix.conf.php' ];then
     rm -f /etc/zabbix/web/zabbix.conf.php
-    echo "supp /etc/zabbix/web/zabbix.conf.php"
+    echo "delete file  /etc/zabbix/web/zabbix.conf.php"
 
 fi
 
