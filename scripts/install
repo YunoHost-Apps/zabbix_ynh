@@ -286,14 +286,12 @@ fi
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
 
-if [ -f '/var/www/zabbix/conf/zabbix.conf.php' ];then
-    ls /var/www/zabbix/conf/zabbix.conf.php
+if [ -L '/var/www/zabbix/conf/zabbix.conf.php' ];then
     unlink /var/www/zabbix/conf/zabbix.conf.php
     echo "supp /var/www/zabbix/conf/zabbix.conf.php"
 fi
 
-if [ -f '/etc/zabbix/web/zabbix.conf.php' ];then
-    ls /etc/zabbix/web/zabbix.conf.php
+if [ -e '/etc/zabbix/web/zabbix.conf.php' ];then
     rm -f /etc/zabbix/web/zabbix.conf.php
     echo "supp /etc/zabbix/web/zabbix.conf.php"
 
