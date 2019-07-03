@@ -71,11 +71,11 @@ import_template(){
     
     cp "$sudoUserPpath" /etc/sudoers.d/zabbix
     
-    if [ -d /etc/zabbix/zabbix_agentd.d/ ];then
-	    mv /etc/zabbix/zabbix_agentd.d/ /etc/zabbix/zabbix_agentd.conf.d/
+    if [ -d /etc/zabbix/zabbix_agentd.d ];then
+	    mv /etc/zabbix/zabbix_agentd.d /etc/zabbix/zabbix_agentd.conf.d
     fi
-    if [ ! -L /etc/zabbix/zabbix_agentd.d/ ];then
-    	ln -s /etc/zabbix/zabbix_agentd.d/ /etc/zabbix/zabbix_agentd.conf.d/
+    if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
+    	ln -s /etc/zabbix/zabbix_agentd.d /etc/zabbix/zabbix_agentd.conf.d
     fi
     
     cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
