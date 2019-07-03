@@ -68,7 +68,16 @@ import_template(){
     confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
     bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
     
+    
     cp "$sudoUserPpath" /etc/sudoers.d/zabbix
+    
+    if [ -d /etc/zabbix/zabbix_agentd.d/ ];then
+	    mv /etc/zabbix/zabbix_agentd.d/ /etc/zabbix/zabbix_agentd.conf.d/
+    fi
+    if [ ! -L /etc/zabbix/zabbix_agentd.d/ ];then
+    	ln -s /etc/zabbix/zabbix_agentd.d/ /etc/zabbix/zabbix_agentd.conf.d/
+    fi
+    
     cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
     cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
     chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
