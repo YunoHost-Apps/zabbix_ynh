@@ -75,7 +75,7 @@ import_template(){
 	    mv /etc/zabbix/zabbix_agentd.d /etc/zabbix/zabbix_agentd.conf.d
     fi
     if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
-    	ln -s /etc/zabbix/zabbix_agentd.d /etc/zabbix/zabbix_agentd.conf.d
+    	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
     fi
     
     cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
