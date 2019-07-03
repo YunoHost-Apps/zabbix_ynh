@@ -83,7 +83,7 @@ import_template(){
     chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
     
     systemctl restart zabbix-agent
-    curlOptions="-k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
+    curlOptions="--noproxy localhost -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
     
     curl -L $curlOptions \
                     --form "enter=Sign+in" \
