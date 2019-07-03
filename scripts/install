@@ -95,8 +95,10 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
-ynh_print_info "Install Zabbix repository"
+ynh_print_info "Remove Zabbix if already installed"
+apt purge zabbix* -y
 
+ynh_print_info "Install Zabbix repository"
 wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
 dpkg -i zabbix-release_*.deb
 rm zabbix-release_*.deb
