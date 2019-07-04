@@ -111,22 +111,19 @@ if [ $timeout_ok -ne 1 ] ;then
     systemctl enable zabbix-agent && systemctl restart zabbix-agent
 fi    
 
+#patch if zabbix-release installed
+if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
+    DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
+    ynh_add_extra_apt_repos__3_path=$(find /var/cache/yunohost/ -name "ynh_add_extra_apt_repos__3")
+    source "$ynh_add_extra_apt_repos__3_path"
+    ynh_install_extra_repo --repo=http://repo.zabbix.com/zabbix/4.2/debian --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999
+fi
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
-
-zabbixRepoInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".*: \K(.*)")
-
-if [ "$trustedVersionRepo" != "$zabbixRepoInstalledVersion" ];then
-    DEBIAN_FRONTEND=noninteractive apt remove zabbix-release -y
-    ynh_print_info "Install New Zabbix repository"
-    
-    wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
-    dpkg -i zabbix-release_*.deb
-    rm zabbix-release_*.deb
-fi
 
 ynh_print_info "Check if new zabbix version is available on repo"
 ynh_package_update
