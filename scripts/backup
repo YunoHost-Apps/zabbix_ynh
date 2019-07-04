@@ -67,12 +67,3 @@ ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
 #=================================================
 
 ynh_mysql_dump_db "$db_name" > db.sql
-
-#=================================================
-# SPECIFIC BACKUP
-#=================================================
-if [ $nonfree ];then
-    ynh_backup /etc/apt/sources.list.d/non-free.list
-    ynh_backup /etc/apt/preferences.d
-fi
-
