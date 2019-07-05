@@ -107,7 +107,7 @@ ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libapru
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
+ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
 ln -s /usr/share/zabbix "$final_path"
