@@ -52,10 +52,7 @@ nonfree=$(ynh_app_setting_get $app nonfree)
 #=================================================
 
 ynh_print_info "Install Zabbix repository"
-
-ynh_add_extra_apt_repos__3_path=$(find /var/cache/yunohost/ -name "ynh_add_extra_apt_repos__3")
-source "$ynh_add_extra_apt_repos__3_path"
-ynh_install_extra_repo --repo=http://repo.zabbix.com/zabbix/4.2/debian --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999
+install_zabbix_repo
 
 ynh_print_info "Update and install dependencies"
 ynh_package_update
