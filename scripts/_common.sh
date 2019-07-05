@@ -167,3 +167,9 @@ check_proc_zabbixagent(){
        ynh_print_err "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
    fi
 }
+
+install_zabbix_repo(){
+    ynh_add_extra_apt_repos__3_path=$(find /var/cache/yunohost/ -name "ynh_add_extra_apt_repos__3")
+    source "$ynh_add_extra_apt_repos__3_path"
+    ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.2/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix 
+}
