@@ -14,8 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="1:4.2.1-1+stretch"
-trustedVersionRepo="4.2-1+stretch"
+trustedversion="1:4.2.4-1+stretch"
 export domain=$(ynh_app_setting_get "$app" domain)
 export path_url=$(ynh_app_setting_get "$app" path)
 #admin=$(ynh_app_setting_get "$app" admin) #not used
@@ -97,7 +96,9 @@ path_url=$(ynh_normalize_url_path "$path_url")
 nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
 if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ] ;then 
 	ynh_print_info "Removing snmp-mibs-downloader (non-free package)"
-    sed -i.$(date "+%m%d%y") 's/ snmp-mibs-downloader,//g' /var/lib/dpkg/status
+	#want backup file , cannot use ynh_replace_string 
+	cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
+    ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
     DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
     if [ -f /etc/apt/sources.list.d/non-free.list ];then
         ynh_secure_remove /etc/apt/sources.list.d/non-free.list
@@ -111,22 +112,17 @@ if [ $timeout_ok -ne 1 ] ;then
     systemctl enable zabbix-agent && systemctl restart zabbix-agent
 fi    
 
+#patch if zabbix-release installed
+if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
+    DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
+    install_zabbix_repo
+fi
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
-
-zabbixRepoInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".*: \K(.*)")
-
-if [ "$trustedVersionRepo" != "$zabbixRepoInstalledVersion" ];then
-    DEBIAN_FRONTEND=noninteractive apt remove zabbix-release -y
-    ynh_print_info "Install New Zabbix repository"
-    
-    wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
-    dpkg -i zabbix-release_*.deb
-    rm zabbix-release_*.deb
-fi
 
 ynh_print_info "Check if new zabbix version is available on repo"
 ynh_package_update

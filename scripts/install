@@ -97,11 +97,10 @@ ynh_app_setting_set "$app" language "$language"
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_print_info "Remove Zabbix if already installed"
 apt purge zabbix* -y
+rm -fr /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_print_info "Install Zabbix repository"
-wget -q "https://repo.zabbix.com/zabbix/4.2/debian/pool/main/z/zabbix-release/zabbix-release_4.2-1%2Bstretch_all.deb"
-dpkg -i zabbix-release_*.deb
-rm zabbix-release_*.deb
+install_zabbix_repo
 
 ynh_print_info "Update and install dependencies"
 #ynh_package_update no need cause ynh_install_app_dependencies after
@@ -109,7 +108,7 @@ ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libapru
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
 
-sed -i "s/# fr_FR.UTF-8 UTF-8/fr_FR.UTF-8 UTF-8/g" /etc/locale.gen
+ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
 ln -s /usr/share/zabbix "$final_path"
@@ -277,32 +276,17 @@ systemctl reload nginx
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
 ynh_print_info "Generate zabbix config files"
-
-echo "<?php
-// Zabbix GUI configuration file.
-global \$DB;
-
-\$DB['TYPE']     = 'MYSQL';
-\$DB['SERVER']   = 'localhost';
-\$DB['PORT']     = '0';
-\$DB['DATABASE'] = '$db_name';
-\$DB['USER']     = '$db_user';
-\$DB['PASSWORD'] = '$db_pwd';
-
-// Schema name. Used for IBM DB2 and PostgreSQL.
-\$DB['SCHEMA'] = '';
-
-\$ZBX_SERVER      = 'localhost';
-\$ZBX_SERVER_PORT = '10051';
-\$ZBX_SERVER_NAME = 'zabbix-server';
-
-\$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;">/usr/share/zabbix/conf/zabbix.conf.php
+confServerPath=$(find /var/cache/yunohost/ -name "usr_share_zabbix_conf_zabbix.conf.php")
+cp "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
+ynh_replace_string --match_string="db_name" --replace_string="$db_name" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
+ynh_replace_string --match_string="db_user" --replace_string="$db_user" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
+ynh_replace_string --match_string="db_pwd" --replace_string="$db_pwd" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
 
 chown -R www-data. /usr/share/zabbix
 
-sed -i "s/DBName=zabbix/DBName=$db_name/g"  /etc/zabbix/zabbix_server.conf
-sed -i "s/DBUser=zabbix/DBUser=$db_user/g"   /etc/zabbix/zabbix_server.conf
-sed -i "126a DBPassword=$db_pwd"  /etc/zabbix/zabbix_server.conf
+ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
+ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
+ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
 
 ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
 
