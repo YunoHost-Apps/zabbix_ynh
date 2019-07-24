@@ -169,7 +169,7 @@ check_proc_zabbixagent(){
 }
 
 install_zabbix_repo(){
-    ynh_add_extra_apt_repos__3_path=$(find /var/cache/yunohost/ /etc/yunohost/apps/zabbix/ -name "ynh_add_extra_apt_repos__3")
+    ynh_add_extra_apt_repos__3_path=$(find /var/cache/yunohost/ /etc/yunohost/apps/zabbix/ -name "ynh_add_extra_apt_repos__3" | tail -n 1)
     source "$ynh_add_extra_apt_repos__3_path"
     ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.2/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix 
 }
