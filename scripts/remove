@@ -15,33 +15,20 @@ source /usr/share/yunohost/helpers
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-port=$(ynh_app_setting_get $app port)
-db_name=$(ynh_app_setting_get $app db_name)
+domain=$(ynh_app_setting_get "$app" domain)
+port=$(ynh_app_setting_get "$app" port)
+db_name=$(ynh_app_setting_get "$app" db_name)
 db_user=$db_name
-final_path=$(ynh_app_setting_get $app final_path)
-
-#=================================================
-# STANDARD REMOVE
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-
-# Remove the dedicated systemd config
-ynh_remove_systemd_config
-
-yunohost service remove snmpd
+#final_path=$(ynh_app_setting_get "$app" final_path) #not used
 
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
-
 # Remove a service from the admin panel, added by `yunohost service add`
-if yunohost service status | grep -q $app
-then
-	echo "Remove $app service"
-	yunohost service remove $app
-fi
+
+yunohost service remove snmpd
+yunohost service remove zabbix-server
+yunohost service remove zabbix-agent
 
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
@@ -54,27 +41,29 @@ ynh_remove_fpm_config
 # REMOVE DEPENDENCIES
 #=================================================
 
-# Remove metapackage and its dependencies
-#ynh_remove_app_dependencies
-
 timeout 5 systemctl stop zabbix-server || killall zabbix_server
 systemctl disable zabbix-server
 killall zabbix_server
 
 timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
 systemctl disable zabbix-agent
+killall zabbix_agentd
 
+DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
+ynh_remove_app_dependencies
 
-ynh_package_autopurge --allow-change-held-packages zabbix-server-mysql zabbix-frontend-php zabbix-release zabbix-ynh-deps zabbix-agent
-#remove symlink
-rm /var/www/zabbix
+#force removing if ynh_remove_app_dependencies not work (old zabbix version)
+for zabbix_pkg in $(apt list --installed | grep -Po "\K(zabbix-.*)(?=/)")
+do
+    DEBIAN_FRONTEND=noninteractive apt purge --allow-change-held-packages "$zabbix_pkg" -y
+done
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
 #=================================================
 
 # Remove a database if it exists, along with the associated user
-ynh_mysql_remove_db $db_user $db_name
+ynh_mysql_remove_db "$db_user" "$db_name"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
@@ -97,7 +86,7 @@ ynh_remove_logrotate
 if yunohost firewall list | grep -q "\- $port$"
 then
 	echo "Close port $port" >&2
-	yunohost firewall disallow TCP $port 2>&1
+	yunohost firewall disallow TCP "$port" 2>&1
 fi
 
 #=================================================
@@ -105,6 +94,9 @@ fi
 #=================================================
 # REMOVE THE CRON FILE
 #=================================================
+
+#remove symlink
+rm /var/www/zabbix
 
 # Remove a directory securely
 ynh_secure_remove "/etc/zabbix"
@@ -114,6 +106,22 @@ ynh_secure_remove "/var/log/zabbix"
 
 # Remove the pid/socket files
 ynh_secure_remove "/run/zabbix"
+
+# Remove the sudoers file
+ynh_secure_remove "/etc/sudoers.d/zabbix"
+
+#REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
+nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
+if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ] ;then 
+	ynh_print_info "Removing snmp-mibs-downloader (non-free package)"
+    cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
+    ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
+    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
+    if [ -f /etc/apt/sources.list.d/non-free.list ];then
+        ynh_secure_remove /etc/apt/sources.list.d/non-free.list
+    fi
+fi
+
 
 #=================================================
 # GENERIC FINALIZATION
