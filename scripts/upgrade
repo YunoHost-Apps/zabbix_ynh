@@ -139,7 +139,7 @@ zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | sed -n '3p' | grep
 if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
 then
 
-	if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" ] || [ "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" ] || [ "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
+	if [[ "$zabbixServerInstalledVersion" < "$zabbixServerCandidateVersion" ]] || [[ "$zabbixFrontendInstalledVersion" < "$zabbixFrontendCandidateVersion" ]] || [[ "$zabbixagentInstalledVersion" < "$zabbixagentCandidateVersion" ]] 
 	then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
