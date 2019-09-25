@@ -188,5 +188,6 @@ else
     ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
+ynh_add_nginx_config
 systemctl reload nginx
 yunohost app ssowatconf
