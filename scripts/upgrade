@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="1:4.2.6-1+stretch"
+trustedversion="4.2-2+stretch"
 export domain=$(ynh_app_setting_get "$app" domain)
 export path_url=$(ynh_app_setting_get "$app" path)
 #admin=$(ynh_app_setting_get "$app" admin) #not used
@@ -127,20 +127,10 @@ ynh_remove_logrotate
 ynh_print_info "Check if new zabbix version is available on repo"
 ynh_package_update
 
-zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | sed -n '3p' | grep -Po ".*: \K(.*)")
+zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
 
-zabbixFrontendInstalledVersion=$(apt-cache policy zabbix-frontend-php | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | sed -n '3p' | grep -Po ".*: \K(.*)")
-
-zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | sed -n '3p' | grep -Po ".*: \K(.*)")
-
-if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
+if [[ "$trustedversion" > "zabbixReleaseInstalledVersion" ]]
 then
-
-	if [[ "$zabbixServerInstalledVersion" < "$zabbixServerCandidateVersion" ]] || [[ "$zabbixFrontendInstalledVersion" < "$zabbixFrontendCandidateVersion" ]] || [[ "$zabbixagentInstalledVersion" < "$zabbixagentCandidateVersion" ]] 
-	then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 	    #=================================================
@@ -182,11 +172,8 @@ then
         #test if zabbix agent is started
         check_proc_zabbixserver
 
-	else
-		ynh_print_info "No update from repo ! (Already up to date)"
-	fi
 else
-	ynh_print_info "No update from repo ! (Trusted version)"
+	ynh_print_info "No repo update ! (Trusted version)"
 fi
 
 #=================================================
