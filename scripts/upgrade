@@ -129,7 +129,7 @@ ynh_package_update
 
 zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
 
-if [[ "$trustedversion" > "zabbixReleaseInstalledVersion" ]]
+if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]]
 then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
