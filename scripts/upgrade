@@ -15,6 +15,7 @@ source /usr/share/yunohost/helpers
 
 app=$YNH_APP_INSTANCE_NAME
 trustedversion="4.4-1+stretch"
+forceupdate=0
 export domain=$(ynh_app_setting_get "$app" domain)
 export path_url=$(ynh_app_setting_get "$app" path)
 #admin=$(ynh_app_setting_get "$app" admin) #not used
@@ -118,6 +119,12 @@ if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
     install_zabbix_repo
 fi
 
+#patch if zabbix-release has Candidate version but no Installed version
+if [ "$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)" | grep -e '(.*)' -c)" -eq 1 ];then
+    install_zabbix_repo
+    forceupdate=1
+fi
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
@@ -129,7 +136,7 @@ ynh_package_update
 
 zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
 
-if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]]
+if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]] || [[ "$forceupdate" == "1" ]]
 then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
