@@ -281,6 +281,7 @@ ynh_replace_string --match_string="db_name" --replace_string="$db_name" --target
 ynh_replace_string --match_string="db_user" --replace_string="$db_user" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
 ynh_replace_string --match_string="db_pwd" --replace_string="$db_pwd" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
 
+chattr +i /usr/share/zabbix/conf/zabbix.conf.php
 chown -R www-data. /usr/share/zabbix
 
 ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
