@@ -120,9 +120,11 @@ if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
 fi
 
 #patch if zabbix-release has Candidate version but no Installed version
-if [ "$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)" | grep -e '(.*)' -c)" -eq 1 ];then
-    install_zabbix_repo
-    forceupdate=1
+if [ -f "/etc/apt/sources.list.d/zabbix.list" ];then
+    if [ "$(grep -c "4.2" /etc/apt/sources.list.d/zabbix.list)" -eq 1 ];then
+        install_zabbix_repo
+        forceupdate=1
+    fi
 fi
 
 #=================================================
