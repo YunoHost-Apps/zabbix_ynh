@@ -153,6 +153,9 @@ then
 	    # Exit if an error occurs during the execution of the script
 	    ynh_abort_if_errors
 	    
+	    yunohost service stop zabbix-server
+	    yunohost service stop zabbix-agent
+	    
 	    cp -rp /etc/zabbix /tmp/
 	    cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
 	    
@@ -173,6 +176,9 @@ then
 	    yunohost service add snmpd -d "Management of SNMP Daemon"
         yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
         yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
+	    
+	    yunohost service start zabbix-server
+	    yunohost service start zabbix-agent
 	    
 	    #test if zabbix server is started
         check_proc_zabbixagent
