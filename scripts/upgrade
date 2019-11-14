@@ -148,7 +148,7 @@ then
 	    ynh_backup_before_upgrade
 	    ynh_clean_setup () {
 		# restore it if the upgrade fails
-		ynh_restore_upgradebackup
+		    ynh_restore_upgradebackup
 	    }
 	    # Exit if an error occurs during the execution of the script
 	    ynh_abort_if_errors
@@ -163,8 +163,7 @@ then
 
         ynh_print_info "Update zabbix via apt package"
         ynh_package_update
-        ynh_package_install zabbix-server-mysql zabbix-agent zabbix-frontend-php
-
+        ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 	    
 	    rm /usr/share/zabbix/conf/zabbix.conf.php
 	    cp -rpf /tmp/zabbix /etc/
