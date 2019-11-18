@@ -260,7 +260,7 @@ ynh_add_fpm_config
 #ynh_app_setting_set $app skipped_uris "/"
 
 # Reload SSOwat config
-yunohost app ssowatconf
+#yunohost app ssowatconf
 
 # Reload Nginx
 systemctl reload nginx
@@ -360,7 +360,7 @@ systemctl reload nginx
 systemctl reload php7.0-fpm
 
 # Reload SSOwat config
-yunohost app ssowatconf
+#yunohost app ssowatconf
 
 #=================================================
 # Import Yunohost template
@@ -395,7 +395,7 @@ systemctl reload nginx
 systemctl reload php7.0-fpm
 
 # Reload SSOwat config
-yunohost app ssowatconf
+#yunohost app ssowatconf
 
 #test if zabbix server is started
 check_proc_zabbixagent
