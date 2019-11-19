@@ -14,7 +14,8 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 app=$YNH_APP_INSTANCE_NAME
-trustedversion="1:4.2.4-1+stretch"
+trustedversion="4.4-1+stretch"
+forceupdate=0
 export domain=$(ynh_app_setting_get "$app" domain)
 export path_url=$(ynh_app_setting_get "$app" path)
 #admin=$(ynh_app_setting_get "$app" admin) #not used
@@ -118,6 +119,14 @@ if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
     install_zabbix_repo
 fi
 
+#patch if zabbix-release has Candidate version but no Installed version
+if [ -f "/etc/apt/sources.list.d/zabbix.list" ];then
+    if [ "$(grep -c "4.2" /etc/apt/sources.list.d/zabbix.list)" -eq 1 ];then
+        install_zabbix_repo
+        forceupdate=1
+    fi
+fi
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
@@ -127,20 +136,10 @@ ynh_remove_logrotate
 ynh_print_info "Check if new zabbix version is available on repo"
 ynh_package_update
 
-zabbixServerInstalledVersion=$(apt-cache policy zabbix-server-mysql | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixServerCandidateVersion=$(apt-cache policy zabbix-server-mysql | sed -n '3p' | grep -Po ".*: \K(.*)")
+zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
 
-zabbixFrontendInstalledVersion=$(apt-cache policy zabbix-frontend-php | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixFrontendCandidateVersion=$(apt-cache policy zabbix-frontend-php | sed -n '3p' | grep -Po ".*: \K(.*)")
-
-zabbixagentInstalledVersion=$(apt-cache policy zabbix-agent | sed -n '2p' | grep -Po ".*: \K(.*)")
-zabbixagentCandidateVersion=$(apt-cache policy zabbix-agent | sed -n '3p' | grep -Po ".*: \K(.*)")
-
-if [ "$trustedversion" == "$zabbixServerCandidateVersion" ]
+if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]] || [[ "$forceupdate" == "1" ]]
 then
-
-	if [ "$zabbixServerInstalledVersion" != "$zabbixServerCandidateVersion" ] || [ "$zabbixFrontendInstalledVersion" != "$zabbixFrontendCandidateVersion" ] || [ "$zabbixagentInstalledVersion" != "$zabbixagentCandidateVersion" ] 
-	then
 	    #=================================================
 	    # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 	    #=================================================
@@ -149,21 +148,22 @@ then
 	    ynh_backup_before_upgrade
 	    ynh_clean_setup () {
 		# restore it if the upgrade fails
-		ynh_restore_upgradebackup
+		    ynh_restore_upgradebackup
 	    }
 	    # Exit if an error occurs during the execution of the script
 	    ynh_abort_if_errors
+	    
+	    yunohost service stop zabbix-server
+	    yunohost service stop zabbix-agent
 	    
 	    cp -rp /etc/zabbix /tmp/
 	    cp -p /usr/share/zabbix/conf/zabbix.conf.php /tmp/
 	    
 	    DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
+	    ynh_package_remove zabbix-server-mysql zabbix-frontend-php
 
-        ynh_print_info "Update and install dependencies"
-        ynh_package_update
-        ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
-        DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
-
+        ynh_print_info "Update zabbix via apt package"
+        ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 	    
 	    rm /usr/share/zabbix/conf/zabbix.conf.php
 	    cp -rpf /tmp/zabbix /etc/
@@ -176,17 +176,17 @@ then
         yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
         yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
 	    
+	    yunohost service start zabbix-server
+	    yunohost service start zabbix-agent
+	    
 	    #test if zabbix server is started
         check_proc_zabbixagent
         
         #test if zabbix agent is started
         check_proc_zabbixserver
 
-	else
-		ynh_print_info "No update from repo ! (Already up to date)"
-	fi
 else
-	ynh_print_info "No update from repo ! (Trusted version)"
+	ynh_print_info "No repo update ! (Trusted version)"
 fi
 
 #=================================================
@@ -202,5 +202,6 @@ else
     ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
+ynh_add_nginx_config
 systemctl reload nginx
 yunohost app ssowatconf
