@@ -26,17 +26,8 @@
 		port_already_use=1
 		change_url=1
 ;;; Levels
-	Level 1=auto
-	Level 2=auto
-	Level 3=auto
 # https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/scripts/install#L141
-	Level 4=1
-	Level 5=auto
-	Level 6=1
-	Level 7=auto
-	Level 8=0
-	Level 9=0
-	Level 10=0
+        Level 5=auto
 ;;; Options
 Email=
 Notification=none
