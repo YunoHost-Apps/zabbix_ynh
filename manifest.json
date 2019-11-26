@@ -6,7 +6,7 @@
         "en": "A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.",
         "fr": "Un outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
     },
-    "version": "3.0",
+    "version": "3.1",
     "url": "https://www.zabbix.com",
     "license": "free",
     "maintainer": {
@@ -15,7 +15,7 @@
         "url": "http://www.librement-votre.fr"
     },
     "requirements": {
-        "yunohost": ">= 3.4.2"
+        "yunohost": ">= 3.6.5"
     },
     "multi_instance": false,
     "services": [
