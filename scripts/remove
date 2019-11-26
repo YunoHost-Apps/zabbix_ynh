@@ -95,6 +95,8 @@ fi
 # REMOVE THE CRON FILE
 #=================================================
 
+remove_zabbix_repo
+
 #remove symlink
 rm /var/www/zabbix
 
