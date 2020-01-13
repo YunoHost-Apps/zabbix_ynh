@@ -36,7 +36,7 @@ fi
 
 if [ "$1" == "yunohost.backups.ageoflastbackup" ] ;then
 	if [ $($yunobin backup list --output-as plain | wc -l) -ne 0 ] ;then
-		timestamp=$(date +"%d/%m/%Y %H:%M" -d"$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')")
+		timestamp=$(date +"%F %R" -d"$($yunobin backup list -i | tail -n 4 | head -n 1 | grep -Po 'created_at: \K(.*)')")
 		echo $(( ($(date +%s) - $(date -d"$timestamp" +%s))/(60*60*24) ))
 	else
 		echo "No backup detected"
