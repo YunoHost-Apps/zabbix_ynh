@@ -39,31 +39,42 @@ nonfree=$(ynh_app_setting_get $app nonfree)
 #=================================================
 
 #backup frontend config
+ynh_print_info "Backup $final_path conf/zabbix.conf.php"
 ynh_backup "$final_path/conf/zabbix.conf.php"
+ynh_print_info "Backup /etc/zabbix/web"
+ynh_backup "/etc/zabbix/web"
+#ynh_print_info "Backup /etc/zabbix/web/init.zabbix.conf.php.sh"
+#ynh_backup "/etc/zabbix/web/init.zabbix.conf.php.sh"
+ynh_print_info "Backup /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+ynh_backup "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 
 #backup server confif
+ynh_print_info "Backup /etc/zabbix/zabbix_server.conf"
 ynh_backup "/etc/zabbix/zabbix_server.conf"
 
 #backup agent config
+ynh_print_info "Backup /etc/zabbix/zabbix_agentd.conf"
 ynh_backup "/etc/zabbix/zabbix_agentd.conf"
+ynh_print_info "Backup /etc/zabbix/zabbix_agentd.d"
 ynh_backup "/etc/zabbix/zabbix_agentd.d"
 
 #backup sudo file
+ynh_print_info "Backup /etc/sudoers.d/zabbix"
 ynh_backup "/etc/sudoers.d/zabbix"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-
+ynh_print_info "Backup /etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # BACKUP THE PHP-FPM CONFIGURATION
 #=================================================
-
+ynh_print_info "Backup /etc/php/7.0/fpm/pool.d/$app.conf"
 ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
 
 #=================================================
 # BACKUP THE MYSQL DATABASE
 #=================================================
-
+ynh_print_info "Backup Zabbix database"
 ynh_mysql_dump_db "$db_name" > db.sql
