@@ -42,20 +42,23 @@ ynh_remove_fpm_config
 #=================================================
 
 timeout 5 systemctl stop zabbix-server || killall zabbix_server
-systemctl disable zabbix-server
+systemctl disable zabbix-server --quiet
 killall zabbix_server
 
 timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
-systemctl disable zabbix-agent
+systemctl disable zabbix-agent --quiet
 killall zabbix_agentd
 
-DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
+#Remove config file detection
+delete_initZabbixConf
+
+DEBIAN_FRONTEND=noninteractive apt-get purge zabbix-release -y
 ynh_remove_app_dependencies
 
 #force removing if ynh_remove_app_dependencies not work (old zabbix version)
 for zabbix_pkg in $(apt list --installed | grep -Po "\K(zabbix-.*)(?=/)")
 do
-    DEBIAN_FRONTEND=noninteractive apt purge --allow-change-held-packages "$zabbix_pkg" -y
+    DEBIAN_FRONTEND=noninteractive apt-get purge --allow-change-held-packages "$zabbix_pkg" -y
 done
 
 #=================================================
@@ -97,20 +100,20 @@ fi
 
 remove_zabbix_repo
 
-#remove symlink
-rm /var/www/zabbix
+if [ -d /var/www/zabbix ] ;then ynh_secure_remove /var/www/zabbix;fi
 
 # Remove a directory securely
-ynh_secure_remove "/etc/zabbix"
+if [ -d /etc/zabbix ] ;then ynh_secure_remove "/etc/zabbix";fi
 
 # Remove the log files
-ynh_secure_remove "/var/log/zabbix"
+if [ -d /var/log/zabbix ] ;then ynh_secure_remove "/var/log/zabbix";fi
 
 # Remove the pid/socket files
-ynh_secure_remove "/run/zabbix"
+if [ -d /run/zabbix ] ;then ynh_secure_remove "/run/zabbix";fi
 
 # Remove the sudoers file
-ynh_secure_remove "/etc/sudoers.d/zabbix"
+if [ -f /etc/sudoers.d/zabbix ] ;then ynh_secure_remove "/etc/sudoers.d/zabbix";fi
+
 
 #REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
 nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)

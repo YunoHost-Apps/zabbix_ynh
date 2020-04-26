@@ -96,7 +96,9 @@ db_user=$(ynh_app_setting_get $app db_user)
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
 
 ynh_mysql_setup_db "$db_user" "$db_name" "$db_pwd"
+convert_ZabbixDB
 ynh_mysql_connect_as "$db_name" "$db_pwd" "$db_name" < ./db.sql
+
 
 #=================================================
 # Restore configs files
@@ -110,13 +112,20 @@ ynh_restore_file "/usr/share/zabbix/conf/zabbix.conf.php"
 chown -R www-data. /usr/share/zabbix
 
 ynh_restore_file "/etc/zabbix"
-
-# systemd and yunohost service management
-systemctl enable zabbix-server && systemctl start zabbix-server
+ls -Rail "/etc/zabbix"
+#ynh_restore_file "/etc/zabbix/web"
+#ynh_restore_file "/etc/zabbix/web/init.zabbix.conf.php.sh"
+ynh_restore_file "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
+    	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
+fi
+systemctl enable zabbix-agent && systemctl restart zabbix-agent
+change_timeoutAgent
+systemctl enable zabbix-server && systemctl restart zabbix-server
 
 yunohost service add snmpd -d "Management of SNMP Daemon"
 yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
-yunohost service add zabbix-client -d "Management Zabbix client daemon : send informations about this host to the server"
+yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
 
 #=================================================
 # SETUP LOGROTATE

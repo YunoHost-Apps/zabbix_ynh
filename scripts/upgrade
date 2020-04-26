@@ -93,25 +93,8 @@ disable_guest_user
 # Normalize the URL path syntax
 path_url=$(ynh_normalize_url_path "$path_url")
 
-#REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
-nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
-if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ] ;then 
-	ynh_print_info "Removing snmp-mibs-downloader (non-free package)"
-	#want backup file , cannot use ynh_replace_string 
-	cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
-    ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
-    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
-    if [ -f /etc/apt/sources.list.d/non-free.list ];then
-        ynh_secure_remove /etc/apt/sources.list.d/non-free.list
-    fi
-fi
-
 #Patch timeout too short for zabbix agent if needed
-timeout_ok=$(grep -c "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null)
-if [ $timeout_ok -ne 1 ] ;then
-    ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
-    systemctl enable zabbix-agent && systemctl restart zabbix-agent
-fi    
+change_timeoutAgent  
 
 #patch if zabbix-release installed
 if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ];then
@@ -188,6 +171,35 @@ then
 else
 	ynh_print_info "No repo update ! (Trusted version)"
 fi
+
+#=================================================
+# INSTALL hook to verify if conf file is broken (after an update for example)
+#=================================================
+update_initZabbixConf
+
+#=================================================
+# Update db to utf8
+#=================================================
+convert_ZabbixDB
+
+#=================================================
+# Update php-fpm confi
+#=================================================
+ynh_print_info "Update php-fpm config"
+# Remove the dedicated php-fpm config
+ynh_remove_fpm_config
+# Create a dedicated php-fpm config
+ynh_add_fpm_config
+
+#=================================================
+# Update nginx config
+#=================================================
+ynh_print_info "Update nginx config"
+# Remove the dedicated nginx config
+ynh_remove_nginx_config
+# Create a dedicated nginx config
+ynh_add_nginx_config
+
 
 #=================================================
 # RE-ENABLE SSOWAT

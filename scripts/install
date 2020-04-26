@@ -57,7 +57,7 @@ ynh_webpath_register "$app" "$domain" "$path_url"
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_print_info "Get infos from manifest"
+ynh_script_progression --message="Get infos from manifest" -w 1
 
 ynh_app_setting_set "$app" domain "$domain"
 ynh_app_setting_set "$app" path "$path_url"
@@ -95,14 +95,14 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
-ynh_print_info "Remove Zabbix if already installed"
-apt purge zabbix* -y
+ynh_script_progression --message="Remove Zabbix if already installed" -w 1
+apt-get purge zabbix* -y
 rm -fr /var/cache/apt/archives/zabbix-server-mysql*
 
-ynh_print_info "Install Zabbix repository"
+ynh_script_progression --message="Install Zabbix repository" -w 3
 install_zabbix_repo
 
-ynh_print_info "Update and install dependencies"
+ynh_script_progression --message="Update and install dependencies" -w 5
 #ynh_package_update no need cause ynh_install_app_dependencies after
 ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
@@ -116,7 +116,7 @@ rm "$final_path/conf/zabbix.conf.php"
 #=================================================
 # CREATE A MYSQL DATABASE
 #=================================================
-ynh_print_info "Create and add default data in db"
+ynh_script_progression --message="Creation of database " -w 10
 
 ### Use these lines if you need a database for the application.
 ### `ynh_mysql_setup_db` will create a database, an associated user and a ramdom password.
@@ -133,10 +133,14 @@ db_user="$db_name"
 ynh_app_setting_set "$app" db_name "$db_name"
 ynh_app_setting_set "$app" db_user "$db_user"
 ynh_mysql_setup_db "$db_user" "$db_name"
-
 export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
+mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
+
+ynh_script_progression --message="Import default data in database..." -w 25
 
 zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
+
+convert_ZabbixDB
 
 #sso integration
 $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
@@ -180,7 +184,7 @@ ynh_app_setting_set "$app" final_path "$final_path"
 # Download, check integrity, uncompress and patch the source from app.src
 #ynh_setup_source "$final_path"
 
-ynh_print_info "Generate web config"
+ynh_script_progression --message="Generate web config" -w 5
 
 #=================================================
 # NGINX CONFIGURATION
@@ -274,7 +278,9 @@ systemctl reload nginx
 
 ### `ynh_replace_string` is used to replace a string in a file.
 ### (It's compatible with sed regular expressions syntax)
-ynh_print_info "Generate zabbix config files"
+
+ynh_script_progression -m "Generate zabbix config files" -w 5
+
 confServerPath=$(find /var/cache/yunohost/ -name "usr_share_zabbix_conf_zabbix.conf.php")
 cp "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
 ynh_replace_string --match_string="db_name" --replace_string="$db_name" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
@@ -287,10 +293,14 @@ ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_n
 ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
 ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
 
-ynh_replace_string --match_string="# Timeout=3" --replace_string="# Timeout=3\nTimeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+systemctl enable zabbix-agent --quiet && systemctl restart zabbix-agent
+change_timeoutAgent
+systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 
-systemctl enable zabbix-agent && systemctl restart zabbix-agent
-systemctl enable zabbix-server && systemctl restart zabbix-server
+#=================================================
+# INSTALL hook to verify if conf file is broken (after an update for example)
+#=================================================
+update_initZabbixConf
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -365,11 +375,13 @@ yunohost app ssowatconf
 #=================================================
 # Import Yunohost template
 #=================================================
+ynh_script_progression -m "Importing last template Yunohost in Zabbix" -w 5
 import_template
 
 #=================================================
 # Link Yunohost template to the ZAbbix Server Host
 #=================================================
+ynh_script_progression -m "Importing last template Yunohost in Zabbix" -w 5
 link_template
 
 #=================================================
@@ -402,3 +414,9 @@ check_proc_zabbixagent
 
 #test if zabbix agent is started
 check_proc_zabbixserver
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Installation of $app completed" --last

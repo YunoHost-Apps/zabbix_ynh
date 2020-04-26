@@ -179,3 +179,32 @@ remove_zabbix_repo(){
     source "$ynh_add_extra_apt_repos__3_path"
     ynh_remove_extra_repo --name=zabbix
 }
+
+update_initZabbixConf(){
+        if [ ! -d /etc/zabbix/web ] ;then mkdir -p /etc/zabbix/web ;fi
+        cp $(find /var/cache/yunohost/ -name "etc_zabbix_web_init.zabbix.conf.php.sh") /etc/zabbix/web/init.zabbix.conf.php.sh
+        chmod 700 /etc/zabbix/web/init.zabbix.conf.php.sh
+        cp $(find /var/cache/yunohost/ -name "etc_apt_apt.conf.d_100update_force_init_zabbix_frontend_config") /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config
+}
+delete_initZabbixConf(){
+        if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ] ; then ynh_secure_remove /etc/zabbix/web/init.zabbix.conf.php.sh;fi
+        if [ -f /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ] ;then ynh_secure_remove /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ;fi
+}
+   
+#Patch timeout too short for zabbix agent if needed
+change_timeoutAgent(){
+    timeout_ok=$(grep "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null || true;)
+    if [ -z "$timeout_ok" ] ;then
+        ynh_replace_string --match_string="# Timeout=3" --replace_string="Timeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+        grep -C 2 "Timeout" /etc/zabbix/zabbix_agentd.conf
+        systemctl restart zabbix-agent
+    fi    
+}
+
+convert_ZabbixDB(){
+    mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
+    for t in $(mysql -B -N --user=$db_user --password=$db_pwd  --database=$db_name -e "show tables";)
+    do
+        mysql --user=$db_user --password=$db_pwd --database=$db_name -e "ALTER TABLE $t CONVERT TO character set utf8 collate utf8_bin;"
+    done
+}
