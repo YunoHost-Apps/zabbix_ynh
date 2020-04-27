@@ -110,6 +110,12 @@ if [ -f "/etc/apt/sources.list.d/zabbix.list" ];then
     fi
 fi
 
+#patch to remove old zabbix-client service
+if [ ! -z "$(yunohost service status | grep zabbix-client)" ];then 
+    ynh_print_info "remove zabbix-client old service"
+    yunohost service remove zabbix-client
+fi
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
