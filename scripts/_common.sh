@@ -208,3 +208,13 @@ convert_ZabbixDB(){
         mysql --user=$db_user --password=$db_pwd --database=$db_name -e "ALTER TABLE $t CONVERT TO character set utf8 collate utf8_bin;"
     done
 }
+
+#if not already modified, add email media type with the yunohost server mail.
+set_mediatype_default_yunohost(){
+    set -x
+    if [ $($mysqlconn -BN -e "SELECT count(*) FROM media_type WHERE smtp_server LIKE 'mail.example.com' AND status=1;") -eq 1 ] ; then
+	    $mysqlconn -BN -e "UPDATE media_type SET smtp_server = 'localhost', smtp_helo = '"$domain"', smtp_email = 'zabbix@"$domain"', smtp_port = '587', status=0 , smtp_security=1 WHERE smtp_server LIKE 'mail.example.com' AND status=1;"
+	    ynh_print_info "Default Media type added !"
+    fi
+    set +x
+}

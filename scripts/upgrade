@@ -189,6 +189,11 @@ update_initZabbixConf
 convert_ZabbixDB
 
 #=================================================
+# Add settings for yunohost mail server
+#=================================================
+set_mediatype_default_yunohost
+
+#=================================================
 # Update php-fpm confi
 #=================================================
 ynh_print_info "Update php-fpm config"

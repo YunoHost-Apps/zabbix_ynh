@@ -172,6 +172,8 @@ done
 
 disable_guest_user
 
+set_mediatype_default_yunohost
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
