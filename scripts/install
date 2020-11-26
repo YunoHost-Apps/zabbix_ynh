@@ -284,7 +284,7 @@ systemctl reload nginx
 ynh_script_progression -m "Generate zabbix config files" -w 5
 
 confServerPath=$(find /var/cache/yunohost/ -name "usr_share_zabbix_conf_zabbix.conf.php")
-cp "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
+cp --remove-destination "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
 ynh_replace_string --match_string="db_name" --replace_string="$db_name" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
 ynh_replace_string --match_string="db_user" --replace_string="$db_user" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
 ynh_replace_string --match_string="db_pwd" --replace_string="$db_pwd" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
