@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-04-22T11:49:47Z</date>
+    <date>2020-11-26T12:48:35Z</date>
     <groups>
         <group>
             <name>Templates/Applications</name>
@@ -11,7 +11,9 @@
         <template>
             <template>Template Yunohost</template>
             <name>Template Yunohost</name>
-            <description>cat /etc/sudoers.d/zabbix &#13;
+            <description>Please check default value template macro.&#13;
+&#13;
+cat /etc/sudoers.d/zabbix &#13;
 zabbix    ALL=(ALL) NOPASSWD: /etc/zabbix/zabbix_agentd.d/yunohost.sh&#13;
 &#13;
 cat /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf &#13;
@@ -136,9 +138,11 @@ fi</description>
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{last()}&gt;=7</expression>
-                            <name>Yunhost hasn't backup since 7 days</name>
+                            <expression>{last()}&gt;={$YUNOHOST.BACKUP.MAXDAYS}</expression>
+                            <name>Yunhost hasn't backup since more than {$YUNOHOST.BACKUP.MAXDAYS} days</name>
+                            <opdata>{ITEM.LASTVALUE}</opdata>
                             <priority>HIGH</priority>
+                            <description>Please check https://yunohost.org/#/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
@@ -157,6 +161,7 @@ fi</description>
                             <expression>{last()}=0</expression>
                             <name>Yunhost hasn't backup yet</name>
                             <priority>HIGH</priority>
+                            <description>Please check https://yunohost.org/#/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
@@ -215,36 +220,36 @@ fi</description>
                             </master_item>
                             <trigger_prototypes>
                                 <trigger_prototype>
-                                    <expression>{last()}&lt; 1</expression>
-                                    <name>Remaining days for certificate {#DOMAIN} &lt; 1</name>
-                                    <opdata>{ITEM.LASTVALUE}</opdata>
-                                    <priority>DISASTER</priority>
-                                </trigger_prototype>
-                                <trigger_prototype>
-                                    <expression>{last()}&lt;7</expression>
-                                    <name>Remaining days for certificate {#DOMAIN} &lt; 7</name>
-                                    <opdata>{ITEM.LASTVALUE}</opdata>
-                                    <priority>HIGH</priority>
-                                    <dependencies>
-                                        <dependency>
-                                            <name>Remaining days for certificate {#DOMAIN} &lt; 1</name>
-                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt; 1</expression>
-                                        </dependency>
-                                    </dependencies>
-                                </trigger_prototype>
-                                <trigger_prototype>
-                                    <expression>{last()}&lt;30</expression>
-                                    <name>Remaining days for certificate {#DOMAIN} &lt; 30</name>
+                                    <expression>{last()}&lt;{$YUNOHOST.CERTIFICATE.REMAININGDAYS_AVG}</expression>
+                                    <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_AVG}</name>
                                     <opdata>{ITEM.LASTVALUE}</opdata>
                                     <priority>AVERAGE</priority>
                                     <dependencies>
                                         <dependency>
-                                            <name>Remaining days for certificate {#DOMAIN} &lt; 1</name>
-                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt; 1</expression>
+                                            <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</name>
+                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</expression>
                                         </dependency>
                                         <dependency>
-                                            <name>Remaining days for certificate {#DOMAIN} &lt; 7</name>
-                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt;7</expression>
+                                            <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_HIGH}</name>
+                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt;{$YUNOHOST.CERTIFICATE.REMAININGDAYS_HIGH}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</expression>
+                                    <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</name>
+                                    <opdata>{ITEM.LASTVALUE}</opdata>
+                                    <priority>DISASTER</priority>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&lt;{$YUNOHOST.CERTIFICATE.REMAININGDAYS_HIGH}</expression>
+                                    <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_HIGH}</name>
+                                    <opdata>{ITEM.LASTVALUE}</opdata>
+                                    <priority>HIGH</priority>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>Remaining days for certificate {#DOMAIN} &lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</name>
+                                            <expression>{Template Yunohost:yunohost.domain.cert.expiration[{#DOMAIN}].last()}&lt; {$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</expression>
                                         </dependency>
                                     </dependencies>
                                 </trigger_prototype>
@@ -470,6 +475,28 @@ fi</description>
                     </item_prototypes>
                 </discovery_rule>
             </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$YUNOHOST.BACKUP.MAXDAYS}</macro>
+                    <value>7</value>
+                    <description>The oldest backup age in day before trigger</description>
+                </macro>
+                <macro>
+                    <macro>{$YUNOHOST.CERTIFICATE.REMAININGDAYS_AVG}</macro>
+                    <value>14</value>
+                    <description>Expiration date in X days AVG trigger</description>
+                </macro>
+                <macro>
+                    <macro>{$YUNOHOST.CERTIFICATE.REMAININGDAYS_DISASTER}</macro>
+                    <value>1</value>
+                    <description>Expiration date in X days DISASTER trigger</description>
+                </macro>
+                <macro>
+                    <macro>{$YUNOHOST.CERTIFICATE.REMAININGDAYS_HIGH}</macro>
+                    <value>7</value>
+                    <description>Expiration date in X days HIGH trigger</description>
+                </macro>
+            </macros>
         </template>
     </templates>
     <triggers>
@@ -477,6 +504,7 @@ fi</description>
             <expression>{Template Yunohost:yunohost.migrations.lastavailable.last()}&lt;&gt;{Template Yunohost:yunohost.migrations.lastinstalled.last()}</expression>
             <name>Yunhost has migration in pending state</name>
             <priority>INFO</priority>
+            <description>Check Yunohost documentation and &quot;yunohost/admin/#/tools/migrations/ &quot; url or &quot;sudo yunohost tools migrations migrate&quot; command</description>
             <manual_close>YES</manual_close>
         </trigger>
     </triggers>
