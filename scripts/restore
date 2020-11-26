@@ -33,7 +33,7 @@ final_path="/var/www/zabbix"
 
 ### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
 ### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
-rm -fr $final_path
+ynh_secure_remove $final_path
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -64,7 +64,7 @@ ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.
 locale-gen
 
 ln -s /usr/share/zabbix /var/www/zabbix
-rm $final_path/conf/zabbix.conf.php
+ynh_secure_remove $final_path/conf/zabbix.conf.php
 
 ynh_app_setting_set $app final_path $final_path
 

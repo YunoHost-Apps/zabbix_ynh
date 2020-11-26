@@ -154,11 +154,11 @@ then
         ynh_print_info "Update zabbix via apt package"
         ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 	    
-	    rm /usr/share/zabbix/conf/zabbix.conf.php
+	    ynh_secure_remove /usr/share/zabbix/conf/zabbix.conf.php
 	    cp -rpf /tmp/zabbix /etc/
 	    cp -pf /tmp/zabbix.conf.php /usr/share/zabbix/conf/
 	    
-	    rm -fr /tmp/zabbix*
+	    ynh_secure_remove /tmp/zabbix*
 	    
 	    #If needed.
 	    yunohost service add snmpd -d "Management of SNMP Daemon"

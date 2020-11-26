@@ -97,7 +97,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_script_progression --message="Remove Zabbix if already installed" -w 1
 apt-get purge zabbix* -y
-rm -fr /var/cache/apt/archives/zabbix-server-mysql*
+ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_script_progression --message="Install Zabbix repository" -w 3
 install_zabbix_repo
@@ -111,7 +111,7 @@ ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.
 locale-gen
 
 ln -s /usr/share/zabbix "$final_path"
-rm "$final_path/conf/zabbix.conf.php"
+ynh_secure_remove "$final_path/conf/zabbix.conf.php"
 
 #=================================================
 # CREATE A MYSQL DATABASE
