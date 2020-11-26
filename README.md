@@ -41,7 +41,7 @@ GNU AFFERO GENERAL PUBLIC LICENSE Version 3
 got to https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/LICENSE
 
 ## Links
- * Report a bug: https://github.com/YunoHost-Apps/zabbix_ynh/issues
+ * Report a bug: https://framagit.org/Mickael-Martin/zabbix_ynh/issues
  * YunoHost website: https://yunohost.org/
  
  ---
