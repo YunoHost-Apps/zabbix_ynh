@@ -97,7 +97,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_script_progression --message="Remove Zabbix if already installed" -w 1
 apt-get purge zabbix* -y
-rm -fr /var/cache/apt/archives/zabbix-server-mysql*
+ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_script_progression --message="Install Zabbix repository" -w 3
 install_zabbix_repo
