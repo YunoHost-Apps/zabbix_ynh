@@ -13,7 +13,7 @@ Configuration at install. SSO works. You can add your users in a group in Zabbix
 
 ## Documentation
 
-See official documentation of Zabbix at https://www.zabbix.com/manuals(https://www.zabbix.com/manuals)
+See official documentation of Zabbix at [https://www.zabbix.com/manuals](https://www.zabbix.com/manuals)
 
 #### Multi-users support
 
