@@ -111,7 +111,9 @@ ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.
 locale-gen
 
 ln -s /usr/share/zabbix "$final_path"
-ynh_secure_remove "$final_path/conf/zabbix.conf.php"
+if [ -f "$final_path/conf/zabbix.conf.php" ];then
+    ynh_secure_remove "$final_path/conf/zabbix.conf.php"
+fi
 
 #=================================================
 # CREATE A MYSQL DATABASE
