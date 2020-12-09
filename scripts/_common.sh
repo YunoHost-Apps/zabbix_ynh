@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#=================================================
+# COMMON VARIABLES
+#=================================================
+
+pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.3 php7.3-bcmath ttf-dejavu-core php7.3-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+
 #Zabbix part
 #===================GET GUEST DEFAULT USER STATE==============
 #return 0 if enable, else 1
