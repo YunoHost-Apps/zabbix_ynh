@@ -119,9 +119,9 @@ ynh_restore_file "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_confi
 if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
     	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
 fi
-systemctl enable zabbix-agent && systemctl restart zabbix-agent
+systemctl enable --quiet zabbix-agent && systemctl restart zabbix-agent
 change_timeoutAgent
-systemctl enable zabbix-server && systemctl restart zabbix-server
+systemctl enable --quiet zabbix-server && systemctl restart zabbix-server
 
 yunohost service add snmpd -d "Management of SNMP Daemon"
 yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
