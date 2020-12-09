@@ -8,7 +8,7 @@
     },
     "version": "4.4~ynh1",
     "url": "https://www.zabbix.com",
-    "license": "free",
+    "license": " LGPL-2.0-or-later",
     "maintainer": {
         "name": "Mickael Martin",
         "email": "mickael@librement-votre.fr",
