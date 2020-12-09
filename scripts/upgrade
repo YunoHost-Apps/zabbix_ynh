@@ -86,13 +86,6 @@ disable_admin_user
 #=================================================
 disable_guest_user
 
-#=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path "$path_url")
-
 #Patch timeout too short for zabbix agent if needed
 change_timeoutAgent  
 
