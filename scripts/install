@@ -101,7 +101,7 @@ install_zabbix_repo
 
 ynh_script_progression --message="Update and install dependencies" -w 5
 #ynh_package_update no need cause ynh_install_app_dependencies after
-ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
+ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.3 php7.3-bcmath ttf-dejavu-core php7.3-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
@@ -368,7 +368,7 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 #=================================================
 
 systemctl reload nginx
-systemctl reload php7.0-fpm
+systemctl reload php7.3-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -405,7 +405,7 @@ fi
 #=================================================
 
 systemctl reload nginx
-systemctl reload php7.0-fpm
+systemctl reload php7.3-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf
