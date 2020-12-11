@@ -92,9 +92,14 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+
+pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only')
+if [ ! -z $pid ] ;then
+    ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check" -w 1
+    tail --pid=$pid -f /dev/null
+fi
+
 ynh_script_progression --message="Remove Zabbix if already installed" -w 1
-lsof /var/lib/dpkg/lock-frontend | tail -1 | awk '{print $2}'
-ps aux
 apt-get purge zabbix* -y
 if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
     ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
