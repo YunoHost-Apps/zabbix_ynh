@@ -93,6 +93,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 ynh_script_progression --message="Remove Zabbix if already installed" -w 1
+ps -p "$(lsof /var/lib/dpkg/lock-frontend | tail -1 | awk '{print $2}')"
 apt-get purge zabbix* -y
 if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
     ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
