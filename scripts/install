@@ -93,7 +93,7 @@ ynh_app_setting_set "$app" language "$language"
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
 
-pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only')
+pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
 if [ ! -z "$pid" ] ;then
     ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check" -w 1
     tail --pid=$pid -f /dev/null
