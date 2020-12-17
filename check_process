@@ -27,6 +27,7 @@
 		change_url=1
 ;;; Levels
 # https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/scripts/install#L156
+	Level 8=auto
 ;;; Options
 Email=
 Notification=none
