@@ -267,12 +267,6 @@ ynh_add_fpm_config
 ### so we're going to use curl to automatically fill the fields and submit the
 ### forms.
 
-# Set right permissions for curl install
-#chown -R www-data: $final_path
-
-# Set the app as temporarily public for curl call
-#ynh_app_setting_set $app skipped_uris "/"
-
 # Reload SSOwat config
 yunohost app ssowatconf
 
@@ -370,7 +364,7 @@ yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send info
 
 # Make app public if for importing template
 # unprotected_uris allows SSO credentials to be passed anyway
-ynh_app_setting_set "$app" unprotected_uris "/"
+#ynh_app_setting_set "$app" unprotected_uris "/"
 
 #=================================================
 # RELOAD NGINX AND PHP-FPM
@@ -403,12 +397,14 @@ disable_admin_user
 # SETUP SSOWAT
 #=================================================
 
-# Make app private if necessary
-if [ "$is_public" -eq 0 ]
+# Make app public if necessary
+if [ $is_public -eq 1 ]
 then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_delete "$app" unprotected_uris
+	# Everyone can access the app.
+	# The "main" permission is automatically created before the install script.
+	ynh_permission_update --permission "main" --add "visitors"
 fi
+
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
