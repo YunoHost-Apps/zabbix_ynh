@@ -62,7 +62,6 @@ ynh_script_progression --message="Get infos from manifest" -w 1
 ynh_app_setting_set "$app" domain "$domain"
 ynh_app_setting_set "$app" path "$path_url"
 ynh_app_setting_set "$app" admin "$admin"
-ynh_app_setting_set "$app" is_public "$is_public"
 ynh_app_setting_set "$app" language "$language"
 
 #=================================================
@@ -265,7 +264,7 @@ ynh_add_fpm_config
 #chown -R www-data: $final_path
 
 # Set the app as temporarily public for curl call
-#ynh_app_setting_set $app skipped_uris "/"
+
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -362,9 +361,9 @@ yunohost service add snmpd -d "Management of SNMP Daemon"
 yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
 yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
 
-# Make app public if for importing template
-# unprotected_uris allows SSO credentials to be passed anyway
-ynh_app_setting_set "$app" unprotected_uris "/"
+
+
+
 
 #=================================================
 # RELOAD NGINX AND PHP-FPM
@@ -397,11 +396,12 @@ disable_admin_user
 # SETUP SSOWAT
 #=================================================
 
-# Make app private if necessary
-if [ "$is_public" -eq 0 ]
+
+
+# Make app public if necessary
+if [ "$is_public" -eq 1 ]
 then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_delete "$app" unprotected_uris
+	ynh_permission_update --permission="main" --add="visitors"
 fi
 #=================================================
 # RELOAD NGINX AND PHP-FPM
