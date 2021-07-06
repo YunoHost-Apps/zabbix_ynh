@@ -11,7 +11,7 @@ db_user=$(ynh_app_setting_get $app db_user)
 db_pwd=$(ynh_app_setting_get $app mysqlpwd)
 language=$(ynh_app_setting_set $app language) 
 
-if [ "$language" == "fr" ];then
+if [ $language == "fr" ];then
     lang="fr_FR"
 else
     lang="en_GB"

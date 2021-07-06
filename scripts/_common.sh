@@ -4,7 +4,12 @@
 # COMMON VARIABLES
 #=================================================
 
+# dependencies used by the app
 pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.3 php7.3-bcmath ttf-dejavu-core php7.3-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+
+#=================================================
+# PERSONAL HELPERS
+#=================================================
 
 #Zabbix part
 #===================GET GUEST DEFAULT USER STATE==============
@@ -163,7 +168,12 @@ check_proc_zabbixagent(){
 }
 
 install_zabbix_repo(){
-    ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.4/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix
+    if dpkg --compare-versions $(cat /etc/debian_version) ge 11.0
+    then
+        ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.4/debian buster main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix
+    else
+        ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.4/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix
+    fi
 }
 
 remove_zabbix_repo(){
@@ -203,7 +213,7 @@ convert_ZabbixDB(){
 set_mediatype_default_yunohost(){
     set -x
     if [ $($mysqlconn -BN -e "SELECT count(*) FROM media_type WHERE smtp_server LIKE 'mail.example.com' AND status=1;") -eq 1 ] ; then
-	    $mysqlconn -BN -e "UPDATE media_type SET smtp_server = 'localhost', smtp_helo = '"$domain"', smtp_email = 'zabbix@"$domain"', smtp_port = '587', status=0 , smtp_security=1 WHERE smtp_server LIKE 'mail.example.com' AND status=1;"
+	    $mysqlconn -BN -e "UPDATE media_type SET smtp_server = 'localhost', smtp_helo = '$domain', smtp_email = 'zabbix@$domain', smtp_port = '587', status=0 , smtp_security=1 WHERE smtp_server LIKE 'mail.example.com' AND status=1;"
 	    ynh_print_info "Default Media type added !"
     fi
     set +x

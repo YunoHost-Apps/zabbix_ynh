@@ -12,52 +12,77 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 trustedversion="4.4-1+stretch"
 forceupdate=0
-export domain=$(ynh_app_setting_get "$app" domain)
-export path_url=$(ynh_app_setting_get "$app" path)
-#admin=$(ynh_app_setting_get "$app" admin) #not used
-is_public=$(ynh_app_setting_get "$app" is_public)
-final_path=$(ynh_app_setting_get "$app" final_path)
-#language=$(ynh_app_setting_get "$app" language) #not used
-db_name=$(ynh_app_setting_get "$app" db_name)
-db_user=$(ynh_app_setting_get "$app" db_user)
-db_pwd=$(ynh_app_setting_get "$app" mysqlpwd)
+export domain=$(ynh_app_setting_get --app=$app --key=domain)
+export path_url=$(ynh_app_setting_get --app=$app --key=path)
+is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 
+#=================================================
+# CHECK VERSION
+#=================================================
+ynh_script_progression --message="Checking version..."
+
+upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# STANDARD UPGRADE STEPS
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_script_progression --message="Ensuring downward compatibility..."
 
-# Fix is_public as a boolean value
-if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set "$app" is_public 1
-	is_public=1
-elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set "$app" is_public 0
-	is_public=0
-fi
-
-# If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
-	db_name=$(ynh_sanitize_dbid "$app")
-	ynh_app_setting_set "$app" db_name "$db_name"
-fi
-
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/var/www/$app
-	ynh_app_setting_set "$app" final_path "$final_path"
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
 fi
 
 export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
 
 #=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
+
+#=================================================
+# PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading PHP-FPM configuration..."
+
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
 # DISABLED SSOWAT
 #=================================================
 ynh_print_info "disable SSOWAT temporaly"
-ynh_app_setting_set "$app" unprotected_uris "/"
+ynh_app_setting_set $app unprotected_uris "/"
 systemctl reload nginx
 yunohost app ssowatconf
 
@@ -109,9 +134,6 @@ if [ ! -z "$(yunohost service status | grep zabbix-client)" ];then
     yunohost service remove zabbix-client
 fi
 
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
 #REMOVE DUPLICATE LOG ENTRY IN LOGROTATE PATCH IF NEEDED
 ynh_remove_logrotate
 
@@ -186,25 +208,6 @@ convert_ZabbixDB
 set_mediatype_default_yunohost
 
 #=================================================
-# Update php-fpm confi
-#=================================================
-ynh_print_info "Update php-fpm config"
-# Remove the dedicated php-fpm config
-ynh_remove_fpm_config
-# Create a dedicated php-fpm config
-ynh_add_fpm_config
-
-#=================================================
-# Update nginx config
-#=================================================
-ynh_print_info "Update nginx config"
-# Remove the dedicated nginx config
-ynh_remove_nginx_config
-# Create a dedicated nginx config
-ynh_add_nginx_config
-
-
-#=================================================
 # RE-ENABLE SSOWAT
 #=================================================
 ynh_print_info "re-enable SSOWAT"
@@ -212,11 +215,20 @@ ynh_print_info "re-enable SSOWAT"
 if [ $is_public -eq 0 ]
 then
     # unprotected_uris allows SSO credentials to be passed anyway.
-    ynh_app_setting_delete "$app" unprotected_uris
+    ynh_app_setting_delete $app unprotected_uris
 else
-    ynh_app_setting_set "$app" unprotected_uris "/"
+    ynh_app_setting_set $app unprotected_uris "/"
 fi
 
-ynh_add_nginx_config
-systemctl reload nginx
-yunohost app ssowatconf
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Upgrade of $app completed"
