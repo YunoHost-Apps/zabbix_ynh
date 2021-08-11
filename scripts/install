@@ -46,13 +46,10 @@ app="$YNH_APP_INSTANCE_NAME"
 final_path=/var/www/zabbix
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path "$path_url")
-
 # Check web path availability
-ynh_webpath_available "$domain" "$path_url"
+ynh_webpath_available --domain="$domain" --path_url="$path_url"
 # Register (book) web path
-ynh_webpath_register "$app" "$domain" "$path_url"
+ynh_webpath_register --app="$app" --domain="$domain" --path_url="$path_url"
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -94,16 +91,25 @@ ynh_app_setting_set "$app" language "$language"
 ###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
 ###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
 ###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+
+pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
+if [ ! -z "$pid" ] ;then
+    ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check" -w 1
+    tail --pid=$pid -f /dev/null
+fi
+
 ynh_script_progression --message="Remove Zabbix if already installed" -w 1
 apt-get purge zabbix* -y
-ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
+if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
+    ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
+fi
 
 ynh_script_progression --message="Install Zabbix repository" -w 3
 install_zabbix_repo
 
 ynh_script_progression --message="Update and install dependencies" -w 5
 #ynh_package_update no need cause ynh_install_app_dependencies after
-ynh_install_app_dependencies libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.0 php-bcmath php7.0-bcmath ttf-dejavu-core php7.0-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php
+ynh_install_app_dependencies $pkg_dependencies
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
@@ -260,12 +266,6 @@ ynh_add_fpm_config
 ### so we're going to use curl to automatically fill the fields and submit the
 ### forms.
 
-# Set right permissions for curl install
-#chown -R www-data: $final_path
-
-# Set the app as temporarily public for curl call
-
-
 # Reload SSOwat config
 yunohost app ssowatconf
 
@@ -361,16 +361,12 @@ yunohost service add snmpd -d "Management of SNMP Daemon"
 yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
 yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
 
-
-
-
-
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
 systemctl reload nginx
-systemctl reload php7.0-fpm
+systemctl reload php7.3-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -396,19 +392,18 @@ disable_admin_user
 # SETUP SSOWAT
 #=================================================
 
-
-
 # Make app public if necessary
 if [ "$is_public" -eq 1 ]
 then
 	ynh_permission_update --permission="main" --add="visitors"
 fi
+
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
 systemctl reload nginx
-systemctl reload php7.0-fpm
+systemctl reload php7.3-fpm
 
 # Reload SSOwat config
 yunohost app ssowatconf

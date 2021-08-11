@@ -8,14 +8,14 @@
     },
     "version": "4.4~ynh1",
     "url": "https://www.zabbix.com",
-    "license": "free",
+    "license": " LGPL-2.0-or-later",
     "maintainer": {
         "name": "Mickael Martin",
         "email": "mickael@librement-votre.fr",
         "url": "http://www.librement-votre.fr"
     },
     "requirements": {
-        "yunohost": ">= 3.6.5"
+        "yunohost": ">= 3.8.1"
     },
     "multi_instance": false,
     "services": [
