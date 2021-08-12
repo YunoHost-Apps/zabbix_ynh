@@ -1,5 +1,6 @@
 #!/bin/bash
-##=================================================
+
+#=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
@@ -19,78 +20,41 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-export domain="$YNH_APP_ARG_DOMAIN"
-export path_url="$YNH_APP_ARG_PATH"
-admin="$YNH_APP_ARG_ADMIN"
-is_public="$YNH_APP_ARG_IS_PUBLIC"
-language="$YNH_APP_ARG_LANGUAGE"
+export domain=$YNH_APP_ARG_DOMAIN
+export path_url=$YNH_APP_ARG_PATH
+admin=$YNH_APP_ARG_ADMIN
+is_public=$YNH_APP_ARG_IS_PUBLIC
+language=$YNH_APP_ARG_LANGUAGE
 
-### If it's a multi-instance app, meaning it can be installed several times independently
-### The id of the app as stated in the manifest is available as $YNH_APP_ID
-### The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
-### The app instance name is available as $YNH_APP_INSTANCE_NAME
-###    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
-###    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
-###    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
-### The app instance name is probably what interests you most, since this is
-### guaranteed to be unique. This is a good unique identifier to define installation path,
-### db names, ...
-app="$YNH_APP_INSTANCE_NAME"
+app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
+ynh_script_progression --message="Validating installation parameters..."
 
-### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
-### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
-final_path=/var/www/zabbix
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
-# Check web path availability
-ynh_webpath_available --domain="$domain" --path_url="$path_url"
 # Register (book) web path
-ynh_webpath_register --app="$app" --domain="$domain" --path_url="$path_url"
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Get infos from manifest" -w 1
+ynh_script_progression --message="Storing installation settings..."
 
-ynh_app_setting_set "$app" domain "$domain"
-ynh_app_setting_set "$app" path "$path_url"
-ynh_app_setting_set "$app" admin "$admin"
-ynh_app_setting_set "$app" language "$language"
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
-# FIND AND OPEN A PORT
-#=================================================
-
-### Use these lines if you have to open a port for the application
-### `ynh_find_port` will find the first available port starting from the given port.
-### If you're not using these lines:
-###		- Remove the section "CLOSE A PORT" in the remove script
-
-### Zabbix server is not opened by default for external usage.
-### if you want use zabbix server with external agent (in active mode), setup the listen address in server configuration and open port on firewall via the cmd yunohost firewall
-
-# Find a free port
-#port=$(ynh_find_port 8095)
-# Open this port
-#yunohost firewall allow --no-upnp TCP $port 2>&1
-#ynh_app_setting_set $app port $port
-
-#=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-
-### `ynh_install_app_dependencies` allows you to add any "apt" dependencies to the package.
-### Those deb packages will be installed as dependencies of this package.
-### If you're not using this helper:
-###		- Remove the section "REMOVE DEPENDENCIES" in the remove script
-###		- As well as the section "REINSTALL DEPENDENCIES" in the restore script
-###		- And the section "UPGRADE DEPENDENCIES" in the upgrade script
+ynh_script_progression --message="Installing dependencies..."
 
 pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
 if [ ! -z "$pid" ] ;then
@@ -117,29 +81,19 @@ locale-gen
 
 ln -s /usr/share/zabbix "$final_path"
 if [ -f "$final_path/conf/zabbix.conf.php" ];then
-    ynh_secure_remove "$final_path/conf/zabbix.conf.php"
+    ynh_secure_remove --file="$final_path/conf/zabbix.conf.php"
 fi
 
 #=================================================
 # CREATE A MYSQL DATABASE
 #=================================================
-ynh_script_progression --message="Creation of database " -w 10
-
-### Use these lines if you need a database for the application.
-### `ynh_mysql_setup_db` will create a database, an associated user and a ramdom password.
-### The password will be stored as 'mysqlpwd' into the app settings,
-### and will be available as $db_pwd
-### If you're not using these lines:
-###		- Remove the section "BACKUP THE MYSQL DATABASE" in the backup script
-###		- Remove also the section "REMOVE THE MYSQL DATABASE" in the remove script
-###		- As well as the section "RESTORE THE MYSQL DATABASE" in the restore script
+ynh_script_progression --message="Creating a MySQL database..."
 
 declare db_pwd
-db_name=$(ynh_sanitize_dbid "$app")
-db_user="$db_name"
-ynh_app_setting_set "$app" db_name "$db_name"
-ynh_app_setting_set "$app" db_user "$db_user"
-ynh_mysql_setup_db "$db_user" "$db_name"
+db_name=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$db_name
+ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
 mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
@@ -184,51 +138,24 @@ set_mediatype_default_yunohost
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression --message="Setting up source files..."
 
-### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
-### downloaded from an upstream source, like a git repository.
-### `ynh_setup_source` use the file conf/app.src
-
-ynh_app_setting_set "$app" final_path "$final_path"
-# Download, check integrity, uncompress and patch the source from app.src
-#ynh_setup_source "$final_path"
-
-ynh_script_progression --message="Generate web config" -w 5
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Configuring NGINX web server..."
 
-### `ynh_add_nginx_config` will use the file conf/nginx.conf
-
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-
-# Create a system user
-#ynh_system_user_create $app
-#
-### zabbix user created in zabbix server dpkg install
 
 #=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Configuring PHP-FPM..."
 
-### `ynh_add_fpm_config` is used to set up a PHP config.
-### You can remove it if your app doesn't use PHP.
-### `ynh_add_fpm_config` will use the files conf/php-fpm.conf and conf/php-fpm.ini
-### If you're not using these lines:
-###		- You can remove these files in conf/.
-###		- Remove the section "BACKUP THE PHP-FPM CONFIGURATION" in the backup script
-###		- Remove also the section "REMOVE PHP-FPM CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE PHP-FPM CONFIGURATION" in the restore script
-###		With the reload at the end of the script.
-###		- And the section "PHP-FPM CONFIGURATION" in the upgrade script
-
-# Create a dedicated php-fpm config
+# Create a dedicated PHP-FPM config
 ynh_add_fpm_config
 
 #=================================================
@@ -238,33 +165,8 @@ ynh_add_fpm_config
 #=================================================
 
 #=================================================
-# SETUP SYSTEMD
-#=================================================
-
-### `ynh_systemd_config` is used to configure a systemd script for an app.
-### It can be used for apps that use sysvinit (with adaptation) or systemd.
-### Have a look at the app to be sure this app needs a systemd script.
-### `ynh_systemd_config` will use the file conf/systemd.service
-### If you're not using these lines:
-###		- You can remove those files in conf/.
-###		- Remove the section "BACKUP SYSTEMD" in the backup script
-###		- Remove also the section "STOP AND REMOVE SERVICE" in the remove script
-###		- As well as the section "RESTORE SYSTEMD" in the restore script
-###		- And the section "SETUP SYSTEMD" in the upgrade script
-
-# Create a dedicated systemd config
-#ynh_add_systemd_config
-
-### Systemd service created when dpkg install
-
-#=================================================
 # SETUP APPLICATION WITH CURL
 #=================================================
-
-### Use these lines only if the app installation needs to be finalized through
-### web forms. We generally don't want to ask the final user,
-### so we're going to use curl to automatically fill the fields and submit the
-### forms.
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -272,17 +174,10 @@ yunohost app ssowatconf
 # Reload Nginx
 systemctl reload nginx
 
-# Installation with curl
-#ynh_local_curl "/INSTALL_PATH" "key1=value1" "key2=value2" "key3=value3"
-
 #=================================================
-# MODIFY A CONFIG FILE
+# ADD A CONFIGURATION
 #=================================================
-
-### `ynh_replace_string` is used to replace a string in a file.
-### (It's compatible with sed regular expressions syntax)
-
-ynh_script_progression -m "Generate zabbix config files" -w 5
+ynh_script_progression --message="Adding a configuration file..."
 
 confServerPath=$(find /var/cache/yunohost/ -name "usr_share_zabbix_conf_zabbix.conf.php")
 cp --remove-destination "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
@@ -303,70 +198,15 @@ systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 #=================================================
 # INSTALL hook to verify if conf file is broken (after an update for example)
 #=================================================
+
 update_initZabbixConf
-
-#=================================================
-# STORE THE CONFIG FILE CHECKSUM
-#=================================================
-
-### `ynh_store_file_checksum` is used to store the checksum of a file.
-### That way, during the upgrade script, by using `ynh_backup_if_checksum_is_different`,
-### you can make a backup of this file before modifying it again if the admin had modified it.
-
-# Calculate and store the config file checksum into the app settings
-#ynh_store_file_checksum "$final_path/CONFIG_FILE"
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-
-### For security reason, any app should set the permissions to root: before anything else.
-### Then, if write authorization is needed, any access should be given only to directories
-### that really need such authorization.
-
-# Set permissions to app files
-#chown -R root: $final_path
-
-#=================================================
-# SETUP LOGROTATE
-#=================================================
-
-### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
-### Use this helper only if there is effectively a log file for this app.
-### If you're not using this helper:
-###		- Remove the section "BACKUP LOGROTATE" in the backup script
-###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
-###		- And the section "SETUP LOGROTATE" in the upgrade script
-
-# Use logrotate to manage application logfile(s)
-#native logrotate because install officials packages.
-#ynh_use_logrotate
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-### `yunohost service add` is a CLI yunohost command to add a service in the admin panel.
-### You'll find the service in the 'services' section of YunoHost admin panel.
-### This CLI command would be useless if the app does not have any services (systemd or sysvinit)
-### If you're not using these lines:
-###		- You can remove these files in conf/.
-###		- Remove the section "REMOVE SERVICE FROM ADMIN PANEL" in the remove script
-###		- As well as the section ADVERTISE SERVICE IN ADMIN PANEL" in the restore script
-
-yunohost service add snmpd -d "Management of SNMP Daemon"
-yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
-yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
 
 #=================================================
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
 systemctl reload nginx
-systemctl reload php7.3-fpm
+ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -374,36 +214,40 @@ yunohost app ssowatconf
 #=================================================
 # Import Yunohost template
 #=================================================
-ynh_script_progression -m "Importing last template Yunohost in Zabbix" -w 5
+ynh_script_progression --message="Importing last template Yunohost in Zabbix" -w 5
+
 import_template
 
 #=================================================
 # Link Yunohost template to the ZAbbix Server Host
 #=================================================
-ynh_script_progression -m "Importing last template Yunohost in Zabbix" -w 5
+ynh_script_progression --message="Importing last template Yunohost in Zabbix" -w 5
+
 link_template
 
 #=================================================
 # disable default admin 
 #=================================================
+
 disable_admin_user
 
 #=================================================
-# SETUP SSOWAT
+# GENERIC FINALIZATION
 #=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-# Make app public if necessary
-if [ "$is_public" -eq 1 ]
-then
-	ynh_permission_update --permission="main" --add="visitors"
-fi
+yunohost service add snmpd --description="Management of SNMP Daemon"
+yunohost service add zabbix-server --description="Management Zabbix server daemon : Collect, agregate, compute and notify"
+yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server"
 
 #=================================================
-# RELOAD NGINX AND PHP-FPM
+# START SYSTEMD SERVICE
 #=================================================
+ynh_script_progression --message="Starting a systemd service..."
 
-systemctl reload nginx
-systemctl reload php7.3-fpm
+ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -415,7 +259,27 @@ check_proc_zabbixagent
 check_proc_zabbixserver
 
 #=================================================
+# SETUP SSOWAT
+#=================================================
+ynh_script_progression --message="Configuring permissions..."
+
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# Everyone can access the app.
+	# The "main" permission is automatically created before the install script.
+	ynh_permission_update --permission="main" --add="visitors"
+fi
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression --message="Installation of $app completed"

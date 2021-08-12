@@ -1,10 +1,12 @@
 #!/bin/bash
+
 #=================================================
 # GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -15,46 +17,52 @@ source /usr/share/yunohost/helpers
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-### If it's a multi-instance app, meaning it can be installed several times independently
-### The id of the app as stated in the manifest is available as $YNH_APP_ID
-### The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
-### The app instance name is available as $YNH_APP_INSTANCE_NAME
-###    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
-###    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
-###    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
-### The app instance name is probably what interests you most, since this is
-### guaranteed to be unique. This is a good unique identifier to define installation path,
-### db names, ...
-app="zabbix"
-final_path="/var/www/zabbix"
 #=================================================
-# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+# LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Loading installation settings..."
 
-### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
-### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app --key=domain)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
+nonfree=$(ynh_app_setting_get --app=$app --key=nonfree)
+
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+ynh_script_progression --message="Validating restoration parameters..."
+
 ynh_secure_remove $final_path
 
 #=================================================
-# STORE SETTINGS FROM MANIFEST
+# STANDARD RESTORATION STEPS
 #=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the NGINX web server configuration..."
 
-domain=$(ynh_app_setting_get $app domain)
-#path_url=$(ynh_app_setting_get $app path) #not used
-#admin=$(ynh_app_setting_get $app admin) #not used
-is_public=$(ynh_app_setting_get $app is_public)
-#language=$(ynh_app_setting_get $app language) #not used
-nonfree=$(ynh_app_setting_get $app nonfree)
-
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# INSTALL DEPENDENCIES
+# RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
+ynh_script_progression --message="Restoring the PHP-FPM configuration..."
 
-ynh_print_info "Install Zabbix repository"
+ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..."
+
 install_zabbix_repo
 
-ynh_print_info "Update and install dependencies"
 ynh_package_update
 ynh_install_app_dependencies $pkg_dependencies
 DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend-php
@@ -65,100 +73,53 @@ locale-gen
 ln -s /usr/share/zabbix /var/www/zabbix
 ynh_secure_remove $final_path/conf/zabbix.conf.php
 
-ynh_app_setting_set $app final_path $final_path
+#=================================================
+# RESTORE THE MYSQL DATABASE
+#=================================================
+ynh_script_progression --message="Restoring the MySQL database..."
+
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
+ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+convert_ZabbixDB
+ynh_mysql_connect_as --user=$db_user --password=$db_pwd --database=$db_name < ./db.sql
 
 #=================================================
-# NGINX CONFIGURATION
+# RESTORE VARIOUS FILES
 #=================================================
-
-### `ynh_add_nginx_config` will use the file conf/nginx.conf
-
-# Create a dedicated nginx config
-
-ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-
-ynh_restore_file "/etc/php/7.0/fpm/pool.d/$app.conf"
+ynh_script_progression --message="Restoring various files..."
 
 # Restore sudo file
-ynh_restore_file "/etc/sudoers.d/zabbix"
+ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
 
-#=================================================
-# Restore db
-#================================================= 
-
-db_name=$(ynh_app_setting_get $app db_name)
-db_user=$(ynh_app_setting_get $app db_user)
-db_pwd=$(ynh_app_setting_get $app mysqlpwd)
-
-ynh_mysql_setup_db "$db_user" "$db_name" "$db_pwd"
-convert_ZabbixDB
-ynh_mysql_connect_as "$db_name" "$db_pwd" "$db_name" < ./db.sql
-
-
-#=================================================
-# Restore configs files
-#=================================================
-
-### `ynh_replace_string` is used to replace a string in a file.
-### (It's compatible with sed regular expressions syntax)
-
-ynh_restore_file "/usr/share/zabbix/conf/zabbix.conf.php"
+ynh_restore_file --origin_path="/usr/share/zabbix/conf/zabbix.conf.php"
 
 chown -R www-data. /usr/share/zabbix
 
-ynh_restore_file "/etc/zabbix"
+ynh_restore_file --origin_path="/etc/zabbix"
 ls -Rail "/etc/zabbix"
-#ynh_restore_file "/etc/zabbix/web"
-#ynh_restore_file "/etc/zabbix/web/init.zabbix.conf.php.sh"
-ynh_restore_file "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+
+ynh_restore_file --origin_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
     	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
 fi
+
 systemctl enable --quiet zabbix-agent && systemctl restart zabbix-agent
 change_timeoutAgent
 systemctl enable --quiet zabbix-server && systemctl restart zabbix-server
 
-yunohost service add snmpd -d "Management of SNMP Daemon"
-yunohost service add zabbix-server -d "Management Zabbix server daemon : Collect, agregate, compute and notify"
-yunohost service add zabbix-agent -d "Management Zabbix agent daemon : send informations about this host to the server"
+#=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
+
+yunohost service add snmpd --description="Management of SNMP Daemon"
+yunohost service add zabbix-server --description="Management Zabbix server daemon : Collect, agregate, compute and notify"
+yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server"
 
 #=================================================
-# SETUP LOGROTATE
+# START SYSTEMD SERVICE
 #=================================================
-
-### `ynh_use_logrotate` is used to configure a logrotate configuration for the logs of this app.
-### Use this helper only if there is effectively a log file for this app.
-### If you're not using this helper:
-###		- Remove the section "BACKUP LOGROTATE" in the backup script
-###		- Remove also the section "REMOVE LOGROTATE CONFIGURATION" in the remove script
-###		- As well as the section "RESTORE THE LOGROTATE CONFIGURATION" in the restore script
-###		- And the section "SETUP LOGROTATE" in the upgrade script
-
-# Use logrotate to manage application logfile(s)
-#ynh_use_logrotate
-#no need, use native logrotate in zabbix packages
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-
-# Make app public if necessary
-if [ "$is_public" -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
-fi
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-
-systemctl reload nginx
-systemctl reload php7.0-fpm
+ynh_script_progression --message="Starting a systemd service..."
 
 # Reload SSOwat config
 yunohost app ssowatconf
@@ -168,3 +129,19 @@ check_proc_zabbixagent
 
 #test if zabbix agent is started
 check_proc_zabbixserver
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
+ynh_script_progression --message="Reloading NGINX web server and PHP-FPM..."
+
+ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Restoration completed for $app"

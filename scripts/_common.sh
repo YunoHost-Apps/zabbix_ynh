@@ -4,7 +4,12 @@
 # COMMON VARIABLES
 #=================================================
 
+# dependencies used by the app
 pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.3 php7.3-bcmath ttf-dejavu-core php7.3-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+
+#=================================================
+# PERSONAL HELPERS
+#=================================================
 
 #Zabbix part
 #===================GET GUEST DEFAULT USER STATE==============
@@ -35,27 +40,27 @@ disable_admin_user(){
         lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
         lastid=$((lastid + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
-        ynh_print_info "Default admin disabled"
+        ynh_print_info --message="Default admin disabled"
 
     else
-        ynh_print_info "Default admin already disabled"
+        ynh_print_info --message="Default admin already disabled"
 
     fi
 }
 
 enable_admin_user(){
     if [ $(get_state_admin_user) = "1" ] ;then
-        ynh_print_info "Enable default admin"
+        ynh_print_info --message="Enable default admin"
         #enable default admin temporaly
         $mysqlconn -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
-        ynh_print_info "Default admin enabled"
+        ynh_print_info --message="Default admin enabled"
     else
-        ynh_print_info "Default admin already enable"
+        ynh_print_info --message="Default admin already enable"
     fi
 }
 
 import_template(){
-    ynh_print_info "Import yunohost template"
+    ynh_print_info --message="Import yunohost template"
     zabbixFullpath=https://$domain$path_url
     localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
     sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
@@ -119,7 +124,7 @@ import_template(){
                         | grep -c "Imported successfully")
     
         if [ "$importState" -eq "1" ];then
-            ynh_print_info "Template Yunohost imported !"
+            ynh_print_info --message="Template Yunohost imported !"
         else
             ynh_print_warn "Template Yunohost not imported !"
         fi
@@ -135,7 +140,7 @@ link_template(){
     zabbixTemplateID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
     applyTemplate=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
     if [ "$applyTemplate" -eq "$zabbixHostID" ];then
-        ynh_print_info "Template Yunohost linked to Zabbix server !"
+        ynh_print_info --message="Template Yunohost linked to Zabbix server !"
     else
         ynh_print_warn "Template Yunohost no linked to Zabbix server !"
     fi
@@ -145,7 +150,7 @@ link_template(){
 check_proc_zabbixserver(){
     pgrep zabbix_server >/dev/null
     if [ $? -eq 0 ];then
-        ynh_print_info "zabbix server is started !"
+        ynh_print_info --message="zabbix server is started !"
     else
         ynh_print_err "Zabbix Server not started, try to start it with the yunohost interface."
         ynh_print_err "If Zabbix Server can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
@@ -155,7 +160,7 @@ check_proc_zabbixserver(){
 check_proc_zabbixagent(){
    pgrep zabbix_agentd >/dev/null
    if [ $? -eq 0 ];then
-       ynh_print_info "zabbix agent is started"
+       ynh_print_info --message="zabbix agent is started"
    else
        ynh_print_err "Zabbix agent not started, try to start it with the yunohost interface."
        ynh_print_err "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
@@ -204,7 +209,7 @@ set_mediatype_default_yunohost(){
     set -x
     if [ $($mysqlconn -BN -e "SELECT count(*) FROM media_type WHERE smtp_server LIKE 'mail.example.com' AND status=1;") -eq 1 ] ; then
 	    $mysqlconn -BN -e "UPDATE media_type SET smtp_server = 'localhost', smtp_helo = '"$domain"', smtp_email = 'zabbix@"$domain"', smtp_port = '587', status=0 , smtp_security=1 WHERE smtp_server LIKE 'mail.example.com' AND status=1;"
-	    ynh_print_info "Default Media type added !"
+	    ynh_print_info --message="Default Media type added !"
     fi
     set +x
 }
