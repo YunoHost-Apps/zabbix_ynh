@@ -41,6 +41,22 @@ ynh_script_progression --message="Removing the MySQL database..."
 ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Removing NGINX web server configuration..."
+
+# Remove the dedicated NGINX config
+ynh_remove_nginx_config
+
+#=================================================
+# REMOVE PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Removing PHP-FPM configuration..."
+
+# Remove the dedicated PHP-FPM config
+ynh_remove_fpm_config
+
+#=================================================
 # REMOVE DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Removing dependencies..."
@@ -64,22 +80,6 @@ for zabbix_pkg in $(apt list --installed | grep -Po "\K(zabbix-.*)(?=/)")
 do
     DEBIAN_FRONTEND=noninteractive apt-get purge --allow-change-held-packages "$zabbix_pkg" -y
 done
-
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..."
-
-# Remove the dedicated NGINX config
-ynh_remove_nginx_config
-
-#=================================================
-# REMOVE PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing PHP-FPM configuration..."
-
-# Remove the dedicated PHP-FPM config
-ynh_remove_fpm_config
 
 #=================================================
 # SPECIFIC REMOVE

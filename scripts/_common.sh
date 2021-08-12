@@ -5,7 +5,7 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php7.3 php7.3-bcmath ttf-dejavu-core php7.3-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php$YNH_DEFAULT_PHP_VERSION php$YNH_DEFAULT_PHP_VERSION-bcmath ttf-dejavu-core php$YNH_DEFAULT_PHP_VERSION-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
 
 #=================================================
 # PERSONAL HELPERS
@@ -61,6 +61,7 @@ enable_admin_user(){
 
 import_template(){
     ynh_print_info --message="Import yunohost template"
+    
     zabbixFullpath=https://$domain$path_url
     localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
     sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")

@@ -47,6 +47,7 @@ ynh_script_progression --message="Storing installation settings..."
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
@@ -58,20 +59,20 @@ ynh_script_progression --message="Installing dependencies..."
 
 pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
 if [ ! -z "$pid" ] ;then
-    ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check" -w 1
+    ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check"
     tail --pid=$pid -f /dev/null
 fi
 
-ynh_script_progression --message="Remove Zabbix if already installed" -w 1
+ynh_script_progression --message="Remove Zabbix if already installed"
 apt-get purge zabbix* -y
 if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
     ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
 fi
 
-ynh_script_progression --message="Install Zabbix repository" -w 3
+ynh_script_progression --message="Install Zabbix repository"
 install_zabbix_repo
 
-ynh_script_progression --message="Update and install dependencies" -w 5
+ynh_script_progression --message="Update and install dependencies"
 #ynh_package_update no need cause ynh_install_app_dependencies after
 ynh_install_app_dependencies $pkg_dependencies
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
@@ -97,7 +98,7 @@ ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
 mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-ynh_script_progression --message="Import default data in database..." -w 25
+ynh_script_progression --message="Import default data in database..."
 
 zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
 
@@ -157,23 +158,10 @@ ynh_script_progression --message="Configuring PHP-FPM..."
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
+phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # SPECIFIC SETUP
-#=================================================
-# ...
-#=================================================
-
-#=================================================
-# SETUP APPLICATION WITH CURL
-#=================================================
-
-# Reload SSOwat config
-yunohost app ssowatconf
-
-# Reload Nginx
-systemctl reload nginx
-
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
@@ -202,26 +190,26 @@ systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 update_initZabbixConf
 
 #=================================================
-# RELOAD NGINX AND PHP-FPM
+# SETUP APPLICATION WITH CURL
 #=================================================
+ynh_script_progression --message="Setuping application with CURL..."
 
-systemctl reload nginx
-ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
-
-# Reload SSOwat config
-yunohost app ssowatconf
+# Set the app as temporarily public for curl call
+ynh_script_progression --message="Configuring SSOwat..."
+# Making the app public for curl
+ynh_permission_update --permission="main" --add="visitors"
 
 #=================================================
 # Import Yunohost template
 #=================================================
-ynh_script_progression --message="Importing last template Yunohost in Zabbix" -w 5
+ynh_script_progression --message="Importing last template Yunohost in Zabbix"
 
 import_template
 
 #=================================================
 # Link Yunohost template to the ZAbbix Server Host
 #=================================================
-ynh_script_progression --message="Importing last template Yunohost in Zabbix" -w 5
+ynh_script_progression --message="Importing last template Yunohost in Zabbix"
 
 link_template
 
@@ -230,6 +218,9 @@ link_template
 #=================================================
 
 disable_admin_user
+
+# Remove the public access
+ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -246,11 +237,6 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
-
-ynh_systemd_action --service_name=php$phpversion-fpm --action=reload
-
-# Reload SSOwat config
-yunohost app ssowatconf
 
 #test if zabbix server is started
 check_proc_zabbixagent
