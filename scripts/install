@@ -59,14 +59,14 @@ ynh_script_progression --message="Installing dependencies..."
 
 pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
 if [ ! -z "$pid" ] ;then
-    ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check"
-    tail --pid=$pid -f /dev/null
+	ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check"
+	tail --pid=$pid -f /dev/null
 fi
 
 ynh_script_progression --message="Remove Zabbix if already installed"
 apt-get purge zabbix* -y
 if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
-    ynh_secure_remove /var/cache/apt/archives/zabbix-server-mysql*
+	ynh_secure_remove  --file="/var/cache/apt/archives/zabbix-server-mysql*"
 fi
 
 ynh_script_progression --message="Install Zabbix repository"
@@ -80,61 +80,15 @@ dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
-ln -s /usr/share/zabbix "$final_path"
-if [ -f "$final_path/conf/zabbix.conf.php" ];then
-    ynh_secure_remove --file="$final_path/conf/zabbix.conf.php"
-fi
-
 #=================================================
 # CREATE A MYSQL DATABASE
 #=================================================
 ynh_script_progression --message="Creating a MySQL database..."
 
-declare db_pwd
 db_name=$(ynh_sanitize_dbid --db_name=$app)
 db_user=$db_name
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
-export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
-mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
-
-ynh_script_progression --message="Import default data in database..."
-
-zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
-
-convert_ZabbixDB
-
-#sso integration
-$mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
-
-if [ "$language" == "fr" ];then
-    lang="fr_FR"
-else
-    lang="en_GB"
-fi
-
-#admin creation
-surname=$(ynh_user_get_info "$admin" lastname)
-name=$(ynh_user_get_info "$admin" firstname)
-
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$lang', '30s', 3, 'default', 0, '', 0, 50);"
-$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
-
-#users creation in zabbix database
-i=4
-for user in $(ynh_user_list); 
-do 
-    if [ "$user" != "$admin" ];then
-        surname=$(ynh_user_get_info "$user" lastname)
-        name=$(ynh_user_get_info "$user" firstname)
-        $mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$lang', '30s', 1, 'default', 0, '', 0, 50);"
-        i=$((i+1))
-    fi
-done
-
-disable_guest_user
-
-set_mediatype_default_yunohost
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -142,6 +96,8 @@ set_mediatype_default_yunohost
 ynh_script_progression --message="Setting up source files..."
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ln -s /usr/share/zabbix "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -157,31 +113,61 @@ ynh_add_nginx_config
 ynh_script_progression --message="Configuring PHP-FPM..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_add_fpm_config --package="$extra_php_dependencies"
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
+# IMPORT DEFAULT DATA
+#=================================================
+ynh_script_progression --message="Import default data in database..."
+
+export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
+mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
+
+zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
+
+convert_ZabbixDB
+
+#sso integration
+$mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
+
+#admin creation
+surname=$(ynh_user_get_info "$admin" lastname)
+name=$(ynh_user_get_info "$admin" firstname)
+
+$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 3, 'default', 0, '', 0, 50);"
+$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
+
+#users creation in zabbix database
+i=4
+for user in $(ynh_user_list); 
+do 
+	if [ "$user" != "$admin" ];then
+		surname=$(ynh_user_get_info "$user" lastname)
+		name=$(ynh_user_get_info "$user" firstname)
+		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
+		i=$((i+1))
+	fi
+done
+
+disable_guest_user
+
+set_mediatype_default_yunohost
+
+#=================================================
 # ADD A CONFIGURATION
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
 
-confServerPath=$(find /var/cache/yunohost/ -name "usr_share_zabbix_conf_zabbix.conf.php")
-cp --remove-destination "$confServerPath" /usr/share/zabbix/conf/zabbix.conf.php
-ynh_replace_string --match_string="db_name" --replace_string="$db_name" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
-ynh_replace_string --match_string="db_user" --replace_string="$db_user" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
-ynh_replace_string --match_string="db_pwd" --replace_string="$db_pwd" --target_file=/usr/share/zabbix/conf/zabbix.conf.php
+ynh_add_config --template="../conf/zabbix.conf.php" --destination="/usr/share/zabbix/conf/zabbix.conf.php"
 
 chown -R www-data. /usr/share/zabbix
 
 ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
 ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
 ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
-
-systemctl enable zabbix-agent --quiet && systemctl restart zabbix-agent
-change_timeoutAgent
-systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 
 #=================================================
 # INSTALL hook to verify if conf file is broken (after an update for example)
@@ -190,37 +176,11 @@ systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 update_initZabbixConf
 
 #=================================================
-# SETUP APPLICATION WITH CURL
+# IMPORT YUNOHOST TEMPLATE
 #=================================================
-ynh_script_progression --message="Setuping application with CURL..."
-
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-ynh_permission_update --permission="main" --add="visitors"
-
-#=================================================
-# Import Yunohost template
-#=================================================
-ynh_script_progression --message="Importing last template Yunohost in Zabbix"
+ynh_script_progression --message="Importing YunoHost template in Zabbix"
 
 import_template
-
-#=================================================
-# Link Yunohost template to the ZAbbix Server Host
-#=================================================
-ynh_script_progression --message="Importing last template Yunohost in Zabbix"
-
-link_template
-
-#=================================================
-# disable default admin 
-#=================================================
-
-disable_admin_user
-
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -237,6 +197,10 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
+
+systemctl enable zabbix-agent --quiet && systemctl restart zabbix-agent
+change_timeoutAgent
+systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
 
 #test if zabbix server is started
 check_proc_zabbixagent

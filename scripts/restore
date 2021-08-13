@@ -30,7 +30,6 @@ is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$db_name
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-nonfree=$(ynh_app_setting_get --app=$app --key=nonfree)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -47,6 +46,13 @@ ynh_secure_remove $final_path
 ynh_script_progression --message="Restoring the NGINX web server configuration..."
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Restoring the app main directory..."
+
+ln -s /usr/share/zabbix /var/www/zabbix
 
 #=================================================
 # RESTORE THE PHP-FPM CONFIGURATION
@@ -71,9 +77,6 @@ DEBIAN_FRONTEND=noninteractive apt-mark hold zabbix-server-mysql zabbix-frontend
 ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
-ln -s /usr/share/zabbix /var/www/zabbix
-ynh_secure_remove $final_path/conf/zabbix.conf.php
-
 #=================================================
 # RESTORE THE MYSQL DATABASE
 #=================================================
@@ -81,32 +84,32 @@ ynh_script_progression --message="Restoring the MySQL database..."
 
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-convert_ZabbixDB
 ynh_mysql_connect_as --user=$db_user --password=$db_pwd --database=$db_name < ./db.sql
+convert_ZabbixDB
 
 #=================================================
 # RESTORE VARIOUS FILES
 #=================================================
 ynh_script_progression --message="Restoring various files..."
 
-# Restore sudo file
-ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
-
-ynh_restore_file --origin_path="/usr/share/zabbix/conf/zabbix.conf.php"
-
+# Restore  frontend config
+ynh_restore_file --origin_path="$final_path/conf/zabbix.conf.php"
 chown -R www-data. /usr/share/zabbix
-
 ynh_restore_file --origin_path="/etc/zabbix"
 ls -Rail "/etc/zabbix"
-
 ynh_restore_file --origin_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+
+# Restore server config
+ynh_restore_file --origin_path="/etc/zabbix/zabbix_server.conf"
+
+# Restore  agent config
+ynh_restore_file --origin_path="/etc/zabbix/zabbix_agentd.conf"
 if [ ! -L /etc/zabbix/zabbix_agentd.d ];then
-    	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
+		ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
 fi
 
-systemctl enable --quiet zabbix-agent && systemctl restart zabbix-agent
-change_timeoutAgent
-systemctl enable --quiet zabbix-server && systemctl restart zabbix-server
+# Restore sudo file
+ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
@@ -122,8 +125,9 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-# Reload SSOwat config
-yunohost app ssowatconf
+systemctl enable --quiet zabbix-agent && systemctl restart zabbix-agent
+change_timeoutAgent
+systemctl enable --quiet zabbix-server && systemctl restart zabbix-server
 
 #test if zabbix server is started
 check_proc_zabbixagent

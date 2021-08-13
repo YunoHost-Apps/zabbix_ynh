@@ -5,9 +5,9 @@ global $DB;
 $DB['TYPE']     = 'MYSQL';
 $DB['SERVER']   = 'localhost';
 $DB['PORT']     = '0';
-$DB['DATABASE'] = 'db_name';
-$DB['USER']     = 'db_user';
-$DB['PASSWORD'] = 'db_pwd';
+$DB['DATABASE'] = '__DB_NAME__';
+$DB['USER']     = '__DB_USER__';
+$DB['PASSWORD'] = '__DB_PWD__';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
 $DB['SCHEMA'] = '';

@@ -5,7 +5,11 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 php$YNH_DEFAULT_PHP_VERSION php$YNH_DEFAULT_PHP_VERSION-bcmath ttf-dejavu-core php$YNH_DEFAULT_PHP_VERSION-bcmath patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 ttf-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+
+YNH_PHP_VERSION="7.3"
+
+extra_php_dependencies="php${YNH_PHP_VERSION}-bcmath"
 
 #=================================================
 # PERSONAL HELPERS
@@ -41,10 +45,8 @@ disable_admin_user(){
         lastid=$((lastid + 1 ))
         $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
         ynh_print_info --message="Default admin disabled"
-
     else
         ynh_print_info --message="Default admin already disabled"
-
     fi
 }
 
@@ -60,16 +62,13 @@ enable_admin_user(){
 }
 
 import_template(){
-    ynh_print_info --message="Import yunohost template"
-    
+    ynh_permission_update --permission="main" --add="visitors"
+
+    enable_admin_user
+
     zabbixFullpath=https://$domain$path_url
-    localpath=$(find /var/cache/yunohost/ -name "Template_Yunohost.xml")
-    sudoUserPpath=$(find /var/cache/yunohost/ -name "etc_sudoers.d_zabbix")
-    confUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_userP_yunohost.conf")
-    bashUserPpath=$(find /var/cache/yunohost/ -name "etc_zabbix_zabbix_agentd.d_yunohost.sh")
-    
-    
-    cp "$sudoUserPpath" /etc/sudoers.d/zabbix
+
+    cp "../conf/zabbix" /etc/sudoers.d/zabbix
     
     if [ -d /etc/zabbix/zabbix_agentd.d ];then
 	    mv /etc/zabbix/zabbix_agentd.d /etc/zabbix/zabbix_agentd.conf.d
@@ -78,8 +77,8 @@ import_template(){
     	ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
     fi
     
-    cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
-    cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
+    cp "../conf/userP_yunohost.conf" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
+    cp "../conf/yunohost.sh" /etc/zabbix/zabbix_agentd.d/yunohost.sh
     chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
     
     systemctl restart zabbix-agent
@@ -98,7 +97,7 @@ import_template(){
         
         importState=$(curl $curlOptions \
                         --form "config=1" \
-                        --form "import_file=@$localpath"  \
+                        --form "import_file=@../conf/Template_Yunohost.xml"  \
                         --form "rules[groups][createMissing]=1" \
                         --form "rules[templates][updateExisting]=1" \
                         --form "rules[templates][createMissing]=1" \
@@ -127,14 +126,12 @@ import_template(){
         if [ "$importState" -eq "1" ];then
             ynh_print_info --message="Template Yunohost imported !"
         else
-            ynh_print_warn "Template Yunohost not imported !"
+            ynh_print_warn --message="Template Yunohost not imported !"
         fi
     else
-        ynh_print_warn "Admin user cannot connect interface !"
+        ynh_print_warn --message="Admin user cannot connect interface !"
     fi
-}
 
-link_template(){
     #apply template to host
     tokenapi=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
     zabbixHostID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
@@ -143,9 +140,12 @@ link_template(){
     if [ "$applyTemplate" -eq "$zabbixHostID" ];then
         ynh_print_info --message="Template Yunohost linked to Zabbix server !"
     else
-        ynh_print_warn "Template Yunohost no linked to Zabbix server !"
+        ynh_print_warn --message="Template Yunohost no linked to Zabbix server !"
     fi
+    
+    disable_admin_user
 
+    ynh_permission_update --permission="main" --remove="visitors"
 }
 
 check_proc_zabbixserver(){
@@ -159,13 +159,13 @@ check_proc_zabbixserver(){
 }
 
 check_proc_zabbixagent(){
-   pgrep zabbix_agentd >/dev/null
-   if [ $? -eq 0 ];then
-       ynh_print_info --message="zabbix agent is started"
-   else
-       ynh_print_err "Zabbix agent not started, try to start it with the yunohost interface."
-       ynh_print_err "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
-   fi
+    pgrep zabbix_agentd >/dev/null
+    if [ $? -eq 0 ];then
+        ynh_print_info --message="zabbix agent is started"
+    else
+        ynh_print_err "Zabbix agent not started, try to start it with the yunohost interface."
+        ynh_print_err "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
+    fi
 }
 
 install_zabbix_repo(){
@@ -177,14 +177,15 @@ remove_zabbix_repo(){
 }
 
 update_initZabbixConf(){
-        if [ ! -d /etc/zabbix/web ] ;then mkdir -p /etc/zabbix/web ;fi
-        cp $(find /var/cache/yunohost/ -name "etc_zabbix_web_init.zabbix.conf.php.sh") /etc/zabbix/web/init.zabbix.conf.php.sh
-        chmod 700 /etc/zabbix/web/init.zabbix.conf.php.sh
-        cp $(find /var/cache/yunohost/ -name "etc_apt_apt.conf.d_100update_force_init_zabbix_frontend_config") /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config
+    if [ ! -d /etc/zabbix/web ] ;then mkdir -p /etc/zabbix/web ;fi
+    ynh_add_config --template="../conf/init.zabbix.conf.php.sh" --destination="/etc/zabbix/web/init.zabbix.conf.php.sh"
+    chmod 700 /etc/zabbix/web/init.zabbix.conf.php.sh
+    ynh_add_config --template="../conf/100update_force_init_zabbix_frontend_config" --destination="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 }
+
 delete_initZabbixConf(){
-        if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ] ; then ynh_secure_remove /etc/zabbix/web/init.zabbix.conf.php.sh;fi
-        if [ -f /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ] ;then ynh_secure_remove /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ;fi
+    if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ] ; then ynh_secure_remove --file="/etc/zabbix/web/init.zabbix.conf.php.sh" ;fi
+    if [ -f /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ] ;then ynh_secure_remove --file="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config" ;fi
 }
    
 #Patch timeout too short for zabbix agent if needed

@@ -30,7 +30,6 @@ app=$YNH_APP_INSTANCE_NAME
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-nonfree=$(ynh_app_setting_get --app=$app --key=nonfree)
 
 #=================================================
 # DECLARE DATA AND CONF FILES TO BACKUP
@@ -53,19 +52,19 @@ ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 # BACKUP VARIOUS FILES
 #=================================================
 
-#backup frontend config
+# Backup frontend config
 ynh_backup --src_path="$final_path/conf/zabbix.conf.php"
-ynh_backup --src_path="/etc/zabbix/web"
+ynh_backup --src_path="/etc/zabbix"
 ynh_backup --src_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 
-#backup server confif
+# Backup server config
 ynh_backup --src_path="/etc/zabbix/zabbix_server.conf"
 
-#backup agent config
+# Backup agent config
 ynh_backup --src_path="/etc/zabbix/zabbix_agentd.conf"
 ynh_backup --src_path="/etc/zabbix/zabbix_agentd.d"
 
-#backup sudo file
+# Backup sudo file
 ynh_backup --src_path="/etc/sudoers.d/zabbix"
 
 #=================================================
