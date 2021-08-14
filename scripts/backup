@@ -6,6 +6,7 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
+# Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
@@ -14,7 +15,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
 	true
 }
 # Exit if an error occurs during the execution of the script
@@ -23,58 +23,59 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info --message="Loading installation settings..."
 
-app="zabbix"
+app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
-domain=$(ynh_app_setting_get $app domain)
-db_name=$(ynh_app_setting_get $app db_name)
-nonfree=$(ynh_app_setting_get $app nonfree)
-
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 #=================================================
-# STANDARD BACKUP STEPS
+# DECLARE DATA AND CONF FILES TO BACKUP
 #=================================================
-# BACKUP THE APP MAIN DIR
-#=================================================
-
-#backup frontend config
-ynh_print_info "Backup $final_path conf/zabbix.conf.php"
-ynh_backup "$final_path/conf/zabbix.conf.php"
-ynh_print_info "Backup /etc/zabbix/web"
-ynh_backup "/etc/zabbix/web"
-#ynh_print_info "Backup /etc/zabbix/web/init.zabbix.conf.php.sh"
-#ynh_backup "/etc/zabbix/web/init.zabbix.conf.php.sh"
-ynh_print_info "Backup /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
-ynh_backup "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
-
-#backup server confif
-ynh_print_info "Backup /etc/zabbix/zabbix_server.conf"
-ynh_backup "/etc/zabbix/zabbix_server.conf"
-
-#backup agent config
-ynh_print_info "Backup /etc/zabbix/zabbix_agentd.conf"
-ynh_backup "/etc/zabbix/zabbix_agentd.conf"
-ynh_print_info "Backup /etc/zabbix/zabbix_agentd.d"
-ynh_backup "/etc/zabbix/zabbix_agentd.d"
-
-#backup sudo file
-ynh_print_info "Backup /etc/sudoers.d/zabbix"
-ynh_backup "/etc/sudoers.d/zabbix"
+ynh_print_info --message="Declaring files to be backed up..."
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Backup /etc/nginx/conf.d/$domain.d/$app.conf"
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+
 #=================================================
 # BACKUP THE PHP-FPM CONFIGURATION
 #=================================================
-ynh_print_info "Backup /etc/php/7.0/fpm/pool.d/$app.conf"
-ynh_backup "/etc/php/7.0/fpm/pool.d/$app.conf"
+
+ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
+
+#=================================================
+# BACKUP VARIOUS FILES
+#=================================================
+
+# Backup frontend config
+ynh_backup --src_path="$final_path/conf/zabbix.conf.php"
+ynh_backup --src_path="/etc/zabbix"
+ynh_backup --src_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+
+# Backup server config
+ynh_backup --src_path="/etc/zabbix/zabbix_server.conf"
+
+# Backup agent config
+ynh_backup --src_path="/etc/zabbix/zabbix_agentd.conf"
+ynh_backup --src_path="/etc/zabbix/zabbix_agentd.d"
+
+# Backup sudo file
+ynh_backup --src_path="/etc/sudoers.d/zabbix"
 
 #=================================================
 # BACKUP THE MYSQL DATABASE
 #=================================================
-ynh_print_info "Backup Zabbix database"
-ynh_mysql_dump_db "$db_name" > db.sql
+ynh_print_info --message="Backing up the MySQL database..."
+
+ynh_mysql_dump_db --database="$db_name" > db.sql
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
