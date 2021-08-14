@@ -38,13 +38,13 @@ yunohost service remove zabbix-agent
 ynh_script_progression --message="Stopping and removing the systemd service..."
 
 # Remove the dedicated systemd config
-timeout 5 systemctl stop zabbix-server || killall zabbix_server
+timeout 5 systemctl stop zabbix-server || killall zabbix-server
 systemctl disable zabbix-server --quiet
-killall zabbix_server
+killall zabbix-server
 
-timeout 5 systemctl stop zabbix-agent || killall zabbix_agentd
+timeout 5 systemctl stop zabbix-agent || killall zabbix-agentd
 systemctl disable zabbix-agent --quiet
-killall zabbix_agentd
+killall zabbix-agentd
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
