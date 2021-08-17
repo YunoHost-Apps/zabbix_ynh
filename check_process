@@ -23,3 +23,7 @@
 ;;; Options
 Email=
 Notification=none
+;;; Upgrade options
+	; commit=5cd502c98fdf4731938503541cf64a59aa43eda7
+		name=Name and date of the commit.
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&language=fr&is_public=1&password=pass&port=666&
