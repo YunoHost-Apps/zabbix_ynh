@@ -28,9 +28,13 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
 
-# Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
+ynh_script_progression --message="Removing snmpd service integration..."
 yunohost service remove snmpd
+
+ynh_script_progression --message="Removing Zabbix-server service integration..."
 yunohost service remove zabbix-server
+
+ynh_script_progression --message="Removing Zabbix-agent service integration..."
 yunohost service remove zabbix-agent
 
 #=================================================
@@ -39,13 +43,14 @@ yunohost service remove zabbix-agent
 ynh_script_progression --message="Stopping and removing the systemd service..."
 
 # Remove the dedicated systemd config
-timeout 5 systemctl stop zabbix-server || killall zabbix-server
-systemctl disable zabbix-server --quiet
-killall zabbix-server
+ynh_systemd_action --service_name=$app-server --action="stop" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemd_action --service_name=$app-agent --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 
-timeout 5 systemctl stop zabbix-agent || killall zabbix-agentd
+systemctl disable zabbix-server --quiet
 systemctl disable zabbix-agent --quiet
-killall zabbix-agentd
+
+ynh_exec_warn_less killall zabbix_server
+ynh_exec_warn_less killall zabbix_agentd
 
 #=================================================
 # REMOVE THE MYSQL DATABASE
@@ -54,22 +59,6 @@ ynh_script_progression --message="Removing the MySQL database..."
 
 # Remove a database if it exists, along with the associated user
 ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
-
-#=================================================
-# REMOVE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Removing app main directory..."
-
-# Remove the app directory securely
-ynh_secure_remove --file="$final_path"
-
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..."
-
-# Remove the dedicated NGINX config
-ynh_remove_nginx_config
 
 #=================================================
 # REMOVE PHP-FPM CONFIGURATION
@@ -84,21 +73,40 @@ ynh_remove_fpm_config
 #=================================================
 ynh_script_progression --message="Removing dependencies..."
 
-# Remove config file detection
+#Remove config file detection
 delete_initZabbixConf
 
 DEBIAN_FRONTEND=noninteractive apt-get purge zabbix-release -y
-
-# Remove metapackage and its dependencies
 ynh_remove_app_dependencies
 
-# Force removing if ynh_remove_app_dependencies not work (old zabbix version)
-for zabbix_pkg in $(apt list --installed | grep -Po "\K(zabbix-.*)(?=/)")
-do
-	DEBIAN_FRONTEND=noninteractive apt-get purge --allow-change-held-packages "$zabbix_pkg" -y
-done
+ynh_remove_extra_repo --name=$app
 
-remove_zabbix_repo
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Removing app main directory..."
+
+# Remove the app directory securely
+ynh_secure_remove --file="$final_path"
+ynh_secure_remove --file="/usr/share/$app"
+
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Removing NGINX web server configuration..."
+
+# Remove the dedicated NGINX config
+ynh_remove_nginx_config
+
+#=================================================
+# CLOSE A PORT
+#=================================================
+
+if yunohost firewall list | grep -q "\- $port$"
+then
+	ynh_script_progression --message="Closing port $port..."
+	ynh_exec_warn_less yunohost firewall disallow TCP $port
+fi
 
 #=================================================
 # SPECIFIC REMOVE
@@ -108,16 +116,28 @@ remove_zabbix_repo
 ynh_script_progression --message="Removing various files..."
 
 # Remove a directory securely
-if [ -d /etc/zabbix ] ;then ynh_secure_remove --file="/etc/$app";fi
+ynh_secure_remove --file="/etc/$app"
 
 # Remove the log files
-if [ -d /var/log/zabbix ] ;then ynh_secure_remove --file="/var/log/$app";fi
+ynh_secure_remove --file="/var/log/$app"
 
-# Remove the pid/socket files
-if [ -d /run/zabbix ] ;then ynh_secure_remove --file="/run/zabbix";fi
+ynh_secure_remove --file="/run/$app"
 
-# Remove the sudoers file
-if [ -f /etc/sudoers.d/zabbix ] ;then ynh_secure_remove --file="/etc/sudoers.d/zabbix";fi
+ynh_secure_remove --file="/etc/sudoers.d/$app"
+
+#REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
+nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
+if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ]
+then 
+	ynh_print_info --message="Removing snmp-mibs-downloader (non-free package)"
+	cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
+	ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
+	DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
+	if [ -f /etc/apt/sources.list.d/non-free.list ]
+	then
+		ynh_secure_remove --file="/etc/apt/sources.list.d/non-free.list"
+	fi
+fi
 
 #=================================================
 # GENERIC FINALIZATION

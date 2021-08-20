@@ -54,8 +54,7 @@ ynh_backup --src_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 #=================================================
 
 # Backup frontend config
-ynh_backup --src_path="$final_path/conf/zabbix.conf.php"
-ynh_backup --src_path="/etc/zabbix"
+ynh_backup --src_path="/etc/zabbix/web"
 ynh_backup --src_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 
 # Backup server config
