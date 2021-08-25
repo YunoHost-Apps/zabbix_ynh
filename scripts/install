@@ -13,6 +13,9 @@ source /usr/share/yunohost/helpers
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -20,8 +23,8 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-export domain=$YNH_APP_ARG_DOMAIN
-export path_url=$YNH_APP_ARG_PATH
+domain=$YNH_APP_ARG_DOMAIN
+path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
@@ -32,6 +35,8 @@ app=$YNH_APP_INSTANCE_NAME
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 ynh_script_progression --message="Validating installation parameters..."
+
+remove_previous_zabbix
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
@@ -47,7 +52,6 @@ ynh_script_progression --message="Storing installation settings..."
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
@@ -57,27 +61,11 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-pid=$(pgrep -f '/usr/bin/python3 /usr/bin/unattended-upgrade --download-only' || true)
-if [ ! -z "$pid" ] ;then
-	ynh_script_progression --message="Check and wait end of unattended-upgrade of package_check"
-	tail --pid=$pid -f /dev/null
-fi
-
-ynh_script_progression --message="Remove Zabbix if already installed"
-apt-get purge zabbix* -y
-if compgen -G "/var/cache/apt/archives/zabbix-server-mysql*" > /dev/null; then
-	ynh_secure_remove  --file="/var/cache/apt/archives/zabbix-server-mysql*"
-fi
-
-ynh_script_progression --message="Install Zabbix repository"
 install_zabbix_repo
-
-ynh_script_progression --message="Update and install dependencies"
-#ynh_package_update no need cause ynh_install_app_dependencies after
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 
-ynh_replace_string --match_string="# fr_FR.UTF-8 UTF-8" --replace_string="fr_FR.UTF-8 UTF-8" --target_file=/etc/locale.gen
+ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
 #=================================================
@@ -88,6 +76,7 @@ ynh_script_progression --message="Creating a MySQL database..."
 db_name=$(ynh_sanitize_dbid --db_name=$app)
 db_user=$db_name
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+ynh_app_setting_set --app=$app --key=db_user --value=$db_user
 ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
@@ -96,8 +85,11 @@ ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 ynh_script_progression --message="Setting up source files..."
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-# Download, check integrity, uncompress and patch the source from app.src
-ln -s /usr/share/zabbix "$final_path"
+ln -s "/usr/share/zabbix" "$final_path"
+
+chmod 750 "/usr/share/zabbix"
+chmod -R o-rwx "/usr/share/zabbix"
+chown -R $app:www-data "/usr/share/zabbix"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -123,8 +115,8 @@ phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
 #=================================================
 ynh_script_progression --message="Import default data in database..."
 
-export mysqlconn="mysql -u$db_user -p$db_pwd $db_name"
-mysql --user=$db_user --password=$db_pwd --database=zabbix -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+$mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
 
@@ -144,9 +136,10 @@ $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) V
 i=4
 for user in $(ynh_user_list); 
 do 
-	if [ "$user" != "$admin" ];then
-		surname=$(ynh_user_get_info "$user" lastname)
-		name=$(ynh_user_get_info "$user" firstname)
+	if [ "$user" != "$admin" ]
+	then
+		surname=$(ynh_user_get_info --username="$user" --key=lastname)
+		name=$(ynh_user_get_info --username="$user" --key=firstname)
 		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
 		i=$((i+1))
 	fi
@@ -161,26 +154,45 @@ set_mediatype_default_yunohost
 #=================================================
 ynh_script_progression --message="Adding a configuration file..."
 
-ynh_add_config --template="../conf/zabbix.conf.php" --destination="/usr/share/zabbix/conf/zabbix.conf.php"
+ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
-chown -R www-data. /usr/share/zabbix
+chmod 400 "/etc/zabbix/web/zabbix.conf.php"
+chown $app:www-data "/etc/zabbix/web/zabbix.conf.php"
 
 ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
 ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
 ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
 
 #=================================================
-# INSTALL hook to verify if conf file is broken (after an update for example)
+# SETUP SYSTEMD
 #=================================================
+ynh_script_progression --message="Configuring a systemd service..."
+
+change_timeoutAgent
+
+systemctl enable zabbix-agent --quiet
+systemctl enable zabbix-server --quiet
 
 update_initZabbixConf
 
 #=================================================
-# IMPORT YUNOHOST TEMPLATE
+# SETUP APPLICATION WITH CURL
 #=================================================
-ynh_script_progression --message="Importing YunoHost template in Zabbix"
+ynh_script_progression --message="Setuping application with CURL..."
+
+# Set the app as temporarily public for curl call
+ynh_script_progression --message="Configuring SSOwat..."
+# Making the app public for curl
+ynh_permission_update --permission="main" --add="visitors"
 
 import_template
+
+link_template
+
+disable_admin_user
+
+# Remove the public access
+ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -190,23 +202,17 @@ import_template
 ynh_script_progression --message="Integrating service in YunoHost..."
 
 yunohost service add snmpd --description="Management of SNMP Daemon"
-yunohost service add zabbix-server --description="Management Zabbix server daemon : Collect, agregate, compute and notify"
-yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server"
+yunohost service add zabbix-server --description="Management Zabbix server daemon : collect, agregate, compute and notify" --log="/var/log/$app/${app}_server.log"
+yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-systemctl enable zabbix-agent --quiet && systemctl restart zabbix-agent
-change_timeoutAgent
-systemctl enable zabbix-server --quiet && systemctl restart zabbix-server
-
-#test if zabbix server is started
-check_proc_zabbixagent
-
-#test if zabbix agent is started
-check_proc_zabbixserver
+# Start a systemd service
+ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # SETUP SSOWAT
