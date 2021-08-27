@@ -1,8 +1,8 @@
 ;; Test complet
 	; Manifest
-		domain="domain.tld"	(DOMAIN)
-		path="/path"	(PATH)
-		admin="john"	(USER)
+		domain="domain.tld"
+		path="/path"	
+		admin="john"
 		language="fr_FR"
 		is_public=1	(PUBLIC|public=1|private=0)
 		password="1Strong-Password"
