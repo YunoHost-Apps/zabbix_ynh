@@ -6,7 +6,7 @@
 		language="fr_FR"
 		is_public=1
 		password="1Strong-Password"
-		port="10051"	(PORT)
+		port="10051"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
