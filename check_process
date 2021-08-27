@@ -4,7 +4,7 @@
 		path="/path"	
 		admin="john"
 		language="fr_FR"
-		is_public=1	(PUBLIC|public=1|private=0)
+		is_public=1
 		password="1Strong-Password"
 		port="10051"	(PORT)
 	; Checks
