@@ -52,7 +52,7 @@
                 "type": "boolean",
                 "help": {
                     "en": "A public app doesn't need SSO auth : the auth page is opened for everyone",
-                    "fr": "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte au monde entier"
+                    "fr": "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte à tous"
                 },
                 "default": false
             },
