@@ -9,7 +9,6 @@ fi
 
 if [ ! -f /etc/zabbix/web/zabbix.conf.php ]
 then
-	source /usr/share/yunohost/helpers
 	echo "<?php
 // Zabbix GUI configuration file.
 global \$DB;
