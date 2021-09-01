@@ -1,4 +1,5 @@
 #!/bin/bash
+
 yunobin=$(which yunohost)
 
 if [ "$1" == "yunohost.users.discover" ];then
@@ -22,12 +23,12 @@ if [ "$1" == "yunohost.services.discover" ] ;then
 fi
 
 if [ "$1" == "yunohost.service.status" ] ;then
-        service=$($yunobin service status "$2" --output-as json 2>/dev/null)
-        if [[ "$(echo $service | jq -r '.description')" == *"doesn't exists for systemd"* ]] ;then
-                echo "$service" | jq -c '.active = "disabled"' 
-        else
-                echo "$service"
-        fi
+	service=$($yunobin service status "$2" --output-as json 2>/dev/null)
+	if [[ "$(echo $service | jq -r '.description')" == *"doesn't exists for systemd"* ]] ;then
+		echo "$service" | jq -c '.active = "disabled"' 
+	else
+		echo "$service"
+	fi
 fi
 
 if [ "$1" == "yunohost.backups.number" ] ;then

@@ -2,10 +2,12 @@
 source /usr/share/yunohost/helpers
 
 user=$1
-app="ynhzabbix"
+app=zabbix
 
-db_name=$(ynh_app_setting_get $app db_name)
-db_user=$(ynh_app_setting_get $app db_user)
-db_pwd=$(ynh_app_setting_get $app mysqlpwd)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
+db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 
-mysql -u$db_user -p$db_pwd $db_name -e "DELETE FROM users WHERE alias=\"$1\";"
+mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+
+$mysqlconn -e "DELETE FROM users WHERE alias=\"$1\";"

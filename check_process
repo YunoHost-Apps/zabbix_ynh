@@ -1,17 +1,12 @@
-# See here for more information
-# https://github.com/YunoHost/package_check#syntax-check_process-file
-
-# Move this file from check_process.default to check_process when you have filled it.
-
 ;; Test complet
 	; Manifest
-		domain="domain.tld"	(DOMAIN)
-		path="/path"	(PATH)
-		admin="john"	(USER)
-		language="fr"
-		is_public=1	(PUBLIC|public=1|private=0)
-		password="pass"
-		port="666"	(PORT)
+		domain="domain.tld"
+		path="/path"	
+		admin="john"
+		language="fr_FR"
+		is_public=1
+		password="1Strong-Password"
+		port="10051"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
@@ -20,14 +15,15 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
+		upgrade=1	from_commit=5cd502c98fdf4731938503541cf64a59aa43eda7
 		backup_restore=1
 		multi_instance=0
-		incorrect_path=1
 		port_already_use=1
 		change_url=1
-;;; Levels
-# https://framagit.org/Mickael-Martin/zabbix_ynh/blob/master/scripts/install#L141
-        Level 5=auto
 ;;; Options
 Email=
 Notification=none
+;;; Upgrade options
+	; commit=5cd502c98fdf4731938503541cf64a59aa43eda7
+		name=4.4~ynh1.
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&language=fr&is_public=1&password=pass&port=PORT&
