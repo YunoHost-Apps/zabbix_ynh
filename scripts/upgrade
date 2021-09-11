@@ -23,6 +23,7 @@ db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 language=$(ynh_app_setting_get --app=$app --key=language)
+is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 
 #=================================================
 # CHECK VERSION
@@ -196,8 +197,6 @@ set_mediatype_default_yunohost
 #=================================================
 ynh_script_progression --message="Setuping application with CURL..."
 
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
 # Making the app public for curl
 ynh_permission_update --permission="main" --add="visitors"
 
@@ -211,8 +210,11 @@ disable_admin_user
 
 disable_guest_user
 
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
+# Make app public if necessary
+if [ $is_public -eq 0 ]
+then
+	ynh_permission_update --permission="main" --remove="visitors"
+fi
 
 #=================================================
 # SETUP SYSTEMD
