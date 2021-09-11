@@ -157,12 +157,12 @@ import_template () {
 
 		if [ "$importState" -eq "1" ]
 		then
-			ynh_print_info --message="YunoHost template imported !"
+			ynh_print_info --message="YunoHost template imported!"
 		else
-			ynh_print_warn --message="YunoHost template not imported !"
+			ynh_print_warn --message="YunoHost template not imported!"
 		fi
 	else
-		ynh_print_warn --message="Admin user cannot connect to the interface !"
+		ynh_print_warn --message="Admin user cannot connect to the interface!"
 	fi
 }
 
@@ -177,9 +177,9 @@ link_template () {
 	applyTemplate=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
 	if [ "$applyTemplate" -eq "$zabbixHostID" ]
 	then
-		ynh_print_info --message="YunoHost template linked to Zabbix server !"
+		ynh_print_info --message="YunoHost template linked to Zabbix server!"
 	else
-		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
+		ynh_print_warn --message="YunoHost template not linked to Zabbix server!"
 	fi
 }
 
@@ -189,7 +189,7 @@ check_proc_zabbixserver () {
 	pgrep zabbix_server >/dev/null
 	if [ $? -eq 0 ]
 	then
-		ynh_print_info --message="Zabbix server is started !"
+		ynh_print_info --message="Zabbix server is started!"
 	else
 		ynh_print_err --message="Zabbix server not started, try to start it with the YunoHost interface."
 		ynh_print_err --message="If Zabbix server can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
@@ -224,10 +224,10 @@ remove_zabbix_repo(){
 # Remove previous Zabbix installation
 #
 remove_previous_zabbix () {
-	ynh_print_info --message="Previous Zabbix installation will be purged !"
+	ynh_print_info --message="Previous Zabbix installation will be purged!"
 	apt-get purge zabbix* -y
 	ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
-	ynh_print_info --message="Previous Zabbix installation purged !"
+	ynh_print_info --message="Previous Zabbix installation purged!"
 }
 
 # Update Zabbix configuration initialisation
@@ -241,13 +241,13 @@ update_initZabbixConf () {
 	cp "../conf/etc_zabbix_web_init.zabbix.conf.php.sh" /etc/zabbix/web/init.zabbix.conf.php.sh
 	chmod 700 /etc/zabbix/web/init.zabbix.conf.php.sh
 	cp "../conf/etc_apt_apt.conf.d_100update_force_init_zabbix_frontend_config" /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config
-	ynh_print_info --message="Zabbix configuration initialisation updated !"
+	ynh_print_info --message="Zabbix configuration initialisation updated!"
 }
 
 # Delete Zabbix configuration initialisation
 #
 delete_initZabbixConf () {
-	ynh_print_info --message="Delete Zabbix configuration initialisation !"
+	ynh_print_info --message="Delete Zabbix configuration initialisation!"
 	if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ]
 	then
 		ynh_secure_remove --file="/etc/zabbix/web/init.zabbix.conf.php.sh"
@@ -256,7 +256,7 @@ delete_initZabbixConf () {
 	then
 		ynh_secure_remove --file="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 	fi
-	ynh_print_info --message="Zabbix configuration initialisation deleted !"
+	ynh_print_info --message="Zabbix configuration initialisation deleted!"
 }
 
 # Patch timeout too short for Zabbix agent if needed
@@ -268,20 +268,20 @@ change_timeoutAgent () {
 		ynh_replace_string --match_string="# Timeout=3" --replace_string="Timeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
 		grep -C 2 "Timeout" /etc/zabbix/zabbix_agentd.conf
 		systemctl restart zabbix-agent
-		ynh_print_info --message="Zabbix agent timeout updated !"
+		ynh_print_info --message="Zabbix agent timeout updated!"
 	fi
 }
 
 # Update Zabbix database character set
 #
 convert_ZabbixDB () {
-	ynh_print_info --message="Zabbix database character set will be updated !"
+	ynh_print_info --message="Zabbix database character set will be updated!"
 	$mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 	for t in $($mysqlconn -BN -e "show tables";)
 	do
 		$mysqlconn -e "ALTER TABLE $t CONVERT TO character set utf8 collate utf8_bin;"
 	done
-	ynh_print_info --message="Zabbix database character set has been updated !"
+	ynh_print_info --message="Zabbix database character set has been updated!"
 }
 
 # Add email media type with the YunoHost server mail.
