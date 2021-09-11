@@ -24,14 +24,6 @@ db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 language=$(ynh_app_setting_get --app=$app --key=language)
 
-trustedversion="4.4-1+stretch"
-if ynh_permission_has_user --permission=main --user=visitors
-then
-	is_public=0
-else
-	is_public=1
-fi
-
 #=================================================
 # CHECK VERSION
 #=================================================
@@ -148,6 +140,13 @@ fi
 
 ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
 
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -167,11 +166,6 @@ then
 	DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 fi
-
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Restoring the app main directory..."
 
 chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
@@ -205,10 +199,7 @@ ynh_script_progression --message="Setuping application with CURL..."
 # Set the app as temporarily public for curl call
 ynh_script_progression --message="Configuring SSOwat..."
 # Making the app public for curl
-if [ $is_public -eq 0 ]
-then
-	ynh_permission_update --permission="main" --add="visitors"
-fi
+ynh_permission_update --permission="main" --add="visitors"
 
 enable_admin_user
 
@@ -254,19 +245,6 @@ ynh_script_progression --message="Starting a systemd service..."
 # Start a systemd service
 ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..."
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
-fi
 
 #=================================================
 # RELOAD NGINX
