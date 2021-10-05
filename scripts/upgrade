@@ -25,7 +25,7 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 language=$(ynh_app_setting_get --app=$app --key=language)
 
 trustedversion="4.4-1+stretch"
-is_public=$(ynh_permission_has_user --permission=main --user=visitors)
+is_public=$(ynh_permission_has_user --permission=main --user=visitors && echo 1 || echo 0)
 
 #=================================================
 # CHECK VERSION
