@@ -6,7 +6,7 @@
         "en": "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services",
         "fr": "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
     },
-    "version": "4.4~ynh2",
+    "version": "4.4~ynh3",
     "url": "https://www.zabbix.com",
     "upstream": {
         "license": "GPL-2.0-or-later",
