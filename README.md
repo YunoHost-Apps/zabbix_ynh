@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services
 
-**Shipped version:** 4.4~ynh2
+**Shipped version:** 4.4~ynh3
 
 
 
