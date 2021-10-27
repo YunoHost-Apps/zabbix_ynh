@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne
 
-**Version incluse :** 4.4~ynh2
+**Version incluse :** 4.4~ynh3
 
 
 

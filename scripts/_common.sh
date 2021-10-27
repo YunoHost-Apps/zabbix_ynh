@@ -98,6 +98,7 @@ import_template () {
 	bashUserPpath="../conf/etc_zabbix_zabbix_agentd.d_yunohost.sh"
 
 	cp "$sudoUserPpath" /etc/sudoers.d/zabbix
+	chmod 400 /etc/sudoers.d/zabbix
 
 	if [ -d /etc/zabbix/zabbix_agentd.d ]
 	then
