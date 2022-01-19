@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne
+A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
 **Version incluse :** 4.4~ynh3
 
