@@ -15,7 +15,10 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
+		# 4.4~ynh1
 		upgrade=1	from_commit=5cd502c98fdf4731938503541cf64a59aa43eda7
+		# 4.4~ynh3
+		upgrade=1	from_commit=9c1395710db75a5af897edc6ce6bcc8b1fc2d167
 		backup_restore=1
 		multi_instance=0
 		port_already_use=1
@@ -27,3 +30,5 @@ Notification=none
 	; commit=5cd502c98fdf4731938503541cf64a59aa43eda7
 		name=4.4~ynh1.
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&language=fr&is_public=1&password=pass&port=PORT&
+	; commit=9c1395710db75a5af897edc6ce6bcc8b1fc2d167
+		name=4.4~ynh3
