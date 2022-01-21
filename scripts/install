@@ -63,7 +63,6 @@ ynh_script_progression --message="Installing dependencies..."
 
 install_zabbix_repo
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
 
 ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen

@@ -111,6 +111,7 @@ import_template () {
 
 	cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
 	cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
+	chown -R $app:$app "/etc/zabbix/zabbix_agentd.d/"
 	chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 	systemctl restart zabbix-agent

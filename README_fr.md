@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Version incluse :** 4.4~ynh3
+**Version incluse :** 5.0~ynh1
 
 
 
