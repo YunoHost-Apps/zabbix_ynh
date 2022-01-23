@@ -220,6 +220,7 @@ check_proc_zabbixagent () {
 # Install Zabbix repo
 #
 install_zabbix_repo(){
+    ynh_remove_extra_repo --name=zabbix
     ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix
 }
 

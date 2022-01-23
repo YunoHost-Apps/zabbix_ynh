@@ -159,6 +159,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading dependencies..."
 
+	install_zabbix_repo
 	DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 fi
