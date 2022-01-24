@@ -11,7 +11,7 @@ else
     libsnmpd_version="libsnmp30"
 fi
 
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php "
+pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 zabbix-agent zabbix-frontend-php zabbix-server-mysql"
 
 YNH_PHP_VERSION="7.3"
 
