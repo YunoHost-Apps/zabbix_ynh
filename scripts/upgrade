@@ -89,23 +89,6 @@ fi
 
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 
-# patch if zabbix-release installed
-if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ]
-then
-	DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
-	install_zabbix_repo
-fi
-
-# patch if zabbix-release has Candidate version but no Installed version
-if [ -f "/etc/apt/sources.list.d/zabbix.list" ]
-then
-	if [ "$(grep -c "4.2" /etc/apt/sources.list.d/zabbix.list)" -eq 1 ]
-	then
-		install_zabbix_repo
-		upgrade_type="UPGRADE_APP"
-	fi
-fi
-
 # patch to remove old zabbix-client service
 if [ ! -z "$(yunohost service status | grep zabbix-client)" ]
 then 
@@ -142,6 +125,8 @@ fi
 
 ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
 
+ynh_remove_extra_repo --name=zabbix
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -158,11 +143,8 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading dependencies..."
 
-	install_zabbix_repo
-	DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-
-	apt-get upgrade -y --option Dpkg::Options::=--force-confdef --option Dpkg::Options::=--force-confold
+	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
 fi
 
 #=================================================
