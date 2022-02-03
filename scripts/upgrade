@@ -101,17 +101,6 @@ ynh_remove_logrotate
 # Check if new zabbix version is available on repo"
 
 ynh_package_update
-zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
-
-if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]]
-then
-	upgrade_type="UPGRADE_APP"
-fi
-
-if [ -f "/etc/zabbix/web/zabbix.conf.php" ]
-then
-	ynh_secure_remove --file="/etc/zabbix/web/zabbix.conf.php"
-fi
 
 ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 

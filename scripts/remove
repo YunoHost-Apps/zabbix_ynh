@@ -83,7 +83,6 @@ ynh_script_progression --message="Removing dependencies..."
 #Remove config file detection
 delete_initZabbixConf
 
-DEBIAN_FRONTEND=noninteractive apt-get purge zabbix-release -y
 ynh_remove_app_dependencies
 
 ynh_remove_extra_repo --name=$app
