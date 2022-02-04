@@ -5,7 +5,15 @@
 #=================================================
 
 # dependencies used by the app
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 ttf-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base libsnmp30 snmptrapd snmpd libjs-prototype jq zabbix-server-mysql zabbix-agent zabbix-frontend-php"
+if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
+    libsnmpd_version="libsnmp40"
+else
+    libsnmpd_version="libsnmp30"
+fi
+
+pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4"
+
+zabbix_pkg_dependencies="zabbix-agent zabbix-frontend-php zabbix-server-mysql"
 
 YNH_PHP_VERSION="7.3"
 
@@ -111,6 +119,7 @@ import_template () {
 
 	cp "$confUserPpath" /etc/zabbix/zabbix_agentd.d/userP_yunohost.conf
 	cp "$bashUserPpath" /etc/zabbix/zabbix_agentd.d/yunohost.sh
+	chown -R $app:$app "/etc/zabbix/zabbix_agentd.d/"
 	chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 	systemctl restart zabbix-agent
@@ -208,18 +217,6 @@ check_proc_zabbixagent () {
 		ynh_print_err --message="Zabbix agent not started, try to start it with the YunoHost interface."
 		ynh_print_err --message="If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
 	fi
-}
-
-# Install Zabbix repo
-#
-install_zabbix_repo(){
-    ynh_install_extra_repo --repo="http://repo.zabbix.com/zabbix/4.4/debian $(lsb_release -sc) main" --key=https://repo.zabbix.com/zabbix-official-repo.key  --priority=999  --name=zabbix
-}
-
-# Remove Zabbix repo
-#
-remove_zabbix_repo(){
-    ynh_remove_extra_repo --name=zabbix
 }
 
 # Remove previous Zabbix installation
