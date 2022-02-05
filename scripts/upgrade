@@ -24,8 +24,7 @@ db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
 language=$(ynh_app_setting_get --app=$app --key=language)
 
-trustedversion="4.4-1+stretch"
-is_public=$(ynh_permission_has_user --permission=main --user=visitors && echo 1 || echo 0)
+trustedversion="5.0.0-1+stretch"
 
 #=================================================
 # CHECK VERSION
@@ -90,23 +89,6 @@ fi
 
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 
-# patch if zabbix-release installed
-if [ "$(dpkg -l zabbix-release 2>/dev/null | wc -l)" -ne 0 ]
-then
-	DEBIAN_FRONTEND=noninteractive apt purge zabbix-release -y
-	install_zabbix_repo
-fi
-
-# patch if zabbix-release has Candidate version but no Installed version
-if [ -f "/etc/apt/sources.list.d/zabbix.list" ]
-then
-	if [ "$(grep -c "4.2" /etc/apt/sources.list.d/zabbix.list)" -eq 1 ]
-	then
-		install_zabbix_repo
-		upgrade_type="UPGRADE_APP"
-	fi
-fi
-
 # patch to remove old zabbix-client service
 if [ ! -z "$(yunohost service status | grep zabbix-client)" ]
 then 
@@ -119,17 +101,6 @@ ynh_remove_logrotate
 # Check if new zabbix version is available on repo"
 
 ynh_package_update
-zabbixReleaseInstalledVersion=$(apt-cache policy zabbix-release | sed -n '2p' | grep -Po ".* \K(.*)")
-
-if [[ "$trustedversion" > "$zabbixReleaseInstalledVersion" ]]
-then
-	upgrade_type="UPGRADE_APP"
-fi
-
-if [ -f "/etc/zabbix/web/zabbix.conf.php" ]
-then
-	ynh_secure_remove --file="/etc/zabbix/web/zabbix.conf.php"
-fi
 
 ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
@@ -142,6 +113,8 @@ then
 fi
 
 ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
+
+ynh_remove_extra_repo --name=zabbix
 
 #=================================================
 # NGINX CONFIGURATION
@@ -159,8 +132,8 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading dependencies..."
 
-	DEBIAN_FRONTEND=noninteractive apt-mark unhold zabbix-server-mysql zabbix-frontend-php
 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
 fi
 
 #=================================================
@@ -193,32 +166,6 @@ convert_ZabbixDB
 set_mediatype_default_yunohost
 
 #=================================================
-# SETUP APPLICATION WITH CURL
-#=================================================
-ynh_script_progression --message="Setuping application with CURL..."
-
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-if [ $is_public -eq 0 ]
-then
-	ynh_permission_update --permission="main" --add="visitors"
-fi
-
-enable_admin_user
-
-import_template
-
-link_template
-
-disable_admin_user
-
-disable_guest_user
-
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
-
-#=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression --message="Upgrading systemd configuration..."
@@ -247,21 +194,8 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 ynh_script_progression --message="Starting a systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log" --line_match="server #0 started"
 ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..."
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
-fi
 
 #=================================================
 # RELOAD NGINX

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>4.4</version>
+    <version>5.0</version>
     <date>2020-11-26T12:48:35Z</date>
     <groups>
         <group>
@@ -321,7 +321,7 @@ fi</description>
                                 </application>
                             </applications>
                             <valuemap>
-                                <name>Service state</name>
+                                <name>Yunohost : Service state</name>
                             </valuemap>
                             <trigger_prototypes>
                                 <trigger_prototype>
@@ -350,7 +350,7 @@ fi</description>
                                 </application>
                             </applications>
                             <valuemap>
-                                <name>Service state</name>
+                                <name>Yunohost : Service state</name>
                             </valuemap>
                             <trigger_prototypes>
                                 <trigger_prototype>
@@ -510,7 +510,7 @@ fi</description>
     </triggers>
     <value_maps>
         <value_map>
-            <name>Service state</name>
+            <name>Yunohost : Service state</name>
             <mappings>
                 <mapping>
                     <value>0</value>

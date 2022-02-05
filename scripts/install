@@ -61,9 +61,8 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-install_zabbix_repo
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-dpkg -i --force-confmiss /var/cache/apt/archives/zabbix-server-mysql*
+ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
 
 ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
