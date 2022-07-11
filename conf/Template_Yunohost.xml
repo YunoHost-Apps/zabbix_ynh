@@ -142,7 +142,7 @@ fi</description>
                             <name>YunoHost hasn't backup since more than {$YUNOHOST.BACKUP.MAXDAYS} days</name>
                             <opdata>{ITEM.LASTVALUE}</opdata>
                             <priority>HIGH</priority>
-                            <description>Please check https://yunohost.org/#/backup</description>
+                            <description>Please check https://yunohost.org/en/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
@@ -161,7 +161,7 @@ fi</description>
                             <expression>{last()}=0</expression>
                             <name>YunoHost hasn't backup yet</name>
                             <priority>HIGH</priority>
-                            <description>Please check https://yunohost.org/#/backup</description>
+                            <description>Please check https://yunohost.org/en/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
