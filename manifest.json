@@ -6,11 +6,11 @@
         "en": "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services",
         "fr": "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
     },
-    "version": "5.0.20~ynh1",
+    "version": "5.0.20~ynh2",
     "url": "https://www.zabbix.com",
     "upstream": {
         "license": "GPL-2.0-or-later",
-        "website": "https://www.zabbix.com/",
+        "website": "https://www.zabbix.com",
         "admindoc": "https://www.zabbix.com/manuals",
         "code": "https://github.com/zabbix/zabbix"
     },
@@ -42,10 +42,6 @@
                 "default": "/zabbix"
             },
             {
-                "name": "admin",
-                "type": "user"
-            },
-            {
                 "name": "is_public",
                 "type": "boolean",
                 "help": {
@@ -63,6 +59,10 @@
                 },
                 "choices": ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"],
                 "default": "en_US"
+            },
+            {
+                "name": "admin",
+                "type": "user"
             }
         ]
     }
