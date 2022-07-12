@@ -18,11 +18,11 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
+language=$(ynh_app_setting_get --app=$app --key=language)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_app_setting_get --app=$app --key=db_user)
+db_user=$db_name
 db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-language=$(ynh_app_setting_get --app=$app --key=language)
 
 trustedversion="5.0.0-1+stretch"
 
@@ -117,14 +117,6 @@ ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
 ynh_remove_extra_repo --name=zabbix
 
 #=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..."
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
 
@@ -136,11 +128,6 @@ then
 	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
 fi
 
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Restoring the app main directory..."
-
 chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R $app:www-data "/usr/share/zabbix"
@@ -151,8 +138,16 @@ chown -R $app:www-data "/usr/share/zabbix"
 ynh_script_progression --message="Upgrading PHP-FPM configuration..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config --package="$extra_php_dependencies"
+ynh_add_fpm_config
 phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 #=================================================
 # SPECIFIC UPGRADE
