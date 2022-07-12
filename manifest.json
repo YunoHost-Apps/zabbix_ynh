@@ -16,9 +16,8 @@
     },
     "license": "GPL-2.0-or-later",
     "maintainer": {
-        "name": "Mickael Martin",
-        "email": "mickael@librement-votre.fr",
-        "url": "http://www.librement-votre.fr"
+        "name": "",
+        "email": ""
     },
     "requirements": {
         "yunohost": ">= 4.3.0"
