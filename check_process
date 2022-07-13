@@ -2,9 +2,9 @@
 	; Manifest
 		domain="domain.tld"
 		path="/path"
-		admin="john"
-		language="fr_FR"
 		is_public=1
+		language="fr_FR"
+		admin="john"
 		password="1Strong-Password"
 		port="10051"
 	; Checks

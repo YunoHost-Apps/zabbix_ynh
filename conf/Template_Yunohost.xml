@@ -139,10 +139,10 @@ fi</description>
                     <triggers>
                         <trigger>
                             <expression>{last()}&gt;={$YUNOHOST.BACKUP.MAXDAYS}</expression>
-                            <name>Yunhost hasn't backup since more than {$YUNOHOST.BACKUP.MAXDAYS} days</name>
+                            <name>YunoHost hasn't backup since more than {$YUNOHOST.BACKUP.MAXDAYS} days</name>
                             <opdata>{ITEM.LASTVALUE}</opdata>
                             <priority>HIGH</priority>
-                            <description>Please check https://yunohost.org/#/backup</description>
+                            <description>Please check https://yunohost.org/en/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
@@ -159,9 +159,9 @@ fi</description>
                     <triggers>
                         <trigger>
                             <expression>{last()}=0</expression>
-                            <name>Yunhost hasn't backup yet</name>
+                            <name>YunoHost hasn't backup yet</name>
                             <priority>HIGH</priority>
-                            <description>Please check https://yunohost.org/#/backup</description>
+                            <description>Please check https://yunohost.org/en/backup</description>
                             <manual_close>YES</manual_close>
                         </trigger>
                     </triggers>
@@ -502,7 +502,7 @@ fi</description>
     <triggers>
         <trigger>
             <expression>{Template Yunohost:yunohost.migrations.lastavailable.last()}&lt;&gt;{Template Yunohost:yunohost.migrations.lastinstalled.last()}</expression>
-            <name>Yunhost has migration in pending state</name>
+            <name>YunoHost has migration in pending state</name>
             <priority>INFO</priority>
             <description>Check Yunohost documentation and &quot;yunohost/admin/#/tools/migrations/ &quot; url or &quot;sudo yunohost tools migrations migrate&quot; command</description>
             <manual_close>YES</manual_close>
