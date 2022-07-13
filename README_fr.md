@@ -18,7 +18,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 Un outil de surveillance pour divers composants informatiques, notamment les réseaux, les serveurs, les machines virtuelles et les services en nuage.
 
 
-**Version incluse :** 5.0.20~ynh2
+**Version incluse :** 5.0.25~ynh1
 
 ## Captures d'écran
 
