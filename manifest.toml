@@ -1,0 +1,74 @@
+packaging_format = 2
+
+id = "zabbix"
+name = "Zabbix"
+description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
+description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
+
+version = "5.0.20~ynh2"
+
+maintainers = []
+
+[upstream]
+license = "GPL-2.0-or-later"
+website = "https://www.zabbix.com"
+admindoc = "https://www.zabbix.com/manuals"
+code = "https://github.com/zabbix/zabbix"
+cpe = "???" # FIXME: optional but recommended if relevant, this is meant to contain the Common Platform Enumeration, which is sort of a standard id for applications defined by the NIST. In particular, Yunohost may use this is in the future to easily track CVE (=security reports) related to apps. The CPE may be obtained by searching here: https://nvd.nist.gov/products/cpe/search. For example, for Nextcloud, the CPE is 'cpe:2.3:a:nextcloud:nextcloud' (no need to include the version number)
+fund = "???" # FIXME: optional but recommended (or remove if irrelevant / not applicable). This is meant to be an URL where people can financially support this app, especially when its development is based on volunteers and/or financed by its community. YunoHost may later advertise it in the webadmin.
+
+[integration]
+yunohost = ">= 4.3.0"
+architectures = "all" # FIXME: can be replaced by a list of supported archs using the dpkg --print-architecture nomenclature (amd64/i386/armhf/arm64), for example: ["amd64", "i386"]
+multi_instance = false
+ldap = "?" # FIXME: replace with true, false, or "not_relevant". Not to confuse with the "sso" key : the "ldap" key corresponds to wether or not a user *can* login on the app using its YunoHost credentials.
+sso = "?" # FIXME: replace with true, false, or "not_relevant". Not to confuse with the "ldap" key : the "sso" key corresponds to wether or not a user is *automatically logged-in* on the app when logged-in on the YunoHost portal.
+disk = "50M" # FIXME: replace with an **estimate** minimum disk requirement. e.g. 20M, 400M, 1G, ...
+ram.build = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+ram.runtime = "50M" # FIXME: replace with an **estimate** minimum ram requirement. e.g. 50M, 400M, 1G, ...
+
+[install]
+    [install.domain]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "domain"
+
+    [install.path]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "path"
+    default = "/zabbix"
+
+    [install.init_main_permission]
+    help.en = "A public app doesn't need SSO auth : the auth page is opened for everyone"
+    help.fr = "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte à tous"
+    type = "group"
+    default = false
+
+    [install.language]
+    ask.en = "Choose the application language"
+    ask.fr = "Choisissez la langue de l'application"
+    type = "string"
+    choices = ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"]
+    default = "en_US"
+
+    [install.admin]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "user"
+
+[resources]
+    [resources.system_user]
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.apt]
+    packages = "libapr1, libaprutil1, libaprutil1-dbd-sqlite3, libaprutil1-ldap, liblua5.2-0, fonts-dejavu-core, patch, smistrip, unzip, wget, fping, libcap2-bin, libiksemel3, libopenipmi0, libpam-cap, libsnmp-base, $libsnmpd_version, snmptrapd, snmpd, libjs-prototype, jq, libssh-4, php7.3-fpm, php7.3-bcmath, zabbix-agent, zabbix-frontend-php, zabbix-server-mysql"
+
+        [[resources.apt.extras]]
+        repo = "http://repo.zabbix.com/zabbix/6.4/debian $(lsb_release -sc) main"
+        key = "https://repo.zabbix.com/zabbix-official-repo.key"
+        packages = "#FIXME#$zabbix_pkg_dependencies"
+
+    [resources.database]
+    type = "mysql"

@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-YNH_PHP_VERSION="7.3"
+#REMOVEME? YNH_PHP_VERSION="7.3"
 
 # dependencies used by the app
 if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
@@ -13,9 +13,9 @@ else
     libsnmpd_version="libsnmp30"
 fi
 
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 php${YNH_PHP_VERSION}-fpm php${YNH_PHP_VERSION}-bcmath"
+#REMOVEME? pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 php${YNH_PHP_VERSION}-fpm php${YNH_PHP_VERSION}-bcmath"
 
-zabbix_pkg_dependencies="zabbix-agent zabbix-frontend-php zabbix-server-mysql"
+#REMOVEME? zabbix_pkg_dependencies="zabbix-agent zabbix-frontend-php zabbix-server-mysql"
 
 #=================================================
 # PERSONAL HELPERS
@@ -97,7 +97,7 @@ enable_admin_user () {
 #
 import_template () {
 	ynh_print_info --message="Import YunoHost template in the agent"
-	zabbixFullpath=https://$domain$path_url
+	zabbixFullpath=https://$domain$path
 	localpath="../conf/Template_Yunohost.xml"
 	sudoUserPpath="../conf/etc_sudoers.d_zabbix"
 	confUserPpath="../conf/etc_zabbix_zabbix_agentd.d_userP_yunohost.conf"
