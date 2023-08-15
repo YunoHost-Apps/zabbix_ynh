@@ -17,7 +17,7 @@
 current_version=$(cat manifest.json | jq -j '.version|split("~")[0]')
 repo=$(cat manifest.json | jq -j '.upstream.code|split("https://github.com/")[1]')
 # Some jq magic is needed, because the latest upstream release is not always the latest version (e.g. security patches for older versions)
-version=$(curl --silent "https://api.github.com/repos/$repo/tags?page=5" | jq -r '.[] | select( .name | contains("rc") or contains("beta") or contains("alpha") or startswith("6") | not ) | .name' | sort -V | tail -1)
+version=$(curl --silent "https://api.github.com/repos/$repo/tags?page=4" | jq -r '.[] | select( .name | contains("rc") or contains("beta") or contains("alpha") or startswith("6") | not ) | .name' | sort -V | tail -1)
 
 # Later down the script, we assume the version has only digits and dots
 # Sometimes the release name starts with a "v", so let's filter it out.
