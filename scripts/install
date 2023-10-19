@@ -178,19 +178,19 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression --message="Setuping application with CURL..."
 
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-ynh_permission_update --permission="main" --add="visitors"
+# # Set the app as temporarily public for curl call
+# ynh_script_progression --message="Configuring SSOwat..."
+# # Making the app public for curl
+# ynh_permission_update --permission="main" --add="visitors"
 
-import_template
+# import_template
 
-link_template
+# link_template
 
-disable_admin_user
+# disable_admin_user
 
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
+# # Remove the public access
+# ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
