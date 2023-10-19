@@ -128,7 +128,7 @@ surname=$(ynh_user_get_info "$admin" lastname)
 name=$(ynh_user_get_info "$admin" firstname)
 
 $mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
-#$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
+$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
 #users creation in Zabbix database
 i=4
