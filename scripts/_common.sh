@@ -15,7 +15,7 @@ fi
 
 pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 php${YNH_PHP_VERSION}-fpm php${YNH_PHP_VERSION}-bcmath"
 
-zabbix_pkg_dependencies="zabbix-server-mysql zabbix-frontend-php zabbix-nginx-conf zabbix-sql-scripts zabbix-agent"
+zabbix_pkg_dependencies="zabbix-server-mysql zabbix-frontend-php zabbix-sql-scripts zabbix-agent"
 
 #=================================================
 # PERSONAL HELPERS
