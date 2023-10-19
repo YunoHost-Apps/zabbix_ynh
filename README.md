@@ -18,7 +18,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 5.0.38~ynh1
+**Shipped version:** 6.4~ynh1
 
 ## Screenshots
 
