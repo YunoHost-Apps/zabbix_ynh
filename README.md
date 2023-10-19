@@ -16,17 +16,9 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 ## Overview
 
-A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
+Zabbix is a monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 6.4~ynh1
-
-## Screenshots
-
-![Screenshot of Zabbix](./doc/screenshots/screenshot1.png)
-
-## Disclaimers / important information
-
-#### Known limitations or important informations
+### Known limitations or important informations
 
 * Only x86_64 architecture is supported
 * Single sign-on is supported
@@ -34,6 +26,13 @@ A monitoring tool for diverse IT components, including networks, servers, VMs an
 * The Zabbix server port is not opened by default for external monitoring (active agent).
 * You can add your users in a group in Zabbix (for permissions/rights).
 * A YunoHost template is imported and linked to the host "Zabbix-server" (127.0.0.1) for basic monitoring for YunoHost.
+
+
+**Shipped version:** 6.4~ynh1
+
+## Screenshots
+
+![Screenshot of Zabbix](./doc/screenshots/screenshot1.png)
 
 ## Documentation and resources
 
