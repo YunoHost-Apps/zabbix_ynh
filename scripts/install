@@ -10,79 +10,27 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-#REMOVEME? ynh_clean_setup () {
-	ynh_clean_check_starting
-}
-# Exit if an error occurs during the execution of the script
-#REMOVEME? ynh_abort_if_errors
-
-#=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-#REMOVEME? domain=$YNH_APP_ARG_DOMAIN
-#REMOVEME? path=$YNH_APP_ARG_PATH
-#REMOVEME? is_public=$YNH_APP_ARG_IS_PUBLIC
-#REMOVEME? language=$YNH_APP_ARG_LANGUAGE
-#REMOVEME? admin=$YNH_APP_ARG_ADMIN
-
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-#REMOVEME? ynh_script_progression --message="Validating installation parameters..."
+ynh_script_progression --message="Validating installation parameters..."
 
 remove_previous_zabbix
-
-#REMOVEME? install_dir=/var/www/$app
-#REMOVEME? test ! -e "$install_dir" || ynh_die --message="This path already contains a folder"
-
-# Register (book) web path
-#REMOVEME? ynh_webpath_register --app=$app --domain=$domain --path=$path
-
-#=================================================
-# STORE SETTINGS FROM MANIFEST
-#=================================================
-#REMOVEME? ynh_script_progression --message="Storing installation settings..."
-
-#REMOVEME? ynh_app_setting_set --app=$app --key=domain --value=$domain
-#REMOVEME? ynh_app_setting_set --app=$app --key=path --value=$path
-ynh_app_setting_set --app=$app --key=language --value=$language
-#REMOVEME? ynh_app_setting_set --app=$app --key=admin --value=$admin
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-#REMOVEME? ynh_script_progression --message="Installing dependencies..."
-
-#REMOVEME? ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-#REMOVEME? ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/6.4/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
+ynh_script_progression --message="Installing dependencies..."
 
 ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
-
-#=================================================
-# CREATE A MYSQL DATABASE
-#=================================================
-#REMOVEME? ynh_script_progression --message="Creating a MySQL database..."
-
-#REMOVEME? db_name=$(ynh_sanitize_dbid --db_name=$app)
-#REMOVEME? db_user=$db_name
-#REMOVEME? ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-#REMOVEME? ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..."
 
-#REMOVEME? ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
 ln -s "/usr/share/zabbix" "$install_dir"
 
 chmod 750 "/usr/share/zabbix"
@@ -96,12 +44,6 @@ ynh_script_progression --message="Configuring PHP-FPM..."
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
-#REMOVEME? phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..."
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config
@@ -178,19 +120,11 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression --message="Setuping application with CURL..."
 
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-#REMOVEME? ynh_permission_update --permission="main" --add="visitors"
-
 import_template
 
 link_template
 
 disable_admin_user
-
-# Remove the public access
-#REMOVEME? ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -211,26 +145,6 @@ ynh_script_progression --message="Starting a systemd service..."
 # Start a systemd service
 ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-#REMOVEME? ynh_script_progression --message="Configuring permissions..."
-
-# Make app public if necessary
-#REMOVEME? if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-#REMOVEME? 	ynh_permission_update --permission="main" --add="visitors"
-fi
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..."
-
-#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
