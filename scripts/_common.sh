@@ -251,7 +251,7 @@ change_timeoutAgent () {
 		ynh_replace_string --match_string="# Timeout=3" --replace_string="Timeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
 		grep -C 2 "Timeout" /etc/zabbix/zabbix_agentd.conf
 		systemctl restart zabbix-agent
-		ynh_print_info --message="Zabbix agent timeout updated !"
+		ynh_print_info --message="Zabbix agent timeout updated!"
 	fi
 }
 
