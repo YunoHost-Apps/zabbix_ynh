@@ -127,25 +127,25 @@ $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_f
 surname=$(ynh_user_get_info "$admin" lastname)
 name=$(ynh_user_get_info "$admin" firstname)
 
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
-$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
+#$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
+#$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
 #users creation in Zabbix database
-i=4
-for user in $(ynh_user_list); 
-do 
-	if [ "$user" != "$admin" ]
-	then
-		surname=$(ynh_user_get_info --username="$user" --key=lastname)
-		name=$(ynh_user_get_info --username="$user" --key=firstname)
-		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
-		i=$((i+1))
-	fi
-done
+#i=4
+#for user in $(ynh_user_list); 
+#do 
+#	if [ "$user" != "$admin" ]
+#	then
+#		surname=$(ynh_user_get_info --username="$user" --key=lastname)
+#		name=$(ynh_user_get_info --username="$user" --key=firstname)
+#		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
+#		i=$((i+1))
+#	fi
+#done
 
-disable_guest_user
+#disable_guest_user
 
-set_mediatype_default_yunohost
+#set_mediatype_default_yunohost
 
 #=================================================
 # ADD A CONFIGURATION
@@ -181,16 +181,16 @@ ynh_script_progression --message="Setuping application with CURL..."
 # Set the app as temporarily public for curl call
 ynh_script_progression --message="Configuring SSOwat..."
 # Making the app public for curl
-ynh_permission_update --permission="main" --add="visitors"
+#ynh_permission_update --permission="main" --add="visitors"
 
-import_template
+#import_template
 
-link_template
+#link_template
 
-disable_admin_user
+#disable_admin_user
 
 # Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
+#ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
