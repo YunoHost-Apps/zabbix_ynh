@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-YNH_PHP_VERSION="7.3"
+YNH_PHP_VERSION="7.4"
 
 # dependencies used by the app
 if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
@@ -220,9 +220,9 @@ check_proc_zabbixagent () {
 # Remove previous Zabbix installation
 #
 remove_previous_zabbix () {
-	ynh_print_info --message="Previous Zabbix installation will be purged !"
+	#ynh_print_info --message="Previous Zabbix installation will be purged !"
 	apt-get purge zabbix* -y
-	ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
+	#ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
 	ynh_print_info --message="Previous Zabbix installation purged !"
 }
 
