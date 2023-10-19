@@ -51,7 +51,7 @@
             },
             {
                 "name": "language",
-                "type": "string",
+                "type": "select",
                 "ask": {
                     "en": "Choose the application language",
                     "fr": "Choisissez la langue de l'application"
