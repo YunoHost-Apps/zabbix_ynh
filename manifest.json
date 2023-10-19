@@ -25,7 +25,7 @@
     "multi_instance": false,
     "services": [
         "nginx",
-        "php7.3-fpm",
+        "php7.4-fpm",
         "mysql"
     ],
     "arguments": {
@@ -51,7 +51,7 @@
             },
             {
                 "name": "language",
-                "type": "string",
+                "type": "select",
                 "ask": {
                     "en": "Choose the application language",
                     "fr": "Choisissez la langue de l'application"
