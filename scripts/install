@@ -106,131 +106,131 @@ ynh_script_progression --message="Configuring NGINX web server..."
 # Create a dedicated NGINX config
 ynh_add_nginx_config
 
-#=================================================
-# SPECIFIC SETUP
-#=================================================
-# IMPORT DEFAULT DATA
-#=================================================
-ynh_script_progression --message="Import default data in database..."
+# #=================================================
+# # SPECIFIC SETUP
+# #=================================================
+# # IMPORT DEFAULT DATA
+# #=================================================
+# ynh_script_progression --message="Import default data in database..."
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
-$mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
+# export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+# $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-#zcat /usr/share/zabbix-server-mysql*/create.sql.gz | $mysqlconn
-zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
-convert_ZabbixDB
+# #zcat /usr/share/zabbix-server-mysql*/create.sql.gz | $mysqlconn
+# zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
+# convert_ZabbixDB
 
-#sso integration
-$mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
+# #sso integration
+# $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 
-#admin creation
-surname=$(ynh_user_get_info "$admin" lastname)
-name=$(ynh_user_get_info "$admin" firstname)
+# #admin creation
+# surname=$(ynh_user_get_info "$admin" lastname)
+# name=$(ynh_user_get_info "$admin" firstname)
 
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 3, 'default', 0, '', 0, 50);"
-$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
+# $mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 3, 'default', 0, '', 0, 50);"
+# $mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
 
-#users creation in zabbix database
-i=4
-for user in $(ynh_user_list); 
-do 
-	if [ "$user" != "$admin" ]
-	then
-		surname=$(ynh_user_get_info --username="$user" --key=lastname)
-		name=$(ynh_user_get_info --username="$user" --key=firstname)
-		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
-		i=$((i+1))
-	fi
-done
+# #users creation in zabbix database
+# i=4
+# for user in $(ynh_user_list); 
+# do 
+# 	if [ "$user" != "$admin" ]
+# 	then
+# 		surname=$(ynh_user_get_info --username="$user" --key=lastname)
+# 		name=$(ynh_user_get_info --username="$user" --key=firstname)
+# 		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
+# 		i=$((i+1))
+# 	fi
+# done
 
-disable_guest_user
+# disable_guest_user
 
-set_mediatype_default_yunohost
+# set_mediatype_default_yunohost
 
-#=================================================
-# ADD A CONFIGURATION
-#=================================================
-ynh_script_progression --message="Adding a configuration file..."
+# #=================================================
+# # ADD A CONFIGURATION
+# #=================================================
+# ynh_script_progression --message="Adding a configuration file..."
 
-ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
+# ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
-chmod 400 "/etc/zabbix/web/zabbix.conf.php"
-chown $app:www-data "/etc/zabbix/web/zabbix.conf.php"
+# chmod 400 "/etc/zabbix/web/zabbix.conf.php"
+# chown $app:www-data "/etc/zabbix/web/zabbix.conf.php"
 
-ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
+# ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
+# ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
+# ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
 
-#=================================================
-# SETUP SYSTEMD
-#=================================================
-ynh_script_progression --message="Configuring a systemd service..."
+# #=================================================
+# # SETUP SYSTEMD
+# #=================================================
+# ynh_script_progression --message="Configuring a systemd service..."
 
-change_timeoutAgent
+# change_timeoutAgent
 
-systemctl enable zabbix-agent --quiet
-systemctl enable zabbix-server --quiet
+# systemctl enable zabbix-agent --quiet
+# systemctl enable zabbix-server --quiet
 
-update_initZabbixConf
+# update_initZabbixConf
 
-#=================================================
-# SETUP APPLICATION WITH CURL
-#=================================================
-ynh_script_progression --message="Setuping application with CURL..."
+# #=================================================
+# # SETUP APPLICATION WITH CURL
+# #=================================================
+# ynh_script_progression --message="Setuping application with CURL..."
 
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-ynh_permission_update --permission="main" --add="visitors"
+# # Set the app as temporarily public for curl call
+# ynh_script_progression --message="Configuring SSOwat..."
+# # Making the app public for curl
+# ynh_permission_update --permission="main" --add="visitors"
 
-import_template
+# import_template
 
-link_template
+# link_template
 
-disable_admin_user
+# disable_admin_user
 
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
+# # Remove the public access
+# ynh_permission_update --permission="main" --remove="visitors"
 
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
+# #=================================================
+# # GENERIC FINALIZATION
+# #=================================================
+# # INTEGRATE SERVICE IN YUNOHOST
+# #=================================================
+# ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add snmpd --description="Management of SNMP Daemon"
-yunohost service add zabbix-server --description="Management Zabbix server daemon : collect, agregate, compute and notify" --log="/var/log/$app/${app}_server.log"
-yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent.log"
+# yunohost service add snmpd --description="Management of SNMP Daemon"
+# yunohost service add zabbix-server --description="Management Zabbix server daemon : collect, agregate, compute and notify" --log="/var/log/$app/${app}_server.log"
+# yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent.log"
 
-#=================================================
-# START SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Starting a systemd service..."
+# #=================================================
+# # START SYSTEMD SERVICE
+# #=================================================
+# ynh_script_progression --message="Starting a systemd service..."
 
-# Start a systemd service
-ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+# # Start a systemd service
+# ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
+# ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..."
+# #=================================================
+# # SETUP SSOWAT
+# #=================================================
+# ynh_script_progression --message="Configuring permissions..."
 
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
-fi
+# # Make app public if necessary
+# if [ $is_public -eq 1 ]
+# then
+# 	# Everyone can access the app.
+# 	# The "main" permission is automatically created before the install script.
+# 	ynh_permission_update --permission="main" --add="visitors"
+# fi
 
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
+# #=================================================
+# # RELOAD NGINX
+# #=================================================
+# ynh_script_progression --message="Reloading NGINX web server..."
 
-ynh_systemd_action --service_name=nginx --action=reload
+# ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
