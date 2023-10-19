@@ -40,7 +40,6 @@ Un outil de surveillance pour divers composants informatiques, notamment les ré
 * Site officiel de l’app : <https://www.zabbix.com>
 * Documentation officielle de l’admin : <https://www.zabbix.com/manuals>
 * Dépôt de code officiel de l’app : <https://github.com/zabbix/zabbix>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_zabbix>
 * Signaler un bug : <https://github.com/YunoHost-Apps/zabbix_ynh/issues>
 
 ## Informations pour les développeurs
