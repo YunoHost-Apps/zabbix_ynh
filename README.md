@@ -18,7 +18,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 5.0.38~ynh1
+**Shipped version:** 5.0.40~ynh1
 
 ## Screenshots
 
@@ -40,6 +40,7 @@ A monitoring tool for diverse IT components, including networks, servers, VMs an
 * Official app website: <https://www.zabbix.com>
 * Official admin documentation: <https://www.zabbix.com/manuals>
 * Upstream app code repository: <https://github.com/zabbix/zabbix>
+* YunoHost Store: <https://apps.yunohost.org/app/zabbix>
 * Report a bug: <https://github.com/YunoHost-Apps/zabbix_ynh/issues>
 
 ## Developer info
