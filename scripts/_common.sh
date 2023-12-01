@@ -4,7 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
-YNH_PHP_VERSION="7.3"
+YNH_PHP_VERSION="7.4"
 
 # dependencies used by the app
 if [ "$(lsb_release --codename --short)" = "bullseye" ]; then

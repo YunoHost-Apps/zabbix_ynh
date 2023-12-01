@@ -6,7 +6,7 @@
         "en": "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services",
         "fr": "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
     },
-    "version": "5.0.20~ynh2",
+    "version": "5.0.40~ynh1",
     "url": "https://www.zabbix.com",
     "upstream": {
         "license": "GPL-2.0-or-later",
@@ -20,12 +20,12 @@
         "email": ""
     },
     "requirements": {
-        "yunohost": ">= 4.3.0"
+        "yunohost": ">= 11.2"
     },
     "multi_instance": false,
     "services": [
         "nginx",
-        "php7.3-fpm",
+        "php7.4-fpm",
         "mysql"
     ],
     "arguments": {
@@ -51,12 +51,28 @@
             },
             {
                 "name": "language",
-                "type": "string",
+                "type": "select",
                 "ask": {
                     "en": "Choose the application language",
                     "fr": "Choisissez la langue de l'application"
                 },
-                "choices": ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"],
+                "choices": [
+                    "en_GB",
+                    "en_US",
+                    "cz_CN",
+                    "cs_CZ",
+                    "fr_FR",
+                    "ko_KR",
+                    "ja_JP",
+                    "nb_NO",
+                    "pl_PL",
+                    "pt_BR",
+                    "pt_PT",
+                    "ru_RU",
+                    "sk_SK",
+                    "tr_TR",
+                    "uk_UA"
+                ],
                 "default": "en_US"
             },
             {
