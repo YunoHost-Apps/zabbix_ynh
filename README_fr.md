@@ -28,7 +28,7 @@ Zabbix est un outil de surveillance pour divers composants informatiques, notamm
 * Un modèle YunoHost est importé et lié à l'hôte "Zabbix-server" (127.0.0.1) pour la surveillance de base de YunoHost.
 
 
-**Version incluse :** 6.4~ynh1
+**Version incluse :** 5.0~ynh1
 
 ## Captures d’écran
 
@@ -39,6 +39,7 @@ Zabbix est un outil de surveillance pour divers composants informatiques, notamm
 * Site officiel de l’app : <https://www.zabbix.com>
 * Documentation officielle de l’admin : <https://www.zabbix.com/manuals>
 * Dépôt de code officiel de l’app : <https://github.com/zabbix/zabbix>
+* YunoHost Store: <https://apps.yunohost.org/app/zabbix>
 * Signaler un bug : <https://github.com/YunoHost-Apps/zabbix_ynh/issues>
 
 ## Informations pour les développeurs

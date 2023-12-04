@@ -28,7 +28,7 @@ Zabbix is a monitoring tool for diverse IT components, including networks, serve
 * A YunoHost template is imported and linked to the host "Zabbix-server" (127.0.0.1) for basic monitoring for YunoHost.
 
 
-**Shipped version:** 6.4~ynh1
+**Shipped version:** 5.0~ynh1
 
 ## Screenshots
 
@@ -39,6 +39,7 @@ Zabbix is a monitoring tool for diverse IT components, including networks, serve
 * Official app website: <https://www.zabbix.com>
 * Official admin documentation: <https://www.zabbix.com/manuals>
 * Upstream app code repository: <https://github.com/zabbix/zabbix>
+* YunoHost Store: <https://apps.yunohost.org/app/zabbix>
 * Report a bug: <https://github.com/YunoHost-Apps/zabbix_ynh/issues>
 
 ## Developer info
