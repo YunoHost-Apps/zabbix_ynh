@@ -204,15 +204,6 @@ check_proc_zabbixagent () {
 	fi
 }
 
-# Remove previous Zabbix installation
-#
-remove_previous_zabbix () {
-	#ynh_print_info --message="Previous Zabbix installation will be purged !"
-	apt-get purge zabbix* -y
-	#ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
-	ynh_print_info --message="Previous Zabbix installation purged!"
-}
-
 # Update Zabbix configuration initialisation
 #
 update_initZabbixConf () {

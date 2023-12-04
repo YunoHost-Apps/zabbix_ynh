@@ -11,13 +11,6 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CHECK IF THE APP CAN BE RESTORED
-#=================================================
-ynh_script_progression --message="Validating restoration parameters..."
-
-remove_previous_zabbix
-
-#=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
 # SPECIFIC RESTORATION
