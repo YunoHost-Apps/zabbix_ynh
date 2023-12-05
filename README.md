@@ -20,7 +20,7 @@ Zabbix is a monitoring tool for diverse IT components, including networks, serve
 
 
 
-**Shipped version:** 5.0~ynh1
+**Shipped version:** 6.4~ynh1
 
 ## Screenshots
 
