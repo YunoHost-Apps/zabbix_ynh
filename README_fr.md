@@ -20,6 +20,7 @@ Zabbix est un outil de surveillance pour divers composants informatiques, notamm
 
 
 
+
 **Version incluse :** 6.4~ynh1
 
 ## Captures d’écran
