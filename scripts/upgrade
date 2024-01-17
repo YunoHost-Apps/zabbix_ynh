@@ -64,7 +64,7 @@ ynh_remove_logrotate
 
 ynh_package_update
 
-ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
+ynh_add_config --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown $app:www-data "/etc/zabbix/web/zabbix.conf.php"
