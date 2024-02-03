@@ -29,7 +29,6 @@ trustedversion="5.0.0-1+stretch"
 #=================================================
 # CHECK VERSION
 #=================================================
-ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
 
@@ -125,7 +124,7 @@ then
 	ynh_script_progression --message="Upgrading dependencies..."
 
 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
+	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/6.4/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
 fi
 
 chmod 750 "/usr/share/zabbix"
