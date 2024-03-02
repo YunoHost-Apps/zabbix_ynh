@@ -5,7 +5,8 @@ It shall NOT be edited by hand.
 
 # Zabbix for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![Working status](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)  
+[![Integration level](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![Working status](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
+
 [![Install Zabbix with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -17,7 +18,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 5.0.20~ynh2
+**Shipped version:** 5.0.41~ynh1
 
 ## Screenshots
 
@@ -39,7 +40,7 @@ A monitoring tool for diverse IT components, including networks, servers, VMs an
 * Official app website: <https://www.zabbix.com>
 * Official admin documentation: <https://www.zabbix.com/manuals>
 * Upstream app code repository: <https://github.com/zabbix/zabbix>
-* YunoHost documentation for this app: <https://yunohost.org/app_zabbix>
+* YunoHost Store: <https://apps.yunohost.org/app/zabbix>
 * Report a bug: <https://github.com/YunoHost-Apps/zabbix_ynh/issues>
 
 ## Developer info
