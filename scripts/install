@@ -10,49 +10,10 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	ynh_clean_check_starting
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-is_public=$YNH_APP_ARG_IS_PUBLIC
-language=$YNH_APP_ARG_LANGUAGE
-admin=$YNH_APP_ARG_ADMIN
-
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..."
 
 remove_previous_zabbix
-
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
-
-# Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
-
-#=================================================
-# STORE SETTINGS FROM MANIFEST
-#=================================================
-ynh_script_progression --message="Storing installation settings..."
-
-ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=language --value=$language
-ynh_app_setting_set --app=$app --key=admin --value=$admin
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -61,29 +22,15 @@ ynh_app_setting_set --app=$app --key=admin --value=$admin
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
-
 ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
-
-#=================================================
-# CREATE A MYSQL DATABASE
-#=================================================
-ynh_script_progression --message="Creating a MySQL database..."
-
-db_name=$(ynh_sanitize_dbid --db_name=$app)
-db_user=$db_name
-ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-ynh_mysql_setup_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..."
 
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-ln -s "/usr/share/zabbix" "$final_path"
+ln -s "/usr/share/zabbix" "$install_dir"
 
 chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
@@ -96,12 +43,6 @@ ynh_script_progression --message="Configuring PHP-FPM..."
 
 # Create a dedicated PHP-FPM config
 ynh_add_fpm_config
-phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Configuring NGINX web server..."
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config
@@ -178,19 +119,11 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression --message="Setuping application with CURL..."
 
-# Set the app as temporarily public for curl call
-ynh_script_progression --message="Configuring SSOwat..."
-# Making the app public for curl
-ynh_permission_update --permission="main" --add="visitors"
-
 import_template
 
 link_template
 
 disable_admin_user
-
-# Remove the public access
-ynh_permission_update --permission="main" --remove="visitors"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -211,26 +144,6 @@ ynh_script_progression --message="Starting a systemd service..."
 # Start a systemd service
 ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..."
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
-fi
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
-
-ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT

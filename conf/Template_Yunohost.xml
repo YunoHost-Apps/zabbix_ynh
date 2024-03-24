@@ -10,7 +10,7 @@
     <templates>
         <template>
             <template>Template Yunohost</template>
-            <name>Template Yunohost</name>
+            <name>Template YunoHost</name>
             <description>Please check default value template macro.&#13;
 &#13;
 cat /etc/sudoers.d/zabbix &#13;
