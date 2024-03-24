@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -10,90 +8,34 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-#REMOVEME? ynh_script_progression --message="Loading installation settings..."
-
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
-#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
-#REMOVEME? language=$(ynh_app_setting_get --app=$app --key=language)
-#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
-#REMOVEME? db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-#REMOVEME? db_user=$db_name
-#REMOVEME? db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-
-trustedversion="5.0.0-1+stretch"
-
-#=================================================
-# CHECK VERSION
-#=================================================
-ynh_script_progression --message="Checking version..."
-
-upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
-
-# Backup the current version of the app
-#REMOVEME? ynh_backup_before_upgrade
-#REMOVEME? ynh_clean_setup () {
-	ynh_clean_check_starting
-	# Restore it if the upgrade fails
-#REMOVEME? 	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-#REMOVEME? ynh_abort_if_errors
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..."
+ynh_script_progression --message="Stopping $app's systemd service..."
 
-ynh_systemd_action --service_name=$app-server --action="stop" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name=$app-agent --action="stop" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-# If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
-	db_name=$(ynh_sanitize_dbid --db_name=$app)
-#REMOVEME? 	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+if [ "$language" == "fr" ]; then
+    language="fr_FR"
+    ynh_app_setting_set --app="$app" --key="language" --value="$language"
 fi
 
-# If install_dir doesn't exist, create it
-if [ -z "$install_dir" ]; then
-#REMOVEME? 	install_dir=/var/www/$app
-#REMOVEME? 	ynh_app_setting_set --app=$app --key=install_dir --value=$install_dir
-fi
-
-if [ "$language" == "fr" ]
-then
-	language="fr_FR"
-	ynh_app_setting_set --app=$app --key=language --value=$language
-fi
-
-if [ "$language" == "en" ]
-then
-	language="en_GB"
-	ynh_app_setting_set --app=$app --key=language --value=$language
+if [ "$language" == "en" ]; then
+    language="en_GB"
+    ynh_app_setting_set --app="$app" --key="language" --value="$language"
 fi
 
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 
 # patch to remove old zabbix-client service
-if [ ! -z "$(yunohost service status | grep zabbix-client)" ]
-then 
-	ynh_script_progression --message="remove zabbix-client old service"
-	yunohost service remove zabbix-client
+if yunohost service status | grep zabbix-client; then
+    ynh_script_progression --message="remove zabbix-client old service"
+    yunohost service remove zabbix-client
 fi
 
 ynh_remove_logrotate
@@ -105,49 +47,19 @@ ynh_package_update
 ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
-chown $app:www-data "/etc/zabbix/web/zabbix.conf.php"
+chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]
-then
-	ynh_secure_remove --file="/usr/share/zabbix/conf/zabbix.conf.php"
+if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
+    ynh_secure_remove --file="/usr/share/zabbix/conf/zabbix.conf.php"
 fi
 
 ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
 
 ynh_remove_extra_repo --name=zabbix
 
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-#REMOVEME? 	ynh_script_progression --message="Upgrading dependencies..."
-
-#REMOVEME? 	ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-#REMOVEME? 	ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="http://repo.zabbix.com/zabbix/5.0/debian $(lsb_release -sc) main" --package="$zabbix_pkg_dependencies" --key="https://repo.zabbix.com/zabbix-official-repo.key"
-fi
-
 chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
-chown -R $app:www-data "/usr/share/zabbix"
-
-#=================================================
-# PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..."
-
-# Create a dedicated PHP-FPM config
-ynh_add_fpm_config
-#REMOVEME? phpversion=$(ynh_app_setting_get --app=$app --key=phpversion)
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..."
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
+chown -R "$app:www-data" "/usr/share/zabbix"
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -161,43 +73,34 @@ convert_ZabbixDB
 set_mediatype_default_yunohost
 
 #=================================================
-# SETUP SYSTEMD
+# REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading systemd configuration..."
+ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
+
+# Create a dedicated PHP-FPM config
+ynh_add_fpm_config
+
+# Create a dedicated NGINX config
+ynh_add_nginx_config
 
 change_timeoutAgent
 
 systemctl enable zabbix-agent --quiet
 systemctl enable zabbix-server --quiet
-
-update_initZabbixConf
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
-
 yunohost service add snmpd --description="Management of SNMP Daemon"
 yunohost service add zabbix-server --description="Management Zabbix server daemon : collect, agregate, compute and notify" --log="/var/log/$app/${app}_server.log"
 yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent.log"
 
+update_initZabbixConf
+
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..."
+ynh_script_progression --message="Starting $app's systemd service..." --weight=1
 
 # Start a systemd service
-ynh_systemd_action --service_name=$app-server --action="restart" --log_path="/var/log/$app/${app}_server.log" --line_match="server #0 started"
-ynh_systemd_action --service_name=$app-agent --action="restart" --log_path="/var/log/$app/${app}_agent.log"
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..."
-
-#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log" --line_match="server #0 started"
+ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # END OF SCRIPT
