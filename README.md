@@ -11,13 +11,14 @@ It shall NOT be edited by hand.
 
 *[Read this README is other languages.](./ALL_README.md)*
 
-> *This package allows you to install Zabbix quickly and simply on a YunoHost server.
-If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
+> *This package allows you to install Zabbix quickly and simply on a YunoHost server.*  
+> *If you don't have YunoHost, please consult [the guide](https://yunohost.org/install) to learn how to install it.*
 
 ## Overview
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
-**Shipped version:** 5.0.41~ynh1
+
+**Shipped version:** 5.0.42~ynh1
 
 ## Screenshots
 
@@ -44,10 +45,9 @@ A monitoring tool for diverse IT components, including networks, servers, VMs an
 
 ## Developer info
 
-Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/zabbix_ynh/tree/testing),
+Please send your pull request to the [`testing` branch](https://github.com/YunoHost-Apps/zabbix_ynh/tree/testing).
 
-
-To try the testing branch, please proceed like that.
+To try the `testing` branch, please proceed like that:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/zabbix_ynh/tree/testing --debug
