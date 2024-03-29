@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -10,67 +8,24 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
+# REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Loading installation settings..."
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$db_name
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-
-#=================================================
-# STANDARD REMOVE
-#=================================================
-# REMOVE SERVICE INTEGRATION IN YUNOHOST
-#=================================================
-
-ynh_script_progression --message="Removing snmpd service integration..."
-yunohost service remove snmpd
-
-ynh_script_progression --message="Removing Zabbix-server service integration..."
-yunohost service remove zabbix-server
-
-ynh_script_progression --message="Removing Zabbix-agent service integration..."
-yunohost service remove zabbix-agent
-
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..."
+ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
 # Remove the dedicated systemd config
-ynh_systemd_action --service_name=$app-server --action="stop" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name=$app-agent --action="stop" --log_path="/var/log/$app/${app}_agent.log"
-
+ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 systemctl disable zabbix-server --quiet
 systemctl disable zabbix-agent --quiet
-
 ynh_exec_warn_less killall zabbix_server
 ynh_exec_warn_less killall zabbix_agentd
 
-#=================================================
-# REMOVE THE MYSQL DATABASE
-#=================================================
-ynh_script_progression --message="Removing the MySQL database..."
-
-# Remove a database if it exists, along with the associated user
-ynh_mysql_remove_db --db_user=$db_user --db_name=$db_name
-
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..."
+yunohost service remove snmpd
+yunohost service remove zabbix-server
+yunohost service remove zabbix-agent
 
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
-
-#=================================================
-# REMOVE PHP-FPM CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing PHP-FPM configuration..."
 
 # Remove the dedicated PHP-FPM config
 ynh_remove_fpm_config
@@ -78,26 +33,13 @@ ynh_remove_fpm_config
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Removing dependencies..."
+ynh_script_progression --message="Removing $app's configuration..."
 
-#Remove config file detection
+# Remove config file detection
 delete_initZabbixConf
 
-ynh_remove_app_dependencies
-
-ynh_remove_extra_repo --name=$app
-
-#=================================================
-# REMOVE APP MAIN DIR
-#=================================================
-ynh_script_progression --message="Removing app main directory..."
-
-# Remove the app directory securely
-ynh_secure_remove --file="$final_path"
 ynh_secure_remove --file="/usr/share/$app"
 
-#=================================================
-# SPECIFIC REMOVE
 #=================================================
 # REMOVE VARIOUS FILES
 #=================================================
@@ -113,29 +55,18 @@ ynh_secure_remove --file="/run/$app"
 
 ynh_secure_remove --file="/etc/sudoers.d/$app"
 
-#REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
+# FIXME: useless?
+# REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
 nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
-if [ $(echo $nonfreepackagelist | wc -l) -eq 1 ] && [ $(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader") -eq 1 ]
-then 
-	ynh_print_info --message="Removing snmp-mibs-downloader (non-free package)"
-	cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
-	ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
-	DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
-	if [ -f /etc/apt/sources.list.d/non-free.list ]
-	then
-		ynh_secure_remove --file="/etc/apt/sources.list.d/non-free.list"
-	fi
+if [ "$(echo $nonfreepackagelist | wc -l)" -eq 1 ] && [ "$(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader")" -eq 1 ]; then
+    ynh_print_info --message="Removing snmp-mibs-downloader (non-free package)"
+    cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
+    ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
+    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
+    if [ -f /etc/apt/sources.list.d/non-free.list ]; then
+        ynh_secure_remove --file="/etc/apt/sources.list.d/non-free.list"
+    fi
 fi
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# REMOVE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Removing the dedicated system user..."
-
-# Delete a system user
-ynh_system_user_delete --username=$app
 
 #=================================================
 # END OF SCRIPT

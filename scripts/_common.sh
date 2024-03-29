@@ -4,19 +4,6 @@
 # COMMON VARIABLES
 #=================================================
 
-YNH_PHP_VERSION="7.4"
-
-# dependencies used by the app
-if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
-    libsnmpd_version="libsnmp40"
-else
-    libsnmpd_version="libsnmp30"
-fi
-
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 php${YNH_PHP_VERSION}-fpm php${YNH_PHP_VERSION}-bcmath"
-
-zabbix_pkg_dependencies="zabbix-agent zabbix-frontend-php zabbix-server-mysql"
-
 #=================================================
 # PERSONAL HELPERS
 #=================================================
@@ -67,7 +54,7 @@ get_state_admin_user () {
 # Disable admin user
 #
 disable_admin_user () {
-	if [ $(get_state_admin_user) = "0" ] 
+	if [ $(get_state_admin_user) = "0" ]
 	then
 		ynh_print_info --message="Disable admin user"
 		lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
@@ -97,7 +84,7 @@ enable_admin_user () {
 #
 import_template () {
 	ynh_print_info --message="Import YunoHost template in the agent"
-	zabbixFullpath=https://$domain$path_url
+	zabbixFullpath=https://$domain$path
 	localpath="../conf/Template_Yunohost.xml"
 	sudoUserPpath="../conf/etc_sudoers.d_zabbix"
 	confUserPpath="../conf/etc_zabbix_zabbix_agentd.d_userP_yunohost.conf"
@@ -133,7 +120,7 @@ import_template () {
 	then
 		sid=$(curl $curlOptions \
 						"$zabbixFullpath/conf.import.php?rules_preset=template" \
-						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' )
 
 		importState=$(curl $curlOptions \
 						--form "config=1" \
@@ -217,14 +204,6 @@ check_proc_zabbixagent () {
 	fi
 }
 
-# Remove previous Zabbix installation
-#
-remove_previous_zabbix () {
-	ynh_print_info --message="Previous Zabbix installation will be purged !"
-	apt-get purge zabbix* -y
-	ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
-	ynh_print_info --message="Previous Zabbix installation purged !"
-}
 
 # Update Zabbix configuration initialisation
 #
