@@ -17,6 +17,7 @@ It shall NOT be edited by hand.
 ## Overview
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
+
 **Shipped version:** 5.0.41~ynh1
 
 ## Screenshots
