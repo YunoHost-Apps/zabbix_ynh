@@ -40,7 +40,7 @@ ram.runtime = "200M"
     help.en = "A public app doesn't need SSO auth : the auth page is opened for everyone"
     help.fr = "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte à tous"
     type = "group"
-    default = false
+    default = "visitors"
 
     [install.language]
     ask.en = "Choose the application language"
