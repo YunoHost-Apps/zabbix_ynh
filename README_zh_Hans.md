@@ -18,7 +18,7 @@
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**分发版本：** 5.0.41~ynh1
+**分发版本：** 5.0.41~ynh2
 
 ## 截图
 
