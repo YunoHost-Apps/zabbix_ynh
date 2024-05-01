@@ -1,38 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# COMMON VARIABLES
-#=================================================
-
-YNH_PHP_VERSION="7.4"
-
-# dependencies used by the app
-if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
-    libsnmpd_version="libsnmp40"
-else
-    libsnmpd_version="libsnmp30"
-fi
-
-pkg_dependencies="libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap liblua5.2-0 fonts-dejavu-core patch smistrip unzip wget fping libcap2-bin libiksemel3 libopenipmi0 libpam-cap libsnmp-base $libsnmpd_version snmptrapd snmpd libjs-prototype jq libssh-4 php${YNH_PHP_VERSION}-fpm php${YNH_PHP_VERSION}-bcmath"
-
-zabbix_pkg_dependencies="zabbix-agent zabbix-frontend-php zabbix-server-mysql zabbix-sql-scripts"
-
-#=================================================
-# PERSONAL HELPERS
-#=================================================
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================
-
-#=================================================
-# ZABBIX HELPERS
-#=================================================
-
 # Get guest user state
 #
 # return 0 if enable, else 1
@@ -67,7 +34,7 @@ get_state_admin_user () {
 # Disable admin user
 #
 disable_admin_user () {
-	if [ $(get_state_admin_user) = "0" ] 
+	if [ $(get_state_admin_user) = "0" ]
 	then
 		ynh_print_info --message="Disable admin user"
 		lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
@@ -97,7 +64,7 @@ enable_admin_user () {
 #
 import_template () {
 	ynh_print_info --message="Import YunoHost template in the agent"
-	zabbixFullpath=https://$domain$path_url
+	zabbixFullpath=https://$domain$path
 	localpath="../conf/Template_Yunohost.xml"
 	sudoUserPpath="../conf/etc_sudoers.d_zabbix"
 	confUserPpath="../conf/etc_zabbix_zabbix_agentd.d_userP_yunohost.conf"
@@ -121,6 +88,13 @@ import_template () {
 	chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 	systemctl restart zabbix-agent
+
+	# Temporarily enable visitors if needed...
+	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --add "visitors"
+	fi
+ 
 	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
 
 	curl -L $curlOptions \
@@ -133,7 +107,7 @@ import_template () {
 	then
 		sid=$(curl $curlOptions \
 						"$zabbixFullpath/conf.import.php?rules_preset=template" \
-						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' ) 
+						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' )
 
 		importState=$(curl $curlOptions \
 						--form "config=1" \
@@ -172,12 +146,23 @@ import_template () {
 	else
 		ynh_print_warn --message="Admin user cannot connect to the interface !"
 	fi
+
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --remove "visitors"
+        fi
 }
 
 # Link YunoHost template to Zabbix server
 #
 link_template () {
 	ynh_print_info --message="Link YunoHost template to Zabbix server"
+
+	# Temporarily enable visitors if needed...
+	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --add "visitors"
+	fi
+
 	#apply template to host
 	tokenapi=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
 	zabbixHostID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
@@ -189,6 +174,10 @@ link_template () {
 	else
 		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
 	fi
+
+ 	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --remove "visitors"
+        fi
 }
 
 # Check if Zabbix server is started
@@ -217,14 +206,6 @@ check_proc_zabbixagent () {
 	fi
 }
 
-# Remove previous Zabbix installation
-#
-remove_previous_zabbix () {
-	ynh_print_info --message="Previous Zabbix installation will be purged !"
-	apt-get purge zabbix* -y
-	ynh_secure_remove --file="/var/cache/apt/archives/zabbix-server-mysql*"
-	ynh_print_info --message="Previous Zabbix installation purged !"
-}
 
 # Update Zabbix configuration initialisation
 #
