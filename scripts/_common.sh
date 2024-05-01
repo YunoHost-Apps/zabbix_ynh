@@ -1,25 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# COMMON VARIABLES
-#=================================================
-
-#=================================================
-# PERSONAL HELPERS
-#=================================================
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================
-
-#=================================================
-# ZABBIX HELPERS
-#=================================================
-
 # Get guest user state
 #
 # return 0 if enable, else 1
@@ -108,6 +88,13 @@ import_template () {
 	chmod a+x /etc/zabbix/zabbix_agentd.d/yunohost.sh
 
 	systemctl restart zabbix-agent
+
+	# Temporarily enable visitors if needed...
+	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --add "visitors"
+	fi
+ 
 	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
 
 	curl -L $curlOptions \
@@ -159,12 +146,23 @@ import_template () {
 	else
 		ynh_print_warn --message="Admin user cannot connect to the interface !"
 	fi
+
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --remove "visitors"
+        fi
 }
 
 # Link YunoHost template to Zabbix server
 #
 link_template () {
 	ynh_print_info --message="Link YunoHost template to Zabbix server"
+
+	# Temporarily enable visitors if needed...
+	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --add "visitors"
+	fi
+
 	#apply template to host
 	tokenapi=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
 	zabbixHostID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
@@ -176,6 +174,10 @@ link_template () {
 	else
 		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
 	fi
+
+ 	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --remove "visitors"
+        fi
 }
 
 # Check if Zabbix server is started
