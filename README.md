@@ -9,7 +9,7 @@ It shall NOT be edited by hand.
 
 [![Install Zabbix with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
-*[Read this README is other languages.](./ALL_README.md)*
+*[Read this README in other languages.](./ALL_README.md)*
 
 > *This package allows you to install Zabbix quickly and simply on a YunoHost server.*  
 > *If you don't have YunoHost, please consult [the guide](https://yunohost.org/install) to learn how to install it.*
@@ -18,22 +18,11 @@ It shall NOT be edited by hand.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 5.0.41~ynh1
+**Shipped version:** 5.0.41~ynh2
 
 ## Screenshots
 
 ![Screenshot of Zabbix](./doc/screenshots/screenshot1.png)
-
-## Disclaimers / important information
-
-#### Known limitations or important informations
-
-* Only x86_64 architecture is supported
-* Single sign-on is supported
-* Do not change the default admin user password. The user is disabled just after the install but is used to update templates.
-* The Zabbix server port is not opened by default for external monitoring (active agent).
-* You can add your users in a group in Zabbix (for permissions/rights).
-* A YunoHost template is imported and linked to the host "Zabbix-server" (127.0.0.1) for basic monitoring for YunoHost.
 
 ## Documentation and resources
 

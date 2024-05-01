@@ -1,7 +1,5 @@
 #### Known limitations or important informations
 
-* Only x86_64 architecture is supported
-* Single sign-on is supported
 * Do not change the default admin user password. The user is disabled just after the install but is used to update templates.
 * The Zabbix server port is not opened by default for external monitoring (active agent).
 * You can add your users in a group in Zabbix (for permissions/rights).
