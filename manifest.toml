@@ -37,7 +37,7 @@ ram.runtime = "200M"
     default = "/zabbix"
 
     [install.init_main_permission]
-    help.en = "A public app doesn't need SSO auth : the auth page is opened for everyone"
+    help.en = "A public app doesn't need SSO auth: the auth page is opened for everyone"
     help.fr = "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte à tous"
     type = "group"
     default = "visitors"
