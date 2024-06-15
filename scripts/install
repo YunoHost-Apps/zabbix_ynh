@@ -45,7 +45,7 @@ do
 	then
 		surname=$(ynh_user_get_info --username="$user" --key=lastname)
 		name=$(ynh_user_get_info --username="$user" --key=firstname)
-		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
+		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50);"
 		i=$((i+1))
 	fi
 done
