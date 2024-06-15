@@ -97,7 +97,6 @@ ram.runtime = "200M"
         "zabbix-agent",
         "zabbix-frontend-php",
         "zabbix-server-mysql",
-        "zabbix-sql-scripts",
     ]
 
     [resources.database]
