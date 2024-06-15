@@ -95,13 +95,13 @@ update_initZabbixConf
 #=================================================
 # SETUP APPLICATION WITH CURL
 #=================================================
-ynh_script_progression --message="Setting up application with CURL..."
+#ynh_script_progression --message="Setting up application with CURL..."
 
-import_template
+#import_template
 
-link_template
+#link_template
 
-disable_admin_user
+#disable_admin_user
 
 #=================================================
 # START SYSTEMD SERVICE
