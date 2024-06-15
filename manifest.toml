@@ -84,10 +84,16 @@ ram.runtime = "200M"
         "libjs-prototype",
         "jq",
         "libssh-4",
-        "php7.4-fpm",
-        "php7.4-bcmath",
 
         "mariadb-server",
+
+    packages_from_raw_bash = """
+    if [[ $YNH_DEBIAN_VERSION == "bullseye" ]]; then
+        echo  ["php7.4-fpm", "php7.4-bcmath"];
+    elif [[ $YNH_DEBIAN_VERSION == "bookworm" ]]; then
+        echo  ["php8.2-fpm", "php8.2-bcmath"];
+    fi
+    """
     ]
 
     [resources.apt.extras.zabbix]
