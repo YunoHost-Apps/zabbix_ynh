@@ -91,7 +91,7 @@ ram.runtime = "200M"
     ]
 
     [resources.apt.extras.zabbix]
-    repo = "http://repo.zabbix.com/zabbix/5.0/debian bullseye main"
+    repo = "http://repo.zabbix.com/zabbix/5.0/debian $YNH_DEBIAN_VERSION main"
     key = "https://repo.zabbix.com/zabbix-official-repo.key"
     packages = [
         "zabbix-agent",
