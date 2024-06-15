@@ -89,9 +89,11 @@ ram.runtime = "200M"
 
     packages_from_raw_bash = """
     if [[ $YNH_DEBIAN_VERSION == "bullseye" ]]; then
-        echo  "php7.4-fpm"; "php7.4-bcmath";
+        echo  "php7.4-fpm";
+        echo  "php7.4-bcmath";
     elif [[ $YNH_DEBIAN_VERSION == "bookworm" ]]; then
-        echo  "php8.2-fpm"; "php8.2-bcmath";
+        echo  "php8.2-fpm"; 
+        echo  "php8.2-bcmath";
     fi
     """
     ]
