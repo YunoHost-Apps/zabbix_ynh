@@ -60,6 +60,9 @@ ram.runtime = "200M"
     [resources.permissions]
     main.url = "/"
 
+    [resources.ports]
+    active-checks.default = 10051
+
     [resources.apt]
     packages = [
         "libapr1",
@@ -86,7 +89,6 @@ ram.runtime = "200M"
         "libssh-4",
         "php7.4-fpm",
         "php7.4-bcmath",
-
         "mariadb-server",
     ]
 
