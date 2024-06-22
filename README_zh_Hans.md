@@ -3,7 +3,7 @@
 请勿手动编辑。
 -->
 
-# YunoHost 的 Zabbix
+# YunoHost 上的 Zabbix
 
 [![集成程度](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![工作状态](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
 
