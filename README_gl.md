@@ -18,7 +18,7 @@ NON debe editarse manualmente.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Versión proporcionada:** 5.0.41~ynh2
+**Versión proporcionada:** 5.0.41~ynh3
 
 ## Capturas de pantalla
 
