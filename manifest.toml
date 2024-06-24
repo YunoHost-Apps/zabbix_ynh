@@ -87,6 +87,8 @@ ram.runtime = "200M"
         "libjs-prototype",
         "jq",
         "libssh-4",
+        "php7.4-fpm",
+        "php7.4-bcmath",
         "mariadb-server",
     ]
 
