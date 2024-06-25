@@ -7,7 +7,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "5.0.41~ynh2"
+version = "5.0.41~ynh3"
 
 maintainers = []
 
@@ -60,6 +60,9 @@ ram.runtime = "200M"
     [resources.permissions]
     main.url = "/"
 
+    [resources.ports]
+    active-checks.default = 10051
+
     [resources.apt]
     packages = [
         "libapr1",
@@ -86,7 +89,6 @@ ram.runtime = "200M"
         "libssh-4",
         "php7.4-fpm",
         "php7.4-bcmath",
-
         "mariadb-server",
     ]
 
