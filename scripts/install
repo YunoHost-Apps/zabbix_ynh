@@ -10,7 +10,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
@@ -18,9 +18,10 @@ chown -R "$app:www-data" "/usr/share/zabbix"
 #=================================================
 # IMPORT DEFAULT DATA
 #=================================================
-ynh_script_progression --message="Import default data in database..."
+ynh_script_progression "Import default data in database..."
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd
+
 $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
@@ -57,30 +58,30 @@ set_mediatype_default_yunohost
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..."
+ynh_script_progression "Adding $app's configuration..."
 
-ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
+ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
+ynh_replace --match="DBName=zabbix" --replace="DBName=$db_name" --file=/etc/zabbix/zabbix_server.conf
+ynh_replace --match="DBUser=zabbix" --replace="DBUser=$db_user" --file=/etc/zabbix/zabbix_server.conf
+ynh_replace --match="# DBPassword=" --replace="# DBPassword=\nDBPassword=$db_pwd" --file=/etc/zabbix/zabbix_server.conf
 
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
-ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
+ynh_replace --match="# $language.UTF-8 UTF-8" --replace="$language.UTF-8 UTF-8" --file=/etc/locale.gen
 locale-gen
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 change_timeoutAgent
 
@@ -95,7 +96,7 @@ update_initZabbixConf
 #=================================================
 # SETUP APPLICATION WITH CURL
 #=================================================
-ynh_script_progression --message="Setting up application with CURL..."
+ynh_script_progression "Setting up application with CURL..."
 
 import_template
 
@@ -106,14 +107,14 @@ disable_admin_user
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting $app's systemd service..."
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed"
+ynh_script_progression "Installation of $app completed"

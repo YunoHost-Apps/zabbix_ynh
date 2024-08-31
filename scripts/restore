@@ -11,7 +11,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring the app main directory..."
+ynh_script_progression "Restoring the app main directory..."
 
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
@@ -19,49 +19,50 @@ chown -R "$app:www-data" "/usr/share/zabbix"
 #=================================================
 # RESTORE THE MYSQL DATABASE
 #=================================================
-ynh_script_progression --message="Restoring the MySQL database..." --weight=1
+ynh_script_progression "Restoring the MySQL database..."
 
-ynh_mysql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" < ./db.sql
+ynh_mysql_db_shell < ./db.sql
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd
+
 convert_ZabbixDB
 
 #=================================================
 # RESTORE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Restoring various files..."
+ynh_script_progression "Restoring various files..."
 
 if [ -f "/etc/zabbix/web/zabbix.conf.php" ]; then
-    ynh_secure_remove --file="/etc/zabbix/web/zabbix.conf.php"
+    ynh_safe_rm "/etc/zabbix/web/zabbix.conf.php"
 fi
-ynh_restore_file --origin_path="/etc/zabbix/web/zabbix.conf.php"
+ynh_restore "/etc/zabbix/web/zabbix.conf.php"
 
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-ynh_restore_file --origin_path="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+ynh_restore "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 
-ynh_restore_file --origin_path="/etc/zabbix/zabbix_server.conf"
-ynh_restore_file --origin_path="/etc/zabbix/zabbix_agentd.conf"
+ynh_restore "/etc/zabbix/zabbix_server.conf"
+ynh_restore "/etc/zabbix/zabbix_agentd.conf"
 
 if [ ! -L /etc/zabbix/zabbix_agentd.d ]; then
     ln -s /etc/zabbix/zabbix_agentd.conf.d /etc/zabbix/zabbix_agentd.d
 fi
 
 # Restore sudo file
-ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
+ynh_restore "/etc/sudoers.d/zabbix"
 
 #=================================================
 # RESTORE SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Restoring system configurations related to $app..." --weight=1
+ynh_script_progression "Restoring system configurations related to $app..."
 
-ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
+ynh_replace --match="# $language.UTF-8 UTF-8" --replace="$language.UTF-8 UTF-8" --file=/etc/locale.gen
 locale-gen
 
-ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
+ynh_restore "/etc/php/$php_version/fpm/pool.d/$app.conf"
 
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 change_timeoutAgent
 
@@ -74,17 +75,17 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 #=================================================
 # RELOAD NGINX AND PHP-FPM OR THE APP SERVICE
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server and $app's service..." --weight=1
+ynh_script_progression "Reloading NGINX web server and $app's service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
-ynh_systemd_action --service_name="php$phpversion-fpm" --action=reload
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemctl --service="php$php_version-fpm" --action=reload
+ynh_systemctl --service=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app"
+ynh_script_progression "Restoration completed for $app"

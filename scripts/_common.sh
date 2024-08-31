@@ -13,13 +13,13 @@ get_state_guest_user () {
 disable_guest_user () {
 	if [ $(get_state_guest_user) = "0" ]
 	then
-		ynh_print_info --message="Disable guest user"
+		ynh_print_info "Disable guest user"
 		lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
 		lastid=$(("$lastid" + 1 ))
 		$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 2);"
-		ynh_print_info --message="Guest user disabled"
+		ynh_print_info "Guest user disabled"
 	else
-		ynh_print_info --message="Guest user already disabled"
+		ynh_print_info "Guest user already disabled"
 	fi
 }
 
@@ -36,13 +36,13 @@ get_state_admin_user () {
 disable_admin_user () {
 	if [ $(get_state_admin_user) = "0" ]
 	then
-		ynh_print_info --message="Disable admin user"
+		ynh_print_info "Disable admin user"
 		lastid=$($mysqlconn -BN -e "SELECT max(id) from \`users_groups\`")
 		lastid=$((lastid + 1 ))
 		$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\` , \`usrgrpid\`, \`userid\`) VALUES ($lastid ,9, 1);"
-		ynh_print_info --message="Admin user disabled"
+		ynh_print_info "Admin user disabled"
 	else
-		ynh_print_info --message="Admin user already disabled"
+		ynh_print_info "Admin user already disabled"
 	fi
 }
 
@@ -51,19 +51,19 @@ disable_admin_user () {
 enable_admin_user () {
 	if [ $(get_state_admin_user) = "1" ]
 	then
-		ynh_print_info --message="Enable admin user"
+		ynh_print_info "Enable admin user"
 		#enable default admin temporaly
 		$mysqlconn -e "DELETE FROM users_groups where usrgrpid=9 and userid=1;"
-		ynh_print_info --message="Admin user enabled"
+		ynh_print_info "Admin user enabled"
 	else
-		ynh_print_info --message="Admin user already enable"
+		ynh_print_info "Admin user already enable"
 	fi
 }
 
 # Import YunoHost template in the agent
 #
 import_template () {
-	ynh_print_info --message="Import YunoHost template in the agent"
+	ynh_print_info "Import YunoHost template in the agent"
 	zabbixFullpath=https://$domain$path
 	localpath="../conf/Template_Yunohost.xml"
 	sudoUserPpath="../conf/etc_sudoers.d_zabbix"
@@ -71,7 +71,7 @@ import_template () {
 	bashUserPpath="../conf/etc_zabbix_zabbix_agentd.d_yunohost.sh"
 
 	cp "$sudoUserPpath" /etc/sudoers.d/zabbix
-	chmod 400 /etc/sudoers.d/zabbix
+	#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 /etc/sudoers.d/zabbix
 
 	if [ -d /etc/zabbix/zabbix_agentd.d ]
 	then
@@ -94,7 +94,7 @@ import_template () {
 	if [[ $visitors_enabled == "no" ]]; then
 	    ynh_permission_update --permission "main" --add "visitors"
 	fi
- 
+
 	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
 
 	curl -L $curlOptions \
@@ -139,12 +139,12 @@ import_template () {
 
 		if [ "$importState" -eq "1" ]
 		then
-			ynh_print_info --message="YunoHost template imported !"
+			ynh_print_info "YunoHost template imported !"
 		else
-			ynh_print_warn --message="YunoHost template not imported !"
+			ynh_print_warn "YunoHost template not imported !"
 		fi
 	else
-		ynh_print_warn --message="Admin user cannot connect to the interface !"
+		ynh_print_warn "Admin user cannot connect to the interface !"
 	fi
 
 	if [[ $visitors_enabled == "no" ]]; then
@@ -155,7 +155,7 @@ import_template () {
 # Link YunoHost template to Zabbix server
 #
 link_template () {
-	ynh_print_info --message="Link YunoHost template to Zabbix server"
+	ynh_print_info "Link YunoHost template to Zabbix server"
 
 	# Temporarily enable visitors if needed...
 	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
@@ -170,9 +170,9 @@ link_template () {
 	applyTemplate=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
 	if [ "$applyTemplate" -eq "$zabbixHostID" ]
 	then
-		ynh_print_info --message="YunoHost template linked to Zabbix server !"
+		ynh_print_info "YunoHost template linked to Zabbix server !"
 	else
-		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
+		ynh_print_warn "YunoHost template not linked to Zabbix server !"
 	fi
 
  	if [[ $visitors_enabled == "no" ]]; then
@@ -186,10 +186,10 @@ check_proc_zabbixserver () {
 	pgrep zabbix_server >/dev/null
 	if [ $? -eq 0 ]
 	then
-		ynh_print_info --message="Zabbix server is started !"
+		ynh_print_info "Zabbix server is started !"
 	else
-		ynh_print_err --message="Zabbix server not started, try to start it with the YunoHost interface."
-		ynh_print_err --message="If Zabbix server can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
+		ynh_print_warn "Zabbix server not started, try to start it with the YunoHost interface."
+		ynh_print_warn "If Zabbix server can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
 	fi
 }
 
@@ -199,18 +199,17 @@ check_proc_zabbixagent () {
 	pgrep zabbix_agentd >/dev/null
 	if [ $? -eq 0 ]
 	then
-		ynh_print_info --message="Zabbix agent is started"
+		ynh_print_info "Zabbix agent is started"
 	else
-		ynh_print_err --message="Zabbix agent not started, try to start it with the YunoHost interface."
-		ynh_print_err --message="If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
+		ynh_print_warn "Zabbix agent not started, try to start it with the YunoHost interface."
+		ynh_print_warn "If Zabbix agent can't start, please open a issue on https://github.com/YunoHost-Apps/zabbix_ynh/issues"
 	fi
 }
-
 
 # Update Zabbix configuration initialisation
 #
 update_initZabbixConf () {
-	ynh_print_info --message="Update Zabbix configuration initialisation !"
+	ynh_print_info "Update Zabbix configuration initialisation !"
 	if [ ! -d /etc/zabbix/web ]
 	then
 		mkdir -p /etc/zabbix/web
@@ -218,22 +217,22 @@ update_initZabbixConf () {
 	cp "../conf/etc_zabbix_web_init.zabbix.conf.php.sh" /etc/zabbix/web/init.zabbix.conf.php.sh
 	chmod 700 /etc/zabbix/web/init.zabbix.conf.php.sh
 	cp "../conf/etc_apt_apt.conf.d_100update_force_init_zabbix_frontend_config" /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config
-	ynh_print_info --message="Zabbix configuration initialisation updated !"
+	ynh_print_info "Zabbix configuration initialisation updated !"
 }
 
 # Delete Zabbix configuration initialisation
 #
 delete_initZabbixConf () {
-	ynh_print_info --message="Delete Zabbix configuration initialisation !"
+	ynh_print_info "Delete Zabbix configuration initialisation !"
 	if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ]
 	then
-		ynh_secure_remove --file="/etc/zabbix/web/init.zabbix.conf.php.sh"
+		ynh_safe_rm "/etc/zabbix/web/init.zabbix.conf.php.sh"
 	fi
 	if [ -f /etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config ]
 	then
-		ynh_secure_remove --file="/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
+		ynh_safe_rm "/etc/apt/apt.conf.d/100update_force_init_zabbix_frontend_config"
 	fi
-	ynh_print_info --message="Zabbix configuration initialisation deleted !"
+	ynh_print_info "Zabbix configuration initialisation deleted !"
 }
 
 # Patch timeout too short for Zabbix agent if needed
@@ -242,23 +241,23 @@ change_timeoutAgent () {
 	timeout_ok=$(grep "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null || true;)
 	if [ -z "$timeout_ok" ]
 	then
-		ynh_replace_string --match_string="# Timeout=3" --replace_string="Timeout=10" --target_file=/etc/zabbix/zabbix_agentd.conf
+		ynh_replace --match="# Timeout=3" --replace="Timeout=10" --file=/etc/zabbix/zabbix_agentd.conf
 		grep -C 2 "Timeout" /etc/zabbix/zabbix_agentd.conf
 		systemctl restart zabbix-agent
-		ynh_print_info --message="Zabbix agent timeout updated !"
+		ynh_print_info "Zabbix agent timeout updated !"
 	fi
 }
 
 # Update Zabbix database character set
 #
 convert_ZabbixDB () {
-	ynh_print_info --message="Zabbix database character set will be updated !"
+	ynh_print_info "Zabbix database character set will be updated !"
 	$mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 	for t in $($mysqlconn -BN -e "show tables";)
 	do
 		$mysqlconn -e "ALTER TABLE $t CONVERT TO character set utf8 collate utf8_bin;"
 	done
-	ynh_print_info --message="Zabbix database character set has been updated !"
+	ynh_print_info "Zabbix database character set has been updated !"
 }
 
 # Add email media type with the YunoHost server mail.
@@ -268,7 +267,7 @@ set_mediatype_default_yunohost () {
 	if [ $($mysqlconn -BN -e "SELECT count(*) FROM media_type WHERE smtp_server LIKE 'mail.example.com' AND status=1;") -eq 1 ]
 	then
 		$mysqlconn -BN -e "UPDATE media_type SET smtp_server = 'localhost', smtp_helo = '"$domain"', smtp_email = 'zabbix@"$domain"', smtp_port = '587', status=0 , smtp_security=1 WHERE smtp_server LIKE 'mail.example.com' AND status=1;"
-		ynh_print_info --message="Default Media type added !"
+		ynh_print_info "Default Media type added !"
 	fi
 	set +x
 }

@@ -10,47 +10,47 @@ source /usr/share/yunohost/helpers
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping $app's systemd service..."
+ynh_script_progression "Stopping $app's systemd service..."
 
-ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..."
+ynh_script_progression "Ensuring downward compatibility..."
 
 if [ "$language" == "fr" ]; then
     language="fr_FR"
-    ynh_app_setting_set --app="$app" --key="language" --value="$language"
+    ynh_app_setting_set --key="language" --value="$language"
 fi
 
 if [ "$language" == "en" ]; then
     language="en_GB"
-    ynh_app_setting_set --app="$app" --key="language" --value="$language"
+    ynh_app_setting_set --key="language" --value="$language"
 fi
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd
 
 # patch to remove old zabbix-client service
 if yunohost service status | grep zabbix-client; then
-    ynh_script_progression --message="remove zabbix-client old service"
+    ynh_script_progression "remove zabbix-client old service"
     yunohost service remove zabbix-client
 fi
 
-ynh_remove_logrotate
+ynh_config_remove_logrotate
 
 # Check if new zabbix version is available on repo"
 
 ynh_package_update
 
-ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
+ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
 if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-    ynh_secure_remove --file="/usr/share/zabbix/conf/zabbix.conf.php"
+    ynh_safe_rm "/usr/share/zabbix/conf/zabbix.conf.php"
 fi
 
 ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
@@ -62,11 +62,9 @@ chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
 
 #=================================================
-# SPECIFIC UPGRADE
-#=================================================
 # CUSTOMIZE DATABASE
 #=================================================
-ynh_script_progression --message="Customize the database..."
+ynh_script_progression "Customize the database..."
 
 convert_ZabbixDB
 
@@ -75,13 +73,13 @@ set_mediatype_default_yunohost
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
+ynh_script_progression "Upgrading system configurations related to $app..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 change_timeoutAgent
 
@@ -96,14 +94,14 @@ update_initZabbixConf
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting $app's systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log" --line_match="server #0 started"
-ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log" --wait_until="server #0 started"
+ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed"
+ynh_script_progression "Upgrade of $app completed"
