@@ -4,13 +4,13 @@
 #
 # return 0 if enable, else 1
 #
-get_state_guest_user () {
+get_state_guest_user() {
 	$mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=2 and usrgrpid=9"
 }
 
 # Disable guest user
 #
-disable_guest_user () {
+disable_guest_user() {
 	if [ $(get_state_guest_user) = "0" ]
 	then
 		ynh_print_info --message="Disable guest user"
@@ -27,13 +27,13 @@ disable_guest_user () {
 #
 # return 0 if enable, else 1
 #
-get_state_admin_user () {
+get_state_admin_user() {
 	$mysqlconn -BN -e "SELECT count(id) from \`users_groups\` where userid=1 and usrgrpid=9"
 }
 
 # Disable admin user
 #
-disable_admin_user () {
+disable_admin_user() {
 	if [ $(get_state_admin_user) = "0" ]
 	then
 		ynh_print_info --message="Disable admin user"
@@ -48,7 +48,7 @@ disable_admin_user () {
 
 # Enable admin user
 #
-enable_admin_user () {
+enable_admin_user() {
 	if [ $(get_state_admin_user) = "1" ]
 	then
 		ynh_print_info --message="Enable admin user"
@@ -60,11 +60,22 @@ enable_admin_user () {
 	fi
 }
 
+# Connect as Admin user
+#
+connect_as_admin() {
+	zabbixFullpath=https://$domain$path
+	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
+	curl -L $curlOptions \
+			--form "enter=Sign+in" \
+			--form "name=Admin" \
+			--form "password=zabbix" \
+			"$zabbixFullpath/index.php"
+}
+
 # Import YunoHost template in the agent
 #
-import_template () {
+import_template() {
 	ynh_print_info --message="Import YunoHost template in the agent"
-	zabbixFullpath=https://$domain$path
 	localpath="../conf/Template_Yunohost.xml"
 	sudoUserPpath="../conf/etc_sudoers.d_zabbix"
 	confUserPpath="../conf/etc_zabbix_zabbix_agentd.d_userP_yunohost.conf"
@@ -94,48 +105,55 @@ import_template () {
 	if [[ $visitors_enabled == "no" ]]; then
 	    ynh_permission_update --permission "main" --add "visitors"
 	fi
- 
-	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
 
-	curl -L $curlOptions \
-					--form "enter=Sign+in" \
-					--form "name=Admin" \
-					--form "password=zabbix" \
-					"$zabbixFullpath/index.php"
+	if [ $? -eq 0 ]; then
+		connect_as_admin
 
-	if [ $? -eq 0 ]
-	then
-		sid=$(curl $curlOptions \
-						"$zabbixFullpath/conf.import.php?rules_preset=template" \
-						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' )
+		_csrf_token=$(curl $curlOptions "$zabbixFullpath/zabbix.php?action=template.list" | \
+			grep -B 10 -A 10 popup.import | grep -Po '\[CSRF_TOKEN_NAME\]: "[A-Za-z0-9]+"' | \
+			grep -Po '"[A-Za-z0-9]+"' | grep -Po '[A-Za-z0-9]+')
 
 		importState=$(curl $curlOptions \
-						--form "config=1" \
-						--form "import_file=@$localpath" \
-						--form "rules[groups][createMissing]=1" \
-						--form "rules[templates][updateExisting]=1" \
-						--form "rules[templates][createMissing]=1" \
-						--form "rules[templateScreens][updateExisting]=1" \
-						--form "rules[templateScreens][createMissing]=1" \
-						--form "rules[templateLinkage][createMissing]=1" \
-						--form "rules[applications][createMissing]=1" \
-						--form "rules[items][updateExisting]=1" \
-						--form "rules[items][createMissing]=1" \
-						--form "rules[discoveryRules][updateExisting]=1" \
-						--form "rules[discoveryRules][createMissing]=1" \
-						--form "rules[triggers][updateExisting]=1" \
-						--form "rules[triggers][createMissing]=1" \
-						--form "rules[graphs][updateExisting]=1" \
-						--form "rules[graphs][createMissing]=1" \
-						--form "rules[httptests][updateExisting]=1" \
-						--form "rules[httptests][createMissing]=1" \
-						--form "rules[valueMaps][createMissing]=1" \
-						--form "import=Import" \
-						--form "backurl=templates.php" \
-						--form "form_refresh=1" \
-						--form "sid=${sid}" \ \
-						"${zabbixFullpath}/conf.import.php?rules_preset=template" \
-						| grep -c "Imported successfully")
+			--request POST \
+			--url "$zabbixFullpath/zabbix.php?action=popup.import" \
+			--header "content-type: multipart/form-data" \
+			--form "_csrf_token=$_csrf_token" \
+			--form "import=1" \
+			--form "rules_preset=template" \
+			--form "import_file=@$localpath" \
+			--form "update_all=1" \
+			--form "create_all=1" \
+			--form "delete_all=1" \
+			--form "rules[template_groups][updateExisting]=1" \
+			--form "rules[template_groups][createMissing]=1" \
+			--form "rules[host_groups][updateExisting]=1" \
+			--form "rules[host_groups][createMissing]=1" \
+			--form "rules[templates][updateExisting]=1" \
+			--form "rules[templates][createMissing]=1" \
+			--form "rules[valueMaps][updateExisting]=1" \
+			--form "rules[valueMaps][createMissing]=1" \
+			--form "rules[valueMaps][deleteMissing]=1" \
+			--form "rules[templateDashboards][updateExisting]=1" \
+			--form "rules[templateDashboards][createMissing]=1" \
+			--form "rules[templateDashboards][deleteMissing]=1" \
+			--form "rules[templateLinkage][createMissing]=1" \
+			--form "rules[templateLinkage][deleteMissing]=1" \
+			--form "rules[items][updateExisting]=1" \
+			--form "rules[items][createMissing]=1" \
+			--form "rules[items][deleteMissing]=1" \
+			--form "rules[discoveryRules][updateExisting]=1" \
+			--form "rules[discoveryRules][createMissing]=1" \
+			--form "rules[discoveryRules][deleteMissing]=1" \
+			--form "rules[triggers][updateExisting]=1" \
+			--form "rules[triggers][createMissing]=1" \
+			--form "rules[triggers][deleteMissing]=1" \
+			--form "rules[graphs][updateExisting]=1" \
+			--form "rules[graphs][createMissing]=1" \
+			--form "rules[graphs][deleteMissing]=1" \
+			--form "rules[httptests][updateExisting]=1" \
+			--form "rules[httptests][createMissing]=1" \
+			--form "rules[httptests][deleteMissing]=1" \
+			| grep -c "success")
 
 		if [ "$importState" -eq "1" ]
 		then
@@ -149,12 +167,12 @@ import_template () {
 
 	if [[ $visitors_enabled == "no" ]]; then
 	    ynh_permission_update --permission "main" --remove "visitors"
-        fi
+    fi
 }
 
 # Link YunoHost template to Zabbix server
 #
-link_template () {
+link_template() {
 	ynh_print_info --message="Link YunoHost template to Zabbix server"
 
 	# Temporarily enable visitors if needed...
@@ -164,10 +182,26 @@ link_template () {
 	fi
 
 	#apply template to host
-	tokenapi=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
-	zabbixHostID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
-	zabbixTemplateID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
-	applyTemplate=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
+	tokenapi=$(curl -L $curlOptions --request POST \
+		--url "${zabbixFullpath}/api_jsonrpc.php" \
+		--header "Content-Type: application/json-rpc" \
+		--data '{ "jsonrpc": "2.0","method": "user.login","params": {"username": "Admin","password": "zabbix"},"id": 1}' | \
+		jq -r '.result')
+	zabbixHostID=$(curl -L $curlOptions --request POST \
+		--url "${zabbixFullpath}/api_jsonrpc.php" \
+		--header "Content-Type: application/json-rpc" \
+		--data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' | \
+		jq -r '.result[0].hostid')
+	zabbixTemplateID=$(curl -L $curlOptions --request POST \
+		--url "${zabbixFullpath}/api_jsonrpc.php" \
+		--header "Content-Type: application/json-rpc" \
+		--data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' | \
+		jq -r '.result[0].templateid')
+	applyTemplate=$(curl -L $curlOptions --request POST \
+		--url "${zabbixFullpath}/api_jsonrpc.php" \
+		--header "Content-Type: application/json-rpc"  \
+		--data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' | \
+		jq -r '.result.hostids[]')
 	if [ "$applyTemplate" -eq "$zabbixHostID" ]
 	then
 		ynh_print_info --message="YunoHost template linked to Zabbix server !"
@@ -177,12 +211,12 @@ link_template () {
 
  	if [[ $visitors_enabled == "no" ]]; then
 	    ynh_permission_update --permission "main" --remove "visitors"
-        fi
+    fi
 }
 
 # Check if Zabbix server is started
 #
-check_proc_zabbixserver () {
+check_proc_zabbixserver() {
 	pgrep zabbix_server >/dev/null
 	if [ $? -eq 0 ]
 	then
@@ -195,7 +229,7 @@ check_proc_zabbixserver () {
 
 # Check if Zabbix agent is started
 #
-check_proc_zabbixagent () {
+check_proc_zabbixagent() {
 	pgrep zabbix_agentd >/dev/null
 	if [ $? -eq 0 ]
 	then
@@ -209,7 +243,7 @@ check_proc_zabbixagent () {
 
 # Update Zabbix configuration initialisation
 #
-update_initZabbixConf () {
+update_initZabbixConf() {
 	ynh_print_info --message="Update Zabbix configuration initialisation !"
 	if [ ! -d /etc/zabbix/web ]
 	then
@@ -223,7 +257,7 @@ update_initZabbixConf () {
 
 # Delete Zabbix configuration initialisation
 #
-delete_initZabbixConf () {
+delete_initZabbixConf() {
 	ynh_print_info --message="Delete Zabbix configuration initialisation !"
 	if [ -f /etc/zabbix/web/init.zabbix.conf.php.sh ]
 	then
@@ -238,7 +272,7 @@ delete_initZabbixConf () {
 
 # Patch timeout too short for Zabbix agent if needed
 #
-change_timeoutAgent () {
+change_timeoutAgent() {
 	timeout_ok=$(grep "^Timeout" /etc/zabbix/zabbix_agentd.conf 2>/dev/null || true;)
 	if [ -z "$timeout_ok" ]
 	then
@@ -251,7 +285,7 @@ change_timeoutAgent () {
 
 # Update Zabbix database character set
 #
-convert_ZabbixDB () {
+convert_ZabbixDB() {
 	ynh_print_info --message="Zabbix database character set will be updated !"
 	$mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 	for t in $($mysqlconn -BN -e "show tables";)
@@ -263,7 +297,7 @@ convert_ZabbixDB () {
 
 # Add email media type with the YunoHost server mail.
 #
-set_mediatype_default_yunohost () {
+set_mediatype_default_yunohost() {
 	set -x
 	if [ $($mysqlconn -BN -e "SELECT count(*) FROM media_type WHERE smtp_server LIKE 'mail.example.com' AND status=1;") -eq 1 ]
 	then
