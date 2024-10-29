@@ -185,7 +185,7 @@ link_template() {
 	tokenapi=$(curl -L $curlOptions --request POST \
 		--url "${zabbixFullpath}/api_jsonrpc.php" \
 		--header "Content-Type: application/json-rpc" \
-		--data '{ "jsonrpc": "2.0","method": "user.login","params": {"username": "Admin","password": "zabbix"},"id": 1}' | \
+		--data '{ "jsonrpc":"2.0","method": "user.login","params": {"username": "Admin","password": "zabbix"},"id": 1}' | \
 		jq -r '.result')
 	zabbixHostID=$(curl -L $curlOptions --request POST \
 		--url "${zabbixFullpath}/api_jsonrpc.php" \
@@ -202,14 +202,70 @@ link_template() {
 		--header "Content-Type: application/json-rpc"  \
 		--data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' | \
 		jq -r '.result.hostids[]')
-	if [ "$applyTemplate" -eq "$zabbixHostID" ]
-	then
+	if [ "$applyTemplate" -eq "$zabbixHostID" ]; then
 		ynh_print_info --message="YunoHost template linked to Zabbix server !"
 	else
 		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
 	fi
 
  	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --remove "visitors"
+    fi
+}
+
+
+# Add LDAP support
+#
+set_ldap() {
+	ynh_print_info --message="Setup LDAP"
+
+	# Temporarily enable visitors if needed...
+	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
+	if [[ $visitors_enabled == "no" ]]; then
+	    ynh_permission_update --permission "main" --add "visitors"
+	fi
+
+	if [ $? -eq 0 ]; then
+		lastid=$($mysqlconn -BN -e "SELECT max(userdirectoryid) from \`userdirectory\`")
+		if [ $lastid == NULL ]; then
+			lastid=0
+		fi
+		lastid=$((lastid + 1 ))
+		$mysqlconn -e "INSERT INTO \`userdirectory\` (\`userdirectoryid\`, \`name\`, \`description\`, \`idp_type\`, \`provision_status\`) VALUES ($lastid, 'localhost', '', 1, 1);"
+		$mysqlconn -e "INSERT INTO \`userdirectory_ldap\` (\`userdirectoryid\`, \`host\`, \`port\`, \`base_dn\`, \`search_attribute\`, \`start_tls\`) VALUES ($lastid, 'localhost', 389, 'uid=%{user}\,ou=users\,dc=yunohost\,dc=org', 'uid', 0);"
+		$mysqlconn -e "INSERT INTO \`userdirectory_idpgroup\` (\`userdirectory_idpgroupid\`, \`userdirectoryid\`, \`roleid\`, \`name\`) VALUES ($lastid, $lastid, 1, '*');"
+		$mysqlconn -e "UPDATE \`config\` SET \`ldap_userdirectoryid\` = $lastid WHERE \`configid\` = 1;"
+		usrgrpid=$($mysqlconn -BN -e "SELECT max(userdirectory_usrgrpid) from \`userdirectory_usrgrp\`")
+		if [ $usrgrpid == NULL ]; then
+			usrgrpid=0
+		fi
+		usrgrpid=$((usrgrpid + 1 ))
+		$mysqlconn -e "INSERT INTO \`userdirectory_usrgrp\` (\`userdirectory_usrgrpid\`, \`userdirectory_idpgroupid\`, \`usrgrpid\`) VALUES ($usrgrpid, $lastid, 13);"
+		
+		connect_as_admin
+
+		ldap_auth_enabled=$(curl -L $curlOptions --request POST \
+			--url "${zabbixFullpath}/api_jsonrpc.php" \
+			--header "Content-Type: application/json-rpc" \
+			--data '{"jsonrpc":"2.0","method":"authentication.update","params":{"disabled_usrgrpid":"9","ldap_auth_enabled":"1", "ldap_jit_status":"1"},"id":1}' | \
+			jq -r '.result[1]')
+
+		authentication_type=$(curl $curlOptions --request POST \
+		--url "${zabbixFullpath}/api_jsonrpc.php" \
+		--header "Content-Type: application/json-rpc" \
+		--data '{"jsonrpc":"2.0","method":"authentication.update","params":{"authentication_type":"1"},"id":1}' | \
+		jq -r '.result[0]')
+
+		if [ $ldap_auth_enabled == "ldap_auth_enabled" ] && [ $authentication_type == "authentication_type" ]; then
+			ynh_print_info --message="LDAP has been correctly set up !"
+		else
+			ynh_print_warn --message="LDAP setting has failed !"
+		fi
+	else
+		ynh_print_warn --message="Admin user cannot connect to the interface !"
+	fi
+
+	if [[ $visitors_enabled == "no" ]]; then
 	    ynh_permission_update --permission "main" --remove "visitors"
     fi
 }

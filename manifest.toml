@@ -7,7 +7,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "7.0.4~ynh1"
+version = "7.0.5~ynh1"
 
 maintainers = []
 
@@ -51,14 +51,6 @@ ram.runtime = "200M"
 
     [install.admin]
     type = "user"
-
-# Untill LDAP is implemented.
-    [install.password]
-    # this is a generic question - ask strings are automatically handled by YunoHost's core
-    # Note that user-provided passwords questions are not automatically saved as setting
-    help.en = "Choose a password for the administrator user, who will then be able to manage zabbix."
-    help.fr = "Choisissez le mot de passe de l'utilisateur administrator qui vous permettra ensuite de gérer zabbix."
-    type = "password"
 
 [resources]
     [resources.system_user]
