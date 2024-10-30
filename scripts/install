@@ -23,32 +23,15 @@ ynh_script_progression --message="Import default data in database..."
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
 
 convert_ZabbixDB
 
 #sso integration
 $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 
-#admin creation
-surname=$(ynh_user_get_info "$admin" lastname)
-name=$(ynh_user_get_info "$admin" firstname)
-
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 3, 'default', 0, '', 0, 50);"
-$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
-
-#users creation in zabbix database
-i=4
-for user in $(ynh_user_list);
-do
-	if [ "$user" != "$admin" ]
-	then
-		surname=$(ynh_user_get_info --username="$user" --key=lastname)
-		name=$(ynh_user_get_info --username="$user" --key=firstname)
-		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
-		i=$((i+1))
-	fi
-done
+$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`username\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`, \`timezone\`, \`roleid\`) VALUES (3,'$admin', '$admin', '$admin', '\$2y\$10\$92nDno4n0Zm7Ej7Jfsz8WukBfgSS/U0QkIuu8WkJPihXBb2A1UrEK', '', 0, '0', '$language', '30s', 'default', 0, '', 0, 50, 'default', 3);"
+$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (7, 7, 3);"
 
 disable_guest_user
 
@@ -100,6 +83,8 @@ ynh_script_progression --message="Setting up application with CURL..."
 import_template
 
 link_template
+
+set_ldap
 
 disable_admin_user
 

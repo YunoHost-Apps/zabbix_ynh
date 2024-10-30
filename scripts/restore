@@ -49,7 +49,7 @@ if [ ! -L /etc/zabbix/zabbix_agentd.d ]; then
 fi
 
 # Restore sudo file
-ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
+# ynh_restore_file --origin_path="/etc/sudoers.d/zabbix"
 
 #=================================================
 # RESTORE SYSTEM CONFIGURATIONS
