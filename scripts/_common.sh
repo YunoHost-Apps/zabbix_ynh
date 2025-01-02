@@ -89,67 +89,7 @@ import_template () {
 
 	systemctl restart zabbix-agent
 
-	# Temporarily enable visitors if needed...
-	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
-	if [[ $visitors_enabled == "no" ]]; then
-	    ynh_permission_update --permission "main" --add "visitors"
-	fi
- 
-	curlOptions="--noproxy $domain -k -s --cookie cookiejar.txt --cookie-jar cookiejar.txt --resolve $domain:443:127.0.0.1"
-
-	curl -L $curlOptions \
-					--form "enter=Sign+in" \
-					--form "name=Admin" \
-					--form "password=zabbix" \
-					"$zabbixFullpath/index.php"
-
-	if [ $? -eq 0 ]
-	then
-		sid=$(curl $curlOptions \
-						"$zabbixFullpath/conf.import.php?rules_preset=template" \
-						| grep -Po 'name="sid" value="\K([a-z0-9]{16})(?=")' )
-
-		importState=$(curl $curlOptions \
-						--form "config=1" \
-						--form "import_file=@$localpath" \
-						--form "rules[groups][createMissing]=1" \
-						--form "rules[templates][updateExisting]=1" \
-						--form "rules[templates][createMissing]=1" \
-						--form "rules[templateScreens][updateExisting]=1" \
-						--form "rules[templateScreens][createMissing]=1" \
-						--form "rules[templateLinkage][createMissing]=1" \
-						--form "rules[applications][createMissing]=1" \
-						--form "rules[items][updateExisting]=1" \
-						--form "rules[items][createMissing]=1" \
-						--form "rules[discoveryRules][updateExisting]=1" \
-						--form "rules[discoveryRules][createMissing]=1" \
-						--form "rules[triggers][updateExisting]=1" \
-						--form "rules[triggers][createMissing]=1" \
-						--form "rules[graphs][updateExisting]=1" \
-						--form "rules[graphs][createMissing]=1" \
-						--form "rules[httptests][updateExisting]=1" \
-						--form "rules[httptests][createMissing]=1" \
-						--form "rules[valueMaps][createMissing]=1" \
-						--form "import=Import" \
-						--form "backurl=templates.php" \
-						--form "form_refresh=1" \
-						--form "sid=${sid}" \ \
-						"${zabbixFullpath}/conf.import.php?rules_preset=template" \
-						| grep -c "Imported successfully")
-
-		if [ "$importState" -eq "1" ]
-		then
-			ynh_print_info --message="YunoHost template imported !"
-		else
-			ynh_print_warn --message="YunoHost template not imported !"
-		fi
-	else
-		ynh_print_warn --message="Admin user cannot connect to the interface !"
-	fi
-
-	if [[ $visitors_enabled == "no" ]]; then
-	    ynh_permission_update --permission "main" --remove "visitors"
-        fi
+	/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml import_configuration $localpath
 }
 
 # Link YunoHost template to Zabbix server
@@ -157,27 +97,7 @@ import_template () {
 link_template () {
 	ynh_print_info --message="Link YunoHost template to Zabbix server"
 
-	# Temporarily enable visitors if needed...
-	local visitors_enabled=$(ynh_permission_has_user "main" "visitors" && echo yes || echo no)
-	if [[ $visitors_enabled == "no" ]]; then
-	    ynh_permission_update --permission "main" --add "visitors"
-	fi
-
-	#apply template to host
-	tokenapi=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{ "jsonrpc": "2.0","method": "user.login","params": {"user": "Admin","password": "zabbix"},"id": 1,"auth": null}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result')
-	zabbixHostID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.get","params":{"filter":{"host":["Zabbix server"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].hostid')
-	zabbixTemplateID=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"template.get","params":{"filter":{"host":["Template Yunohost"]}},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result[0].templateid')
-	applyTemplate=$(curl --noproxy $domain -k -s --resolve $domain:443:127.0.0.1 --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","method":"host.massadd","params":{"hosts":[{"hostid":"'"$zabbixHostID"'"}],"templates":[{"templateid":"'"$zabbixTemplateID"'"}]},"auth":"'"$tokenapi"'","id":1}' "${zabbixFullpath}/api_jsonrpc.php" | jq -r '.result.hostids[]')
-	if [ "$applyTemplate" -eq "$zabbixHostID" ]
-	then
-		ynh_print_info --message="YunoHost template linked to Zabbix server !"
-	else
-		ynh_print_warn --message="YunoHost template not linked to Zabbix server !"
-	fi
-
- 	if [[ $visitors_enabled == "no" ]]; then
-	    ynh_permission_update --permission "main" --remove "visitors"
-        fi
+	/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml link_template_to_host "Template Yunohost" "Zabbix server"
 }
 
 # Check if Zabbix server is started
