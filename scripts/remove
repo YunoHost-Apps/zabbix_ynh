@@ -12,6 +12,8 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
+yunohost user delete $zabbix_username --purge
+
 # Remove the dedicated systemd config
 ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
@@ -30,9 +32,6 @@ ynh_remove_fpm_config
 
 # Remove other various files specific to the app... such as:
 
-yunohost user delete $zabbix_username --purge
-
-# Remove config file detection
 delete_initZabbixConf
 ynh_secure_remove --file="/usr/share/$app"
 ynh_secure_remove --file="/etc/$app"
