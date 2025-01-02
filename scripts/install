@@ -80,28 +80,33 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression --message="Setting up application..."
 
+ynh_print_info --message="Installing zabbix-cli"
 mkdir -p /usr/share/zabbix-cli
 python3 -m venv /usr/share/zabbix-cli
 /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
 
-#ldap zabbix user creation in zabbix database
+# ldap zabbix user creation
+ynh_print_info --message="Creating ldap zabbix user"
 yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
 ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $zabbix_username --firstname $zabbix_username --lastname $zabbix_username --passwd $zabbix_password --role superadmin --groups 7
 ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 
-#sso integration activation
+# sso integration activation
+ynh_print_info --message="Enabling LDAP authentication"
 $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 #Ldap integration activation
 $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_host\` = '127.0.0.1', \`ldap_port\` = '389', \`ldap_base_dn\` = 'ou=users,dc=yunohost,dc=org', \`ldap_search_attribute\` = 'uid' WHERE \`config\`.\`configid\` = 1;"
 
-#admin creation in zabbix database
+# admin user creation
+ynh_print_info --message="Creating admin user"
 lastname=$(ynh_user_get_info "$admin" lastname)
 firstname=$(ynh_user_get_info "$admin" firstname)
 /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $admin --firstname $firstname --lastname $lastname --role superadmin --groups 7
 
-#users creation in zabbix database
+# users creation
+ynh_print_info --message="Creating all users"
 for user in $(ynh_user_list);
 do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
