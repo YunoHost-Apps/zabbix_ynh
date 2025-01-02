@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # Zabbix for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![Working status](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/zabbix)](https://ci-apps.yunohost.org/ci/apps/zabbix/)
+![Working status](https://apps.yunohost.org/badge/state/zabbix)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/zabbix)
 
 [![Install Zabbix with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
@@ -18,7 +20,7 @@ It shall NOT be edited by hand.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Shipped version:** 5.0.41~ynh3
+**Shipped version:** 6.0~ynh1
 
 ## Screenshots
 

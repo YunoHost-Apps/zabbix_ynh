@@ -5,7 +5,9 @@
 
 # YunoHost 上的 Zabbix
 
-[![集成程度](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![工作状态](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
+[![集成程度](https://apps.yunohost.org/badge/integration/zabbix)](https://ci-apps.yunohost.org/ci/apps/zabbix/)
+![工作状态](https://apps.yunohost.org/badge/state/zabbix)
+![维护状态](https://apps.yunohost.org/badge/maintained/zabbix)
 
 [![使用 YunoHost 安装 Zabbix](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
@@ -18,7 +20,7 @@
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**分发版本：** 5.0.41~ynh3
+**分发版本：** 6.0~ynh1
 
 ## 截图
 

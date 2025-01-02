@@ -5,7 +5,9 @@ Il NE doit PAS être modifié à la main.
 
 # Zabbix pour YunoHost
 
-[![Niveau d’intégration](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
+[![Niveau d’intégration](https://apps.yunohost.org/badge/integration/zabbix)](https://ci-apps.yunohost.org/ci/apps/zabbix/)
+![Statut du fonctionnement](https://apps.yunohost.org/badge/state/zabbix)
+![Statut de maintenance](https://apps.yunohost.org/badge/maintained/zabbix)
 
 [![Installer Zabbix avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
@@ -19,7 +21,7 @@ Il NE doit PAS être modifié à la main.
 Un outil de surveillance pour divers composants informatiques, notamment les réseaux, les serveurs, les machines virtuelles et les services en nuage.
 
 
-**Version incluse :** 5.0.41~ynh3
+**Version incluse :** 6.0~ynh1
 
 ## Captures d’écran
 

@@ -8,6 +8,16 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
+# INITIALIZE AND STORE SETTINGS
+#=================================================
+
+zabbix_username="svc_${app}_ldap"
+zabbix_password=$(ynh_string_random --length=32)
+
+ynh_app_setting_set --app="$app" --key=zabbix_username --value="$zabbix_username"
+ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..."
@@ -23,41 +33,14 @@ ynh_script_progression --message="Import default data in database..."
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | $mysqlconn
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
 
 convert_ZabbixDB
 
-#sso integration
-$mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
-
-#admin creation
-surname=$(ynh_user_get_info "$admin" lastname)
-name=$(ynh_user_get_info "$admin" firstname)
-
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`,\`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES (3,'$admin', '$admin', '$admin', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 3, 'default', 0, '', 0, 50);"
-$mysqlconn -e "INSERT INTO \`users_groups\` (\`id\`, \`usrgrpid\`, \`userid\`) VALUES (5, 7, 3);"
-
-#users creation in zabbix database
-i=4
-for user in $(ynh_user_list);
-do
-	if [ "$user" != "$admin" ]
-	then
-		surname=$(ynh_user_get_info --username="$user" --key=lastname)
-		name=$(ynh_user_get_info --username="$user" --key=firstname)
-		$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ($i,'$user', '$name', '$surname', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '$language', '30s', 1, 'default', 0, '', 0, 50);"
-		i=$((i+1))
-	fi
-done
-
-disable_guest_user
-
-set_mediatype_default_yunohost
-
 #=================================================
-# ADD A CONFIGURATION
+# APP INITIAL CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..."
+ynh_script_progression --message="Adding $app's configuration files..."
 
 ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
@@ -76,10 +59,10 @@ ynh_script_progression --message="Adding system configurations related to $app..
 ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
-# Create a dedicated PHP-FPM config
+# Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
 ynh_add_fpm_config
 
-# Create a dedicated NGINX config
+# Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_add_nginx_config
 
 change_timeoutAgent
@@ -93,15 +76,56 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 update_initZabbixConf
 
 #=================================================
-# SETUP APPLICATION WITH CURL
+# SETUP APPLICATION
 #=================================================
-ynh_script_progression --message="Setting up application with CURL..."
+ynh_script_progression --message="Setting up application..."
+
+ynh_print_info --message="Installing zabbix-cli"
+mkdir -p /usr/share/zabbix-cli
+python3 -m venv /usr/share/zabbix-cli
+/usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+
+# ldap zabbix user creation
+ynh_print_info --message="Creating ldap zabbix user"
+yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
+ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $zabbix_username --firstname $zabbix_username --lastname $zabbix_username --passwd $zabbix_password --role superadmin --groups 7
+ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+
+# sso integration activation
+ynh_print_info --message="Enabling LDAP authentication"
+$mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
+#Ldap integration activation
+$mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_host\` = '127.0.0.1', \`ldap_port\` = '389', \`ldap_base_dn\` = 'ou=users,dc=yunohost,dc=org', \`ldap_search_attribute\` = 'uid' WHERE \`config\`.\`configid\` = 1;"
+
+# admin user creation
+ynh_print_info --message="Creating admin user"
+lastname=$(ynh_user_get_info "$admin" lastname)
+firstname=$(ynh_user_get_info "$admin" firstname)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $admin --firstname $firstname --lastname $lastname --role superadmin --groups 7
+
+# users creation
+ynh_print_info --message="Creating all users"
+for user in $(ynh_user_list);
+do
+	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
+	then
+		lastname=$(ynh_user_get_info --username="$user" --key=lastname)
+		firstname=$(ynh_user_get_info --username="$user" --key=firstname)
+		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $firstname --lastname $lastname --role user --groups 8
+	fi
+done
+
+disable_guest_user
+
+disable_admin_user
+
+set_mediatype_default_yunohost
 
 import_template
 
 link_template
-
-disable_admin_user
 
 #=================================================
 # START SYSTEMD SERVICE

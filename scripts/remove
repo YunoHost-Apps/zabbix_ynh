@@ -12,6 +12,8 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
+ynh_exec_warn_less yunohost user delete $zabbix_username --purge
+
 # Remove the dedicated systemd config
 ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
@@ -24,48 +26,20 @@ yunohost service remove snmpd
 yunohost service remove zabbix-server
 yunohost service remove zabbix-agent
 
-# Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
-# Remove the dedicated PHP-FPM config
 ynh_remove_fpm_config
 
-#=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing $app's configuration..."
+# Remove other various files specific to the app... such as:
 
-# Remove config file detection
 delete_initZabbixConf
-
 ynh_secure_remove --file="/usr/share/$app"
-
-#=================================================
-# REMOVE VARIOUS FILES
-#=================================================
-ynh_script_progression --message="Removing various files..."
-
-# Remove a directory securely
 ynh_secure_remove --file="/etc/$app"
-
-# Remove the log files
-
 ynh_secure_remove --file="/run/$app"
 
 ynh_secure_remove --file="/etc/sudoers.d/$app"
 
-# FIXME: useless?
-# REMOVE NONFREE PART PATCH IF NEEDED (snmp-mibs-downloader (non-free) installed in version 1)
-nonfreepackagelist=$(dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free)
-if [ "$(echo $nonfreepackagelist | wc -l)" -eq 1 ] && [ "$(echo $nonfreepackagelist | grep -c "snmp-mibs-downloader")" -eq 1 ]; then
-    ynh_print_info --message="Removing snmp-mibs-downloader (non-free package)"
-    cp /var/lib/dpkg/status{,.$(date "+%m%d%y")}
-    ynh_replace_string --match_string=" snmp-mibs-downloader," --replace_string="" --target_file=/var/lib/dpkg/status
-    DEBIAN_FRONTEND=noninteractive apt purge snmp-mibs-downloader -y
-    if [ -f /etc/apt/sources.list.d/non-free.list ]; then
-        ynh_secure_remove --file="/etc/apt/sources.list.d/non-free.list"
-    fi
-fi
+ynh_secure_remove --file="/usr/share/zabbix-cli"
 
 #=================================================
 # END OF SCRIPT

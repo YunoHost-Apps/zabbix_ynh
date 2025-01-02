@@ -39,6 +39,9 @@ ynh_backup --src_path="/etc/zabbix/zabbix_agentd.d"
 # Backup sudo file
 ynh_backup --src_path="/etc/sudoers.d/zabbix"
 
+# Backup zabbix-cli
+ynh_backup --src_path="/usr/share/zabbix-cli"
+
 #=================================================
 # BACKUP THE MYSQL DATABASE
 #=================================================

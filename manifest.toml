@@ -7,7 +7,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "5.0.41~ynh3"
+version = "6.0~ynh1"
 
 maintainers = []
 
@@ -19,11 +19,14 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 11.2"
+yunohost = ">= 11.2.30"
 architectures = ["amd64"]
 multi_instance = false
+
 ldap = true
+
 sso = true
+
 disk = "500M"
 ram.build = "200M"
 ram.runtime = "200M"
@@ -54,52 +57,34 @@ ram.runtime = "200M"
 
 [resources]
     [resources.system_user]
+    # This will provision/deprovision a unix system user
 
     [resources.install_dir]
+    # This will create/remove the install dir as /var/www/$app
+    # and store the corresponding setting $install_dir
 
     [resources.permissions]
+    # This will configure SSOwat permission for $domain/$path/
+    # The initial allowed group of user is configured via the init_main_permission question (public=visitors, private=all_users)
     main.url = "/"
-
-    [resources.ports]
-    active-checks.default = 10051
 
     [resources.apt]
     packages = [
-        "libapr1",
-        "libaprutil1",
-        "libaprutil1-dbd-sqlite3",
-        "libaprutil1-ldap",
-        "liblua5.2-0",
-        "fonts-dejavu-core",
-        "patch",
-        "smistrip",
-        "unzip",
-        "wget",
-        "fping",
-        "libcap2-bin",
-        "libiksemel3",
-        "libopenipmi0",
-        "libpam-cap",
-        "libsnmp-base",
-        "libsnmp40",
-        "snmptrapd",
-        "snmpd",
-        "libjs-prototype",
-        "jq",
-        "libssh-4",
-        "php7.4-fpm",
-        "php7.4-bcmath",
+        "php8.2-fpm",
         "mariadb-server",
+        "python3-venv",
     ]
 
     [resources.apt.extras.zabbix]
-    repo = "http://repo.zabbix.com/zabbix/5.0/debian __YNH_DEBIAN_VERSION__ main"
+    repo = "deb https://repo.zabbix.com/zabbix/6.0/debian __YNH_DEBIAN_VERSION__ main"
     key = "https://repo.zabbix.com/zabbix-official-repo.key"
     packages = [
-        "zabbix-agent",
-        "zabbix-frontend-php",
         "zabbix-server-mysql",
-    ]
+        "zabbix-frontend-php",
+        "zabbix-sql-scripts",
+        "zabbix-agent",
+        ]
 
     [resources.database]
+    # This will automatically provision/deprovison a DB and store the corresponding credentials in settings $db_user, $db_name, $db_pwd
     type = "mysql"

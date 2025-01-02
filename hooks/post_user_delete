@@ -1,13 +1,5 @@
 #!/bin/bash
-source /usr/share/yunohost/helpers
 
 user=$1
-app=zabbix
 
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-
-mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
-
-$mysqlconn -e "DELETE FROM users WHERE alias=\"$1\";"
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml  remove_user $user
