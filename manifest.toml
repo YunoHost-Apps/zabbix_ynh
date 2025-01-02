@@ -69,7 +69,9 @@ ram.runtime = "200M"
     main.url = "/"
 
     [resources.ports]
-    active-checks.default = 10051
+    main.default = 10051
+    main.exposed = "TCP"
+    main.fixed = true
 
     [resources.apt]
     packages = [
