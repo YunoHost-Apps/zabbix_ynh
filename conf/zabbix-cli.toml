@@ -3,7 +3,7 @@ url = "https://__DOMAIN____PATH__"
 username = "__ZABBIX_USERNAME__"
 password = "__ZABBIX_PASSWORD__"
 auth_token = ""
-verify_ssl = true
+verify_ssl = false
 
 [app]
 default_hostgroups = [
