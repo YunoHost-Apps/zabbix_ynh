@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # Zabbix YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/zabbix.svg)](https://dash.yunohost.org/appci/app/zabbix) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/zabbix.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/zabbix.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/zabbix)](https://ci-apps.yunohost.org/ci/apps/zabbix/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/zabbix)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/zabbix)
 
 [![Instalatu Zabbix YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=zabbix)
 
@@ -18,7 +20,7 @@ EZ editatu eskuz.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Paketatutako bertsioa:** 5.0.41~ynh3
+**Paketatutako bertsioa:** 6.0~ynh1
 
 ## Pantaila-argazkiak
 
