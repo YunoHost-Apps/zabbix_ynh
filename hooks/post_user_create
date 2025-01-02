@@ -2,17 +2,7 @@
 source /usr/share/yunohost/helpers
 
 user=$1
-app=zabbix
 
-surname=$(ynh_user_get_info --username=$user --key=lastname)
-name=$(ynh_user_get_info --username=$user --key=firstname)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-db_pwd=$(ynh_app_setting_get --app=$app --key=mysqlpwd)
-language=$(ynh_app_setting_get --app=$app --key=language)
-
-mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
-
-lastid=$($mysqlconn -BN -e "select userid from users order by userid desc limit 1")
-lastid=$((lastid+1))
-$mysqlconn -e "INSERT INTO \`users\` (\`userid\`, \`alias\`, \`name\`, \`surname\`, \`passwd\`, \`url\`, \`autologin\`, \`autologout\`, \`lang\`, \`refresh\`, \`type\`, \`theme\`, \`attempt_failed\`, \`attempt_ip\`, \`attempt_clock\`, \`rows_per_page\`) VALUES ("$lastid",'"$user"', '"$name"', '"$surname"', '5fce1b3e34b520afeffb37ce08c7cd66', '', 0, '0', '"$language"', '30s', 1, 'default', 0, '', 0, 50);"
+lastname=$(ynh_user_get_info --username=$user --key=lastname)
+firstname=$(ynh_user_get_info --username=$user --key=firstname)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $firstname --lastname $lastname --role user --groups 8

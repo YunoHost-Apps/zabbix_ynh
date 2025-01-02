@@ -61,6 +61,23 @@ chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
 
+if [ ! -d "/usr/share/zabbix-cli" ]; then
+    zabbix_username="svc_${app}_ldap"
+    zabbix_password=$(ynh_string_random --length=32)
+    ynh_app_setting_set --app="$app" --key=zabbix_username --value="$zabbix_username"
+    ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
+    yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
+
+    mkdir -p /usr/share/zabbix-cli
+    python3 -m venv /usr/share/zabbix-cli
+    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+    ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+    enable_admin_user
+    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $zabbix_username --firstname $zabbix_username --lastname $zabbix_username --passwd $zabbix_password --role superadmin --groups 7
+    disable_admin_user
+    ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+fi
+
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================

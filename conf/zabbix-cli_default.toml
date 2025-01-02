@@ -1,0 +1,41 @@
+[api]
+url = "https://__DOMAIN____PATH__"
+username = "Admin"
+password = "zabbix"
+auth_token = ""
+verify_ssl = true
+
+[app]
+default_hostgroups = [
+    "All-hosts",
+]
+default_admin_usergroups = []
+default_create_user_usergroups = []
+default_notification_users_usergroups = [
+    "All-notification-users",
+]
+export_directory = "/usr/share/zabbix-cli/exports"
+export_format = "json"
+export_timestamps = false
+use_auth_token_file = true
+auth_token_file = "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+auth_file = "/usr/share/zabbix-cli/.zabbix-cli_auth"
+history = true
+history_file = "/usr/share/zabbix-cli/history"
+bulk_mode = "strict"
+allow_insecure_auth_file = true
+legacy_json_format = false
+
+[app.output]
+format = "table"
+color = true
+paging = false
+theme = "default"
+
+[logging]
+enabled = true
+log_level = "INFO"
+log_file = "/usr/share/zabbix-cli/log/zabbix-cli.log"
+
+[plugins]
+
