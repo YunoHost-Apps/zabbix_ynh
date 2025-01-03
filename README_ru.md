@@ -20,7 +20,7 @@
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Поставляемая версия:** 7.0~ynh1
+**Поставляемая версия:** 7.2~ynh1
 
 ## Снимки экрана
 
