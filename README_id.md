@@ -20,7 +20,7 @@ Ini TIDAK boleh diedit dengan tangan.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Versi terkirim:** 6.4~ynh1
+**Versi terkirim:** 7.0~ynh1
 
 ## Tangkapan Layar
 
