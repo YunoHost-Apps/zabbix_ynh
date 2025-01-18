@@ -44,6 +44,8 @@ ynh_script_progression --message="Adding $app's configuration files..."
 
 ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
+ynh_add_config --template="../conf/etc_apt_preferences.d_zabbix" --destination="/etc/apt/preferences.d/zabbix_repo"
+
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 

@@ -66,6 +66,8 @@ ynh_restore_file --origin_path="/etc/php/$phpversion/fpm/pool.d/$app.conf"
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
+ynh_restore_file --origin_path="/etc/apt/preferences.d/zabbix_repo"
+
 change_timeoutAgent
 
 systemctl enable zabbix-agent --quiet
