@@ -1,4 +1,3 @@
 Package: zabbix-*
-Pin: origin
-repo.zabbix.com
+Pin: origin "repo.zabbix.com"
 Pin-Priority: 900
