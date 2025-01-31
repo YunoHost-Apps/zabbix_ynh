@@ -59,7 +59,7 @@ ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword
 #=================================================
 ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
-ynh_replace_string --match_string="# $language.UTF-8 UTF-8" --replace_string="$language.UTF-8 UTF-8" --target_file=/etc/locale.gen
+ynh_replace_string --match_string="# ${language}\.UTF-8 UTF-8" --replace_string="${language}\.UTF-8 UTF-8" --target_file=/etc/locale.gen
 locale-gen
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
