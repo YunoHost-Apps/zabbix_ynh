@@ -44,7 +44,6 @@ ynh_secure_remove --file="/etc/sudoers.d/$app"
 
 ynh_secure_remove --file="/usr/share/zabbix-cli"
 
-
 #=================================================
 # END OF SCRIPT
 #=================================================
