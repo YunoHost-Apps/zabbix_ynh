@@ -50,16 +50,16 @@ chmod 644 "/etc/apt/preferences.d/zabbix_repo"
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file=/etc/zabbix/zabbix_server.conf
-ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file=/etc/zabbix/zabbix_server.conf
+ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file="/etc/zabbix/zabbix_server.conf"
+ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file="/etc/zabbix/zabbix_server.conf"
+ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file="/etc/zabbix/zabbix_server.conf"
 
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
-ynh_replace_string --match_string="# ${language}\.UTF-8 UTF-8" --replace_string="${language}\.UTF-8 UTF-8" --target_file=/etc/locale.gen
+ynh_replace_string --match_string="# ${language}\.UTF-8 UTF-8" --replace_string="${language}\.UTF-8 UTF-8" --target_file="/etc/locale.gen"
 locale-gen
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
