@@ -29,8 +29,6 @@ yunohost service remove snmpd
 yunohost service remove zabbix-server
 yunohost service remove zabbix-agent
 
-ynh_exec_warn_less yunohost user delete $zabbix_username --purge
-
 ynh_remove_nginx_config
 
 ynh_remove_fpm_config
