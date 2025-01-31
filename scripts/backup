@@ -43,7 +43,9 @@ ynh_backup --src_path="/etc/sudoers.d/zabbix"
 ynh_backup --src_path="/usr/share/zabbix-cli"
 
 # Backup pinning preferences repo
+if [ -f /etc/apt/preferences.d/zabbix_repo ]; then
 yhn_backup --src_path="/etc/apt/preferences.d/zabbix_repo"
+fi
 
 #=================================================
 # BACKUP THE MYSQL DATABASE
