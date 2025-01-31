@@ -12,9 +12,10 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
+ynh_exec_warn_less yunohost user delete $zabbix_username --purge
+
 # need remove pinning
 ynh_secure_remove --file="/etc/apt/preferences.d/zabbix_repo"
-
 
 # Remove the dedicated systemd config
 ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
