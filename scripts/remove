@@ -15,7 +15,7 @@ ynh_script_progression --message="Removing system configurations related to $app
 ynh_exec_warn_less yunohost user delete $zabbix_username --purge
 
 # need remove pinning
-if [ -f /etc/apt/preferences.d/zabbix_repo ]
+if [ -f /etc/apt/preferences.d/zabbix_repo ]; then
 ynh_secure_remove --file="/etc/apt/preferences.d/zabbix_repo"
 fi
 
