@@ -4,4 +4,4 @@ Pin-Priority: 900
 
 Package: zabbix-*
 Pin: origin security.debian.org
-Pin-Priority: 1
+Pin-Priority: -1
