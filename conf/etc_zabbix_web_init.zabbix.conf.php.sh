@@ -18,7 +18,7 @@ global \$DB;
 \$DB['PORT']     = '0';
 \$DB['DATABASE'] = '"$(yunohost app setting zabbix db_name)"';
 \$DB['USER']     = '"$(yunohost app setting zabbix db_user)"';
-\$DB['PASSWORD'] = '"$(yunohost app setting zabbix mysqlpwd)"';
+\$DB['PASSWORD'] = '"$(yunohost app setting zabbix db_pwd)"';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
 \$DB['SCHEMA'] = '';
