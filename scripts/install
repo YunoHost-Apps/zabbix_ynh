@@ -59,6 +59,12 @@ ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword
 #=================================================
 ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
+# The CI will fail on these, even though the locales package is installed.
+if ! [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
+	locale-gen C.UTF-8
+	update-locale C.UTF-8
+fi
+
 ynh_replace_string --match_string="# ${language}\.UTF-8 UTF-8" --replace_string="${language}\.UTF-8 UTF-8" --target_file="/etc/locale.gen"
 locale-gen
 
