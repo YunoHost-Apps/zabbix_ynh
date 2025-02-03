@@ -20,7 +20,7 @@ Hij mag NIET handmatig aangepast worden.
 
 A monitoring tool for diverse IT components, including networks, servers, VMs and cloud services.
 
-**Geleverde versie:** 6.0~ynh2
+**Geleverde versie:** 6.4~ynh1
 
 ## Schermafdrukken
 
