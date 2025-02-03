@@ -21,7 +21,7 @@ Il NE doit PAS être modifié à la main.
 Un outil de surveillance pour divers composants informatiques, notamment les réseaux, les serveurs, les machines virtuelles et les services en nuage.
 
 
-**Version incluse :** 6.0~ynh2
+**Version incluse :** 6.4~ynh1
 
 ## Captures d’écran
 

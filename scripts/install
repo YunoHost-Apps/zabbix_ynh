@@ -100,7 +100,9 @@ ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 ynh_print_info --message="Enabling LDAP authentication"
 $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 #Ldap integration activation
-$mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_host\` = '127.0.0.1', \`ldap_port\` = '389', \`ldap_base_dn\` = 'ou=users,dc=yunohost,dc=org', \`ldap_search_attribute\` = 'uid' WHERE \`config\`.\`configid\` = 1;"
+$mysqlconn -e "INSERT INTO \`userdirectory\` (\`userdirectoryid\`,\`name\`, \`description\`, \`idp_type\`, \`provision_status\`) VALUES (1,'localhost', '', '1', '0');"
+$mysqlconn -e "INSERT INTO \`userdirectory_ldap\` (\`userdirectoryid\`,\`host\`, \`port\`, \`base_dn\`, \`search_attribute\`, \`bind_dn\`, \`bind_password\`, \`start_tls\`, \`search_filter\`, \`group_basedn\`, \`group_name\`, \`group_member\`, \`user_ref_attr\`, \`group_filter\`, \`group_membership\`, \`user_username\`, \`user_lastname\`) VALUES (1,'127.0.0.1', '389', 'ou=users,dc=yunohost,dc=org', 'uid', '', '', '0', '', '', '', '', '', '', '', '', '');"
+$mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_enabled\` = '1', \`ldap_userdirectoryid\` = '1' WHERE \`config\`.\`configid\` = 1;"
 
 # admin user creation
 ynh_print_info --message="Creating admin user"
