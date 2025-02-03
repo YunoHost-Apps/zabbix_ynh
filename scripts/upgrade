@@ -117,9 +117,9 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 fi
 
-import_template
+#import_template
 
-link_template
+#link_template
 
 #=================================================
 # START SYSTEMD SERVICE
