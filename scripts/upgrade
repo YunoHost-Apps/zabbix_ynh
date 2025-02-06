@@ -49,11 +49,11 @@ ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-    ynh_secure_remove --file="/usr/share/zabbix/conf/zabbix.conf.php"
+if [ -f "/usr/share/zabbix/ui/conf/zabbix.conf.php" ]; then
+    ynh_secure_remove --file="/usr/share/zabbix/ui/conf/zabbix.conf.php"
 fi
 
-ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
+ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.php"
 
 ynh_remove_extra_repo --name=zabbix
 
