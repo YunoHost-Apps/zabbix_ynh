@@ -2,9 +2,9 @@
 
 app="zabbix"
 
-if [ ! -L "/usr/share/zabbix/conf/zabbix.conf.php" ]
+if [ ! -L "/usr/share/zabbix/ui/conf/zabbix.conf.php" ]
 then
-	ln -s /etc/zabbix/web/zabbix.conf.php /usr/share/zabbix/conf/zabbix.conf.php
+	ln -s /etc/zabbix/web/zabbix.conf.php /usr/share/zabbix/ui/conf/zabbix.conf.php
 fi
 
 if [ ! -f /etc/zabbix/web/zabbix.conf.php ]
