@@ -17,7 +17,6 @@ default_notification_users_usergroups = [
 export_directory = "/usr/share/zabbix-cli/exports"
 export_format = "json"
 export_timestamps = false
-use_session_file = false
 use_auth_token_file = true
 auth_token_file = "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 auth_file = "/usr/share/zabbix-cli/.zabbix-cli_auth"
@@ -26,9 +25,6 @@ history_file = "/usr/share/zabbix-cli/history"
 bulk_mode = "strict"
 allow_insecure_auth_file = true
 legacy_json_format = false
-
-[app.commands.create_host]
-create_interface = true
 
 [app.output]
 format = "table"
