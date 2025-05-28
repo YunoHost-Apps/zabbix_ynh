@@ -33,7 +33,7 @@ ynh_script_progression --message="Import default data in database..."
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | $mysqlconn
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
 
 convert_ZabbixDB
 
