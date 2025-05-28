@@ -97,6 +97,7 @@ ynh_systemd_action --service_name="$app-server" --action="restart"
 /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" --firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
 ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_session.json"
 
 # sso integration activation
 ynh_print_info --message="Enabling LDAP authentication"
