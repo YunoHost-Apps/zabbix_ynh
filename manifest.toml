@@ -71,6 +71,7 @@ ram.runtime = "200M"
     [resources.apt]
     packages = [
         "php8.2-fpm",
+        "php8.2-bcmath",
         "mariadb-server",
         "python3-venv",
     ]
