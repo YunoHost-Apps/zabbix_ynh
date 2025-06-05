@@ -18,6 +18,5 @@ test_format = 1.0
     # Commits to test upgrade from
     # -------------------------------
 
-    test_upgrade_from.8f8961c239f890069c867e40005db98465add0c9.name = "5.0.20~ynh2"
-    test_upgrade_from.2791ab29129baca48685277ce82ef763058b10cf.name = "5.0.41~ynh3"
     test_upgrade_from.2ee2da0e3e8c95e90d78e234bcf2193869d115f8.name = "6.0~ynh2"
+    test_upgrade_from.058508f95dd6b1f38bfd2808d7b5d6259656881f.name = "6.4~ynh1"
