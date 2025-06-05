@@ -7,6 +7,18 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
+
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+ynh_script_progression "Ensuring downward compatibility..."
+
+
+if  ynh_compare_current_package_version --comparison lt --version 6.0~ynh2; then
+    ynh_die --message="la version minimum requise pour cette version est la 6.0~ynh2, il n’est plus possible de faire une mise à jour/restauration de base de données depuis une version inférieure à la 6.0~ynh2 (commit 2ee2da0e3e8c95e90d78e234bcf2193869d115f8"
+fi
+
+
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================

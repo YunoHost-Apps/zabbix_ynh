@@ -15,7 +15,7 @@ if [ "$1" == "yunohost.domains.discover" ] ;then
 fi
 
 if [ "$1" == "yunohost.domain.cert" ] ;then
-	$yunobin domain cert-status "$2" --output-as plain --full| awk '/#/{ next;} {printf "%s;",$0} END {print ""}'
+	$yunobin domain cert status "$2" --output-as plain --full| awk '/#/{ next;} {printf "%s;",$0} END {print ""}'
 fi
 
 if [ "$1" == "yunohost.services.discover" ] ;then
