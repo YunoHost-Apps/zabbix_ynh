@@ -72,7 +72,7 @@ ram.runtime = "200M"
     packages = [
         "php8.2-fpm",
         "php8.2-bcmath",
-        "php8.2-mbstring"
+        "php8.2-mbstring",
         "mariadb-server",
         "python3-venv",
     ]
