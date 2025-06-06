@@ -7,7 +7,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "6.4~ynh1"
+version = "7.0~ynh1"
 
 maintainers = []
 
@@ -19,7 +19,7 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 11.2.30"
+yunohost = ">= 12.0.0"
 architectures = ["amd64"]
 multi_instance = false
 
@@ -71,14 +71,20 @@ ram.runtime = "200M"
     [resources.apt]
     packages = [
         "php8.2-fpm",
+        "php8.2-gd",
         "php8.2-bcmath",
+        "php8.2-ctype",
+        "php8.2-xml",
         "php8.2-mbstring",
+        "php8.2-gettext",
+        "php8.2-curl",
+        "php8.2-ldap",
         "mariadb-server",
         "python3-venv",
     ]
 
     [resources.apt.extras.zabbix]
-    repo = "deb https://repo.zabbix.com/zabbix/6.4/debian __YNH_DEBIAN_VERSION__ main"
+    repo = "deb https://repo.zabbix.com/zabbix/7.0/debian __YNH_DEBIAN_VERSION__ main"
     key = "https://repo.zabbix.com/zabbix-official-repo.key"
     packages = [
         "zabbix-server-mysql",
