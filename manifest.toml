@@ -84,10 +84,12 @@ ram.runtime = "200M"
         "php8.3-zip",
         "php8.3-snmp",
         "php8.3-intl",
-        "php8-soap",
+        "php8.3-soap",
         "php8.3-tidy",
         "php8.3-mcrypt",
         "php8.3-apcu",
+        "php8.3-pspell",
+        "php8.3-gmp",
         "mariadb-server",
         "python3-venv",
     ]
