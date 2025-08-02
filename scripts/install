@@ -74,7 +74,7 @@ systemctl enable zabbix-agent --quiet
 systemctl enable zabbix-server --quiet
 yunohost service add snmpd --description="Management of SNMP Daemon"
 yunohost service add zabbix-server --description="Management Zabbix server daemon : collect, agregate, compute and notify" --log="/var/log/$app/${app}_server.log"
-yunohost service add zabbix-agent2 --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent2.log"
+yunohost service add zabbix-agent --description="Management Zabbix agent daemon : send informations about this host to the server" --log="/var/log/$app/${app}_agent.log"
 
 update_initZabbixConf
 
