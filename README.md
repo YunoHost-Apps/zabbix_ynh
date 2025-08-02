@@ -18,6 +18,10 @@ Monitoring tool for diverse IT components, including networks, servers, VMs and 
 <a href="https://github.com/YunoHost-Apps/zabbix_ynh/issues"><img height="100px" src="https://github.com/YunoHost/yunohost-artwork/raw/refs/heads/main/badges/neopossum-badges/badge_report_an_issue.svg"/></a>
 </div>
 
+
+## Screenshots
+![Screenshot of Zabbix](./doc/screenshots/screenshot1.png)
+
 ## 📦 Developer info
 
 [![Automatic tests level](https://apps.yunohost.org/badge/cilevel/zabbix)](https://ci-apps.yunohost.org/ci/apps/zabbix/)
