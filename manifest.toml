@@ -19,12 +19,11 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 12.0.0"
+yunohost = ">= 12.0.9"
 architectures = ["amd64"]
 multi_instance = false
 
 ldap = true
-
 sso = true
 
 disk = "500M"
@@ -56,16 +55,12 @@ ram.runtime = "200M"
     type = "user"
 
 [resources]
+
     [resources.system_user]
-    # This will provision/deprovision a unix system user
 
     [resources.install_dir]
-    # This will create/remove the install dir as /var/www/$app
-    # and store the corresponding setting $install_dir
 
     [resources.permissions]
-    # This will configure SSOwat permission for $domain/$path/
-    # The initial allowed group of user is configured via the init_main_permission question (public=visitors, private=all_users)
     main.url = "/"
 
     [resources.apt]
@@ -94,5 +89,4 @@ ram.runtime = "200M"
         ]
 
     [resources.database]
-    # This will automatically provision/deprovison a DB and store the corresponding credentials in settings $db_user, $db_name, $db_pwd
     type = "mysql"
