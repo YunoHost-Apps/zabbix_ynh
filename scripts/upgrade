@@ -7,7 +7,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
@@ -17,7 +16,6 @@ ynh_script_progression "Ensuring downward compatibility..."
 if  ynh_compare_current_package_version --comparison lt --version 6.0~ynh2; then
     ynh_die --message="la version minimum requise pour cette version est la 6.0~ynh2, il n’est plus possible de faire une mise à jour/restauration de base de données depuis une version inférieure à la 6.0~ynh2 (commit 2ee2da0e3e8c95e90d78e234bcf2193869d115f8"
 fi
-
 
 #=================================================
 # STOP SYSTEMD SERVICE
@@ -74,8 +72,6 @@ chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
 
 #=================================================
-# SPECIFIC UPGRADE
-#=================================================
 # CUSTOMIZE DATABASE
 #=================================================
 ynh_script_progression --message="Customize the database..."
@@ -128,10 +124,6 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
     ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 fi
-
-#import_template
-
-#link_template
 
 #=================================================
 # START SYSTEMD SERVICE
