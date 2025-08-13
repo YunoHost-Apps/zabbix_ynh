@@ -21,7 +21,7 @@ fi
 ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 systemctl disable zabbix-server --quiet
-systemctl disable zabbix-agent2 --quiet
+systemctl disable zabbix-agent --quiet
 ynh_exec_warn_less killall zabbix_server
 ynh_exec_warn_less killall zabbix_agentd
 

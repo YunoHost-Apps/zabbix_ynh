@@ -7,7 +7,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "7.0~ynh2"
+version = "7.0~ynh1"
 
 maintainers = []
 
@@ -19,12 +19,11 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 12.0.0"
+yunohost = ">= 12.0.9"
 architectures = ["amd64"]
 multi_instance = false
 
 ldap = true
-
 sso = true
 
 disk = "500M"
@@ -56,20 +55,41 @@ ram.runtime = "200M"
     type = "user"
 
 [resources]
+
     [resources.system_user]
-    # This will provision/deprovision a unix system user
 
     [resources.install_dir]
-    # This will create/remove the install dir as /var/www/$app
-    # and store the corresponding setting $install_dir
 
     [resources.permissions]
-    # This will configure SSOwat permission for $domain/$path/
-    # The initial allowed group of user is configured via the init_main_permission question (public=visitors, private=all_users)
     main.url = "/"
+
+    [resources.ports]
+    active-checks.default = 10051
 
     [resources.apt]
     packages = [
+        "libapr1",
+        "libaprutil1",
+        "libaprutil1-dbd-sqlite3",
+        "libaprutil1-ldap",
+        "liblua5.2-0",
+        "fonts-dejavu-core",
+        "patch",
+        "smistrip",
+        "unzip",
+        "wget",
+        "fping",
+        "libcap2-bin",
+        "libiksemel3",
+        "libopenipmi0",
+        "libpam-cap",
+        "libsnmp-base",
+        "libsnmp40",
+        "snmptrapd",
+        "snmpd",
+        "libjs-prototype",
+        "jq",
+        "libssh-4",
         "php8.2-fpm",
         "php8.2-gd",
         "php8.2-bcmath",
@@ -79,18 +99,7 @@ ram.runtime = "200M"
         "php8.2-gettext",
         "php8.2-curl",
         "php8.2-ldap",
-        "php8.2-cli",
-        "php8.2-bz2",
-        "php8.2-zip",
-        "php8.2-intl",
-        "php8.2-soap",
-        "php8.2-tidy",
-        "php8.2-mcrypt",
-        "php8.2-apcu",
-        "php8.2-pspell",
-        "php8.2-gmp",
         "mariadb-server",
-        "python3-venv",
     ]
 
     [resources.apt.extras.zabbix]
@@ -104,5 +113,4 @@ ram.runtime = "200M"
         ]
 
     [resources.database]
-    # This will automatically provision/deprovison a DB and store the corresponding credentials in settings $db_user, $db_name, $db_pwd
     type = "mysql"

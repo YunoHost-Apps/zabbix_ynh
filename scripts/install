@@ -139,7 +139,7 @@ ynh_script_progression --message="Starting $app's systemd service..."
 
 # Start a systemd service
 ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent2.log"
+ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # END OF SCRIPT
