@@ -16,7 +16,7 @@ ynh_print_info "Declaring files to be backed up..."
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-ynh_backup "/etc/php/$phpversion/fpm/pool.d/$app.conf"
+ynh_backup "/etc/php/$php_version/fpm/pool.d/$app.conf"
 
 #=================================================
 # BACKUP VARIOUS FILES

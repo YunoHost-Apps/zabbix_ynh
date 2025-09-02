@@ -78,6 +78,7 @@ ram.runtime = "200M"
         "php8.2-ldap",
         "mariadb-server",
         "python3-venv",
+        "locales",
     ]
 
     [resources.apt.extras.zabbix]
