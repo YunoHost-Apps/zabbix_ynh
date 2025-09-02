@@ -40,7 +40,7 @@ if [ "$language" == "en" ]; then
     ynh_app_setting_set --key="language" --value="$language"
 fi
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 
 # patch to remove old zabbix-client service
 if yunohost service status | grep zabbix-client; then

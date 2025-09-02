@@ -23,7 +23,7 @@ ynh_script_progression "Restoring the MySQL database..."
 
 ynh_mysql_db_shell < ./db.sql
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd"
+export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 
 convert_ZabbixDB
 
