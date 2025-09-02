@@ -69,25 +69,7 @@ ram.runtime = "200M"
 
     [resources.apt]
     packages = [
-        "libapr1",
-        "libaprutil1",
-        "libaprutil1-dbd-sqlite3",
-        "libaprutil1-ldap",
-        "liblua5.2-0",
         "fonts-dejavu-core",
-        "patch",
-        "smistrip",
-        "unzip",
-        "wget",
-        "fping",
-        "libcap2-bin",
-        "libiksemel3",
-        "libopenipmi0",
-        "libpam-cap",
-        "libsnmp-base",
-        "libsnmp40",
-        "snmptrapd",
-        "snmpd",
         "libjs-prototype",
         "jq",
         "libssh-4",
@@ -101,6 +83,7 @@ ram.runtime = "200M"
         "php8.2-curl",
         "php8.2-ldap",
         "mariadb-server",
+        "python3-venv",
     ]
 
     [resources.apt.extras.zabbix]
