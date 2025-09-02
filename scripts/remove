@@ -18,36 +18,36 @@ ynh_secure_remove --file="/etc/apt/preferences.d/zabbix_repo"
 fi
 
 # Remove the dedicated systemd config
-ynh_systemd_action --service_name="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="stop" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="stop" --log_path="/var/log/$app/${app}_agent.log"
 systemctl disable zabbix-server --quiet
 systemctl disable zabbix-agent --quiet
-ynh_exec_warn_less killall zabbix_server
-ynh_exec_warn_less killall zabbix_agentd
+ynh_hide_warnings killall zabbix_server
+ynh_hide_warnings killall zabbix_agentd
 
 yunohost service remove snmpd
 yunohost service remove zabbix-server
 yunohost service remove zabbix-agent
 
-ynh_remove_nginx_config
+ynh_config_remove_nginx
 
-ynh_remove_fpm_config
+ynh_config_remove_phpfpm
 
 # Remove other various files specific to the app... such as:
 
 delete_initZabbixConf
-ynh_secure_remove --file="/usr/share/$app"
-ynh_secure_remove --file="/etc/$app"
-ynh_secure_remove --file="/run/$app"
+ynh_safe_rm "/usr/share/$app"
+ynh_safe_rm "/etc/$app"
+ynh_safe_rm "/run/$app"
 
-ynh_secure_remove --file="/etc/sudoers.d/$app"
+ynh_safe_rm "/etc/sudoers.d/$app"
 
-ynh_secure_remove --file="/usr/share/zabbix-cli"
+ynh_safe_rm "/usr/share/zabbix-cli"
 
-ynh_exec_warn_less yunohost user delete $zabbix_username --purge
+ynh_hide_warnings yunohost user delete $zabbix_username --purge
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Removal of $app completed"
+ynh_script_progression "Removal of $app completed"
