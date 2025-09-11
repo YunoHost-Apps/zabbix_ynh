@@ -63,7 +63,29 @@ ynh_replace --match="# ${language}\.UTF-8 UTF-8" --replace="${language}\.UTF-8 U
 locale-gen
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
+php_process_management=dynamic
+ynh_app_setting_set_default --key="php_process_management" --value="$php_process_management"
+php_start_servers=10
+ynh_app_setting_set_default --key="php_start_servers" --value="$php_start_servers"
+php_min_spare_servers=1
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="$php_min_spare_servers"
+php_max_spare_servers=3
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="$php_max_spare_servers"
+slowlog="/var/log/nginx/$app.slow.log"
+ynh_app_setting_set_default --key="slowlog" --value="$slowlog"
+request_slowlog_timeout=5s
+ynh_app_setting_set_default --key="request_terminate_timeout" --value="$request_terminate_timeout"
+chdir="/usr/share/zabbix"
+ynh_app_setting_set_default --key="chdir" --value="$chdir"
+catch_workers_output=yes
+ynh_app_setting_set_default --key="catch_workers_output" --value="$catch_workers_output"
+
+timezone=$(cat /etc/timezone)
+ynh_app_setting_set_default --key="timezone" --value="$timezone"
+
 ynh_config_add_phpfpm
+
+
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx

@@ -48,7 +48,7 @@ ram.runtime = "200M"
     ask.fr = "Choisissez la langue de l'application"
     type = "select"
     choices = ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"]
-    default = "en_US"
+    default = "en_GB"
 
     [install.admin]
     type = "user"
@@ -78,7 +78,6 @@ ram.runtime = "200M"
         "php8.2-ldap",
         "mariadb-server",
         "python3-venv",
-        "locales",
     ]
 
     [resources.apt.extras.zabbix]
