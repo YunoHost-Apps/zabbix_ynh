@@ -74,7 +74,7 @@ ynh_app_setting_set_default --key="php_min_spare_servers" --value="$php_max_spar
 slowlog="/var/log/nginx/$app.slow.log"
 ynh_app_setting_set_default --key="slowlog" --value="$slowlog"
 request_slowlog_timeout=5s
-ynh_app_setting_set_default --key="request_terminate_timeout" --value="$request_terminate_timeout"
+ynh_app_setting_set_default --key="request_slowlog_timeout" --value="$request_slowlog_timeout"
 chdir="/usr/share/zabbix"
 ynh_app_setting_set_default --key="chdir" --value="$chdir"
 catch_workers_output=yes
