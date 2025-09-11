@@ -42,6 +42,8 @@ convert_ZabbixDB
 #=================================================
 ynh_script_progression "Adding $app's configuration files..."
 
+ynh_app_setting_set --app --key=php_version --value=8.2
+
 ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
 ynh_config_add --template="etc_apt_preferences.d_zabbix" --destination="/etc/apt/preferences.d/zabbix_repo"
