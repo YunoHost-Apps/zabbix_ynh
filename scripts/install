@@ -86,7 +86,7 @@ php_request_slowlog_timeout=5s
 ynh_app_setting_set_default --key="php_request_slowlog_timeout" --value="$php_request_slowlog_timeout"
 
 php_chdir="/usr/share/zabbix"
-ynh_app_setting_set_default --key="chdir" --value="$php_chdir"
+ynh_app_setting_set_default --key="php_chdir" --value="$php_chdir"
 
 php_catch_workers_output=yes
 ynh_app_setting_set_default --key="php_catch_workers_output" --value="$php_catch_workers_output"
