@@ -14,7 +14,7 @@ ynh_script_progression --message="Removing system configurations related to $app
 
 # need remove pinning
 if [ -f "/etc/apt/preferences.d/zabbix_repo" ]; then
-ynh_secure_remove --file="/etc/apt/preferences.d/zabbix_repo"
+ynh_safe_rm "/etc/apt/preferences.d/zabbix_repo"
 fi
 
 # Remove the dedicated systemd config
