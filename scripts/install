@@ -86,7 +86,7 @@ ynh_script_progression --message="Setting up application..."
 ynh_print_info --message="Installing zabbix-cli"
 mkdir -p /usr/share/zabbix-cli
 python3 -m venv /usr/share/zabbix-cli
-/usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+/usr/share/zabbix-cli/bin/pip install zabbix-cli-uio=3.5.2
 
 # ldap zabbix user creation
 ynh_print_info --message="Creating ldap zabbix user"
