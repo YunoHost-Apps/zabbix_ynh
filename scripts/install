@@ -63,40 +63,38 @@ ynh_script_progression "Adding system configurations related to $app..."
 ynh_replace --match="# ${language}\.UTF-8 UTF-8" --replace="${language}\.UTF-8 UTF-8" --file="/etc/locale.gen"
 locale-gen
 
-# Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
-php_version=8.2
-ynh_app_setting_set_default --key="php_version" --value="$php_version"
-
-php_process_management=dynamic
-ynh_app_setting_set_default --key="php_process_management" --value="$php_process_management"
-
-php_start_servers=2
-ynh_app_setting_set_default --key="php_start_servers" --value="$php_start_servers"
-
-php_min_spare_servers=1
-ynh_app_setting_set_default --key="php_min_spare_servers" --value="$php_min_spare_servers"
-
-php_max_spare_servers=3
-ynh_app_setting_set_default --key="php_min_spare_servers" --value="$php_max_spare_servers"
-
-php_slowlog="/var/log/nginx/$app.slow.log"
-ynh_app_setting_set_default --key="php_slowlog" --value="$php_slowlog"
-
-php_request_slowlog_timeout=5s
-ynh_app_setting_set_default --key="php_request_slowlog_timeout" --value="$php_request_slowlog_timeout"
-
-php_chdir="/usr/share/zabbix"
-ynh_app_setting_set_default --key="php_chdir" --value="$php_chdir"
-
-php_catch_workers_output=yes
-ynh_app_setting_set_default --key="php_catch_workers_output" --value="$php_catch_workers_output"
-
 timezone=$(cat /etc/timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
 
+# Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
+#php_version=8.2
+#ynh_app_setting_set_default --key="php_version" --value="$php_version"
+
+#php_process_management=dynamic
+ynh_app_setting_set_default --key="php_process_management" --value="$php_process_management" --value="dynamic"
+
+#php_start_servers=2
+ynh_app_setting_set_default --key="php_start_servers" --value="2"
+
+#php_min_spare_servers=1
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="1"
+
+#php_max_spare_servers=3
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="3"
+
+#php_slowlog="/var/log/nginx/$app.slow.log"
+ynh_app_setting_set_default --key="php_slowlog" --value="/var/log/nginx/$app.slow.log"
+
+#php_request_slowlog_timeout=5s
+ynh_app_setting_set_default --key="php_request_slowlog_timeout" --value="5s"
+
+#php_chdir="/usr/share/zabbix"
+ynh_app_setting_set_default --key="php_chdir" --value="/usr/share/zabbix"
+
+#php_catch_workers_output=yes
+ynh_app_setting_set_default --key="php_catch_workers_output" --value="yes"
+
 ynh_config_add_phpfpm
-
-
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
@@ -140,7 +138,6 @@ $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_
 # admin user creation
 ynh_print_info "Creating admin user"
 surname=$(ynh_user_get_info --username="$admin" --key=username)
-#firstname=$(ynh_user_get_info "$admin" firstname)
 /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --surname "$surname" --role superadmin --groups 7
 
 # users creation
@@ -150,7 +147,6 @@ do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
 	then
 		surname=$(ynh_user_get_info --username="$user" --key=username)
-		#firstname=$(ynh_user_get_info --username="$user" --key=firstname)
 		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --surname $surname --role user --groups 8
 	fi
 done
