@@ -127,8 +127,9 @@ $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_
 
 # admin user creation
 ynh_print_info "Creating admin user"
-surname=$(ynh_user_get_info --username="$admin" --key=username)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --surname "$surname" --role superadmin --groups 7
+firstame=$(ynh_user_get_info --username="$admin" --key=firstname)
+lastname=$(ynh_user_get_info --username="$admin" --key=lastname)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$firstname" --lastname "$lastname" --role superadmin --groups 7
 
 # users creation
 ynh_print_info "Creating all users"
@@ -136,8 +137,9 @@ for user in $(ynh_user_list);
 do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
 	then
-		surname=$(ynh_user_get_info --username="$user" --key=username)
-		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --surname $surname --role user --groups 8
+		firstame=$(ynh_user_get_info --username="$user" --key=firstname)
+		lastname=$(ynh_user_get_info --username="$user" --key=lastname)
+		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$fistname" --lastname "$lastname" --role user --groups 8
 	fi
 done
 
