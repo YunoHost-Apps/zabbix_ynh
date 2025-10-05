@@ -128,7 +128,7 @@ fi
 ynh_script_progression "Starting $app's systemd service..." --weight=1
 
 # Start a systemd service
-ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log" --line_match="server #0 started"
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
 ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
