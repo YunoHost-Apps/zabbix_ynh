@@ -65,6 +65,9 @@ chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
 
+timezone=$(cat /etc/timezone)
+ynh_app_setting_set_default --key="timezone" --value="$timezone"
+
 #=================================================
 # CUSTOMIZE DATABASE
 #=================================================
@@ -84,6 +87,7 @@ ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
+
 
 change_timeoutAgent
 
