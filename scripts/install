@@ -80,7 +80,7 @@ ynh_app_setting_set_default --key="php_start_servers" --value="2"
 ynh_app_setting_set_default --key="php_min_spare_servers" --value="1"
 
 #php_max_spare_servers=3
-ynh_app_setting_set_default --key="php_min_spare_servers" --value="3"
+ynh_app_setting_set_default --key="php_max_spare_servers" --value="3"
 
 #php_slowlog="/var/log/nginx/$app.slow.log"
 ynh_app_setting_set_default --key="php_slowlog" --value="/var/log/nginx/$app.slow.log"
