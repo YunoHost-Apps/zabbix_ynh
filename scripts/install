@@ -71,7 +71,7 @@ ynh_app_setting_set_default --key="timezone" --value="$timezone"
 #ynh_app_setting_set_default --key="php_version" --value="$php_version"
 
 #php_process_management=dynamic
-ynh_app_setting_set_default --key="php_process_management" --value="$php_process_management" --value="dynamic"
+ynh_app_setting_set_default --key="php_process_management" --value="dynamic"
 
 #php_start_servers=2
 ynh_app_setting_set_default --key="php_start_servers" --value="2"
