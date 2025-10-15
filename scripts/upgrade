@@ -104,11 +104,7 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression "Setting up application..."
 
-if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
-    ynh_safe_rm "/usr/share/zabbix-cli"
-fi
-
-if [ ! -d "/usr/share/zabbix-cli" ]; then
+if [ ! -d "/usr/share/zabbix-cli" ] || ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     zabbix_username="svc_${app}_ldap"
     zabbix_password=$(ynh_string_random --length=32)
@@ -119,7 +115,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio
     mkdir -p /usr/share/zabbix-cli
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install zabbix-cli
+    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
     ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
     enable_admin_user
     /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" ---firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
