@@ -104,6 +104,7 @@ update_initZabbixConf
 #=================================================
 ynh_script_progression "Setting up application..."
 
+
 if [ ! -d "/usr/share/zabbix-cli" ] || ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     zabbix_username="svc_${app}_ldap"
@@ -111,6 +112,23 @@ if [ ! -d "/usr/share/zabbix-cli" ] || ynh_app_upgrading_from_version_before_or_
     ynh_app_setting_set --app="$app" --key=zabbix_username --value="$zabbix_username"
     ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
     yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
+    python3 -m venv /usr/share/zabbix-cli
+    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio
+    mkdir -p /usr/share/zabbix-cli
+    python3 -m venv /usr/share/zabbix-cli
+    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+    ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+    enable_admin_user
+    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" ---firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
+    disable_admin_user
+    ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+    ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+fi
+
+if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
+    ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+    ynh_app_setting_get --app="$app" --key=zabbix_username --value="$zabbix_username"
+    ynh_app_setting_get --app="$app" --key=zabbix_password --value="$zabbix_password"
     python3 -m venv /usr/share/zabbix-cli
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio
     mkdir -p /usr/share/zabbix-cli
