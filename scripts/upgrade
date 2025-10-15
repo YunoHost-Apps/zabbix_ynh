@@ -105,7 +105,7 @@ update_initZabbixConf
 ynh_script_progression "Setting up application..."
 
 
-if [ ! -d "/usr/share/zabbix-cli" ] || ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
+if [ ! -d "/usr/share/zabbix-cli" ]; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     zabbix_username="svc_${app}_ldap"
     zabbix_password=$(ynh_string_random --length=32)
