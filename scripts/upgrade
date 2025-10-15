@@ -116,7 +116,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
     yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli
+    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio
     mkdir -p /usr/share/zabbix-cli
     python3 -m venv /usr/share/zabbix-cli
     /usr/share/zabbix-cli/bin/pip install zabbix-cli
