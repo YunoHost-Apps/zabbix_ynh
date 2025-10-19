@@ -144,6 +144,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
 fi
 
 if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh2; then
+    ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
     python3 -m venv /usr/share/zabbix-cli
     /usr/share/zabbix-cli/bin/pip install git+https://github.com/unioslo/zabbix-cli@master
