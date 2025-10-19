@@ -20,7 +20,7 @@ ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
@@ -28,45 +28,66 @@ chown -R "$app:www-data" "/usr/share/zabbix"
 #=================================================
 # IMPORT DEFAULT DATA
 #=================================================
-ynh_script_progression --message="Import default data in database..."
+ynh_script_progression "Import default data in database..."
 
 export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
 $mysqlconn -e "ALTER DATABASE $db_name CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
-zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | $mysqlconn
+zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | $mysqlconn
 
 convert_ZabbixDB
 
 #=================================================
 # APP INITIAL CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding $app's configuration files..."
+ynh_script_progression "Adding $app's configuration files..."
 
-ynh_add_config --template="../conf/etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
 
-ynh_add_config --template="../conf/etc_apt_preferences.d_zabbix" --destination="/etc/apt/preferences.d/zabbix_repo"
+ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
+
+ynh_config_add --template="etc_apt_preferences.d_zabbix" --destination="/etc/apt/preferences.d/zabbix_repo"
 
 chmod 644 "/etc/apt/preferences.d/zabbix_repo"
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-ynh_replace_string --match_string="DBName=zabbix" --replace_string="DBName=$db_name" --target_file="/etc/zabbix/zabbix_server.conf"
-ynh_replace_string --match_string="DBUser=zabbix" --replace_string="DBUser=$db_user" --target_file="/etc/zabbix/zabbix_server.conf"
-ynh_replace_string --match_string="# DBPassword=" --replace_string="# DBPassword=\nDBPassword=$db_pwd" --target_file="/etc/zabbix/zabbix_server.conf"
+ynh_replace --match="DBName=zabbix" --replace="DBName=$db_name" --file="/etc/zabbix/zabbix_server.conf"
+ynh_replace --match="DBUser=zabbix" --replace="DBUser=$db_user" --file="/etc/zabbix/zabbix_server.conf"
+ynh_replace --match="# DBPassword=" --replace="# DBPassword=\nDBPassword=$db_pwd" --file="/etc/zabbix/zabbix_server.conf"
 
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
-ynh_replace_string --match_string="# ${language}\.UTF-8 UTF-8" --replace_string="${language}\.UTF-8 UTF-8" --target_file="/etc/locale.gen"
+ynh_replace --match="# ${language}\.UTF-8 UTF-8" --replace="${language}\.UTF-8 UTF-8" --file="/etc/locale.gen"
 locale-gen
 
+timezone=$(cat /etc/timezone)
+ynh_app_setting_set_default --key="timezone" --value="$timezone"
+
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
-ynh_add_fpm_config
+
+ynh_app_setting_set_default --key="php_process_management" --value="dynamic"
+
+ynh_app_setting_set_default --key="php_start_servers" --value="2"
+
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="1"
+
+ynh_app_setting_set_default --key="php_max_spare_servers" --value="3"
+
+ynh_app_setting_set_default --key="php_slowlog" --value="/var/log/nginx/$app.slow.log"
+
+ynh_app_setting_set_default --key="php_request_slowlog_timeout" --value="5s"
+
+ynh_app_setting_set_default --key="php_chdir" --value="/usr/share/zabbix"
+
+ynh_app_setting_set_default --key="php_catch_workers_output" --value="yes"
+
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 change_timeoutAgent
 
@@ -81,23 +102,22 @@ update_initZabbixConf
 #=================================================
 # SETUP APPLICATION
 #=================================================
-ynh_script_progression --message="Setting up application..."
+ynh_script_progression "Setting up application..."
 
-ynh_print_info --message="Installing zabbix-cli"
+ynh_print_info "Installing zabbix-cli"
 mkdir -p /usr/share/zabbix-cli
 python3 -m venv /usr/share/zabbix-cli
-/usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
-
+/usr/share/zabbix-cli/bin/pip install git+https://github.com/unioslo/zabbix-cli@master
 # ldap zabbix user creation
-ynh_print_info --message="Creating ldap zabbix user"
+ynh_print_info "Creating ldap zabbix user"
 yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
-ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $zabbix_username --firstname $zabbix_username --lastname $zabbix_username --passwd $zabbix_password --role superadmin --groups 7
-ynh_add_config --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-ynh_secure_remove --file="/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+ynh_config_add --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+/usr/share/zabbix-cli/bin/zabbix-cli --config "/usr/share/zabbix-cli/zabbix-cli.toml" create_user "$zabbix_username" --firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
+ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 
 # sso integration activation
-ynh_print_info --message="Enabling LDAP authentication"
+ynh_print_info "Enabling LDAP authentication"
 $mysqlconn -e "UPDATE \`config\` SET \`http_auth_enabled\` = '1', \`http_login_form\` = '1' WHERE \`config\`.\`configid\` = 1;"
 #Ldap integration activation
 $mysqlconn -e "INSERT INTO \`userdirectory\` (\`userdirectoryid\`,\`name\`, \`description\`, \`idp_type\`, \`provision_status\`) VALUES (1,'localhost', '', '1', '0');"
@@ -105,20 +125,20 @@ $mysqlconn -e "INSERT INTO \`userdirectory_ldap\` (\`userdirectoryid\`,\`host\`,
 $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_enabled\` = '1', \`ldap_userdirectoryid\` = '1' WHERE \`config\`.\`configid\` = 1;"
 
 # admin user creation
-ynh_print_info --message="Creating admin user"
-lastname=$(ynh_user_get_info "$admin" lastname)
-firstname=$(ynh_user_get_info "$admin" firstname)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $admin --firstname $firstname --lastname $lastname --role superadmin --groups 7
+ynh_print_info "Creating admin user"
+fullname=$(ynh_user_get_info --username="$admin" --key=fullname)
+#lastname=$(ynh_user_get_info --username="$admin" --key=lastname)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$fullname" --lastname "$fullname" --role superadmin --groups 7
 
 # users creation
-ynh_print_info --message="Creating all users"
+ynh_print_info "Creating all users"
 for user in $(ynh_user_list);
 do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
 	then
-		lastname=$(ynh_user_get_info --username="$user" --key=lastname)
-		firstname=$(ynh_user_get_info --username="$user" --key=firstname)
-		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $firstname --lastname $lastname --role user --groups 8
+		fullname=$(ynh_user_get_info --username="$user" --key=fullname)
+#		lastname=$(ynh_user_get_info --username="$user" --key=lastname)
+		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$fullname" --lastname "$fullname" --role user --groups 8
 	fi
 done
 
@@ -135,14 +155,14 @@ link_template
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting $app's systemd service..."
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-ynh_systemd_action --service_name="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed"
+ynh_script_progression "Installation of $app completed"

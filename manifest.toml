@@ -1,5 +1,3 @@
-#:schema https://raw.githubusercontent.com/YunoHost/apps/master/schemas/manifest.v2.schema.json
-
 packaging_format = 2
 
 id = "zabbix"
@@ -7,7 +5,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "7.2~ynh1"
+version = "7.0~ynh3"
 
 maintainers = []
 
@@ -19,12 +17,12 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 12.0.0"
+yunohost = ">= 12.0.9"
+helpers_version = "2.1"
 architectures = ["amd64"]
 multi_instance = false
 
 ldap = true
-
 sso = true
 
 disk = "500M"
@@ -50,33 +48,40 @@ ram.runtime = "200M"
     ask.fr = "Choisissez la langue de l'application"
     type = "select"
     choices = ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"]
-    default = "en_US"
+    default = "en_GB"
 
     [install.admin]
     type = "user"
 
 [resources]
+
     [resources.system_user]
-    # This will provision/deprovision a unix system user
 
     [resources.install_dir]
-    # This will create/remove the install dir as /var/www/$app
-    # and store the corresponding setting $install_dir
 
     [resources.permissions]
-    # This will configure SSOwat permission for $domain/$path/
-    # The initial allowed group of user is configured via the init_main_permission question (public=visitors, private=all_users)
     main.url = "/"
+
+    [resources.ports]
+    active-checks.default = 10051
 
     [resources.apt]
     packages = [
         "php8.2-fpm",
+        "php8.2-gd",
+        "php8.2-bcmath",
+        "php8.2-ctype",
+        "php8.2-xml",
+        "php8.2-mbstring",
+        "php8.2-gettext",
+        "php8.2-curl",
+        "php8.2-ldap",
         "mariadb-server",
         "python3-venv",
     ]
 
     [resources.apt.extras.zabbix]
-    repo = "deb https://repo.zabbix.com/zabbix/7.2/stable/debian __YNH_DEBIAN_VERSION__ main"
+    repo = "deb https://repo.zabbix.com/zabbix/7.0/debian __YNH_DEBIAN_VERSION__ main"
     key = "https://repo.zabbix.com/zabbix-official-repo.key"
     packages = [
         "zabbix-server-mysql",
@@ -86,5 +91,4 @@ ram.runtime = "200M"
         ]
 
     [resources.database]
-    # This will automatically provision/deprovison a DB and store the corresponding credentials in settings $db_user, $db_name, $db_pwd
     type = "mysql"
