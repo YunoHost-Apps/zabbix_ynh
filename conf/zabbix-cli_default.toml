@@ -6,6 +6,8 @@ auth_token = ""
 verify_ssl = false
 
 [app]
+use_session_file = true
+session_file = "/usr/share/zabbix-cli/.zabbix-cli_session.json"
 use_auth_token_file = true
 auth_token_file = "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 auth_file = "/usr/share/zabbix-cli/.zabbix-cli_auth"
