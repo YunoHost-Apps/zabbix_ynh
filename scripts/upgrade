@@ -145,7 +145,7 @@ if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio -U
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-    /usr/share/zabbix-cli/bin/zabbix-cli update_config --config /usr/share/zabbix-cli/zabbix-cli.toml
+    /usr/share/zabbix-cli/bin/zabbix-cli update_config --config-file /usr/share/zabbix-cli/zabbix-cli.toml
     ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 
     # admin user update
