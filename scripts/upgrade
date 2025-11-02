@@ -144,15 +144,14 @@ fi
 if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio -U
-    ynh_config_add --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-    disable_admin_user
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+    /usr/share/zabbix-cli/bin/zabbix-cli update_config --config /usr/share/zabbix-cli/zabbix-cli.toml
     ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
 
     # admin user update
     ynh_print_info "update admin user"
     username=$(ynh_user_get_info --username="$admin" --key=username)
-    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml updtae_user "$admin" --firstname "$username" --lastname "$username"
+    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml update_user "$admin" --firstname "$username" --lastname "$username"
 
     # users creation
     ynh_print_info "update all users"
@@ -161,7 +160,7 @@ if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
         if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
         then
             username=$(ynh_user_get_info --username="$user" --key=username)
-           /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$username" --lastname "$username"
+            /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml update_user $user --firstname "$username" --lastname "$username"
         fi
     done
 fi
