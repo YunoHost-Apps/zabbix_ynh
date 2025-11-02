@@ -107,7 +107,7 @@ ynh_script_progression "Setting up application..."
 ynh_print_info "Installing zabbix-cli"
 mkdir -p /usr/share/zabbix-cli
 python3 -m venv /usr/share/zabbix-cli
-/usr/share/zabbix-cli/bin/pip install git+https://github.com/unioslo/zabbix-cli@master
+/usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
 # ldap zabbix user creation
 ynh_print_info "Creating ldap zabbix user"
 yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
@@ -126,9 +126,9 @@ $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_
 
 # admin user creation
 ynh_print_info "Creating admin user"
-fullname=$(ynh_user_get_info --username="$admin" --key=fullname)
+username=$(ynh_user_get_info --username="$admin" --key=username)
 #lastname=$(ynh_user_get_info --username="$admin" --key=lastname)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$fullname" --lastname "$fullname" --role superadmin --groups 7
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$username" --lastname "$username" --role superadmin --groups 7
 
 # users creation
 ynh_print_info "Creating all users"
@@ -136,9 +136,9 @@ for user in $(ynh_user_list);
 do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
 	then
-		fullname=$(ynh_user_get_info --username="$user" --key=fullname)
+		username=$(ynh_user_get_info --username="$user" --key=username)
 #		lastname=$(ynh_user_get_info --username="$user" --key=lastname)
-		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$fullname" --lastname "$fullname" --role user --groups 8
+		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$username" --lastname "$username" --role user --groups 8
 	fi
 done
 
