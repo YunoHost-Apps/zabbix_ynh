@@ -17,7 +17,7 @@ code = "https://github.com/zabbix/zabbix"
 cpe = "cpe:2.3:a:zabbix:zabbix"
 
 [integration]
-yunohost = ">= 12.0.9"
+yunohost = ">= 12.1.38"
 helpers_version = "2.1"
 architectures = ["amd64"]
 multi_instance = false
