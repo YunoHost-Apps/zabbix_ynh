@@ -61,9 +61,9 @@ ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.p
 
 # ynh_remove_extra_repo --name=zabbix
 
-chmod 750 "/usr/share/ui/zabbix"
-chmod -R o-rwx "/usr/share/ui/zabbix"
-chown -R "$app:www-data" "/usr/share/ui/zabbix"
+chmod 750 "/usr/share/zabbix"
+chmod -R o-rwx "/usr/share/zabbix"
+chown -R "$app:www-data" "/usr/share/zabbix"
 
 timezone=$(cat /etc/timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
