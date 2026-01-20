@@ -1,8 +1,7 @@
-#!/bin/bash
+ #!/bin/bash
 source /usr/share/yunohost/helpers
 
 user=$1
 
-lastname=$(ynh_user_get_info --username=$user --key=lastname)
-firstname=$(ynh_user_get_info --username=$user --key=firstname)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $firstname --lastname $lastname --role user --groups 8
+fullname=$(ynh_user_get_info --username="$user" --key=fullname)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $fullname --lastname $fullname --role user --groups 8

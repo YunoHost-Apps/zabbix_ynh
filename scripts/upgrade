@@ -61,9 +61,9 @@ ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.p
 
 # ynh_remove_extra_repo --name=zabbix
 
-chmod 750 "/usr/share/zabbix"
-chmod -R o-rwx "/usr/share/zabbix"
-chown -R "$app:www-data" "/usr/share/zabbix"
+chmod 750 "/usr/share/ui/zabbix"
+chmod -R o-rwx "/usr/share/ui/zabbix"
+chown -R "$app:www-data" "/usr/share/ui/zabbix"
 
 timezone=$(cat /etc/timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
@@ -116,7 +116,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
     mkdir -p /usr/share/zabbix-cli
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+    /usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
     ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
     enable_admin_user
     /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" ---firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
@@ -145,7 +145,7 @@ fi
 if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+    /usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
 fi
 
 #=================================================
