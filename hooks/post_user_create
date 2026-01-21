@@ -3,6 +3,5 @@ source /usr/share/yunohost/helpers
 
 user=$1
 
-lastname=$(ynh_user_get_info --username=$user --key=lastname)
-firstname=$(ynh_user_get_info --username=$user --key=firstname)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $firstname --lastname $lastname --role user --groups 8
+username=$(ynh_user_get_info --username="$admin" --key=username)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname $username --lastname $username --role user --groups 8
