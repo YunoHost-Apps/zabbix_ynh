@@ -5,7 +5,7 @@ name = "Zabbix"
 description.en = "Monitoring tool for diverse IT components, including networks, servers, VMs and cloud services"
 description.fr = "Outil pour monitorer des réseaux, des serveurs, des VMs et autres services en ligne"
 
-version = "7.0~ynh4"
+version = "7.0~ynh5"
 
 maintainers = []
 
