@@ -64,6 +64,7 @@ ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.p
 chmod 750 "/usr/share/zabbix"
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
+chmod 440 "/etc/sudoers.d/zabbix"
 
 timezone=$(cat /etc/timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
@@ -127,8 +128,8 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
 
     # admin user creation
     ynh_print_info "Creating admin user"
-    fullname=$(ynh_user_get_info --username="$admin" --key=fullname)
-    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$fullname" --lastname "$fullname" --role superadmin --groups 7
+    username=$(ynh_user_get_info --username="$admin" --key=username)
+    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$username" --lastname "$username" --role superadmin --groups 7
 
     # users creation
     ynh_print_info "Creating all users"
@@ -136,8 +137,8 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     do
         if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
         then
-            fullname=$(ynh_user_get_info --username="$user" --key=fullname)
-            /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$fullname" --lastname "$fullname" --role user --groups 8
+            username=$(ynh_user_get_info --username="$user" --key=username)
+            /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$username" --lastname "$username" --role user --groups 8
         fi
     done
 fi

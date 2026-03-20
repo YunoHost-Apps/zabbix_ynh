@@ -128,8 +128,8 @@ $mysqlconn -e "UPDATE \`config\` SET \`authentication_type\` = '1', \`ldap_auth_
 
 # admin user creation
 ynh_print_info "Creating admin user"
-fullname=$(ynh_user_get_info --username="$admin" --key=fullname)
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$fullname" --lastname "$fullname" --role superadmin --groups 7
+username=$(ynh_user_get_info --username="$admin" --key=username)
+/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$username" --lastname "$username" --role superadmin --groups 7
 
 # users creation
 ynh_print_info "Creating all users"
@@ -137,8 +137,8 @@ for user in $(ynh_user_list);
 do
 	if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
 	then
-		fullname=$(ynh_user_get_info --username="$user" --key=fullname)
-		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$fullname" --lastname "$fullname" --role user --groups 8
+		username=$(ynh_user_get_info --username="$user" --key=username)
+		/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$username" --lastname "$username" --role user --groups 8
 	fi
 done
 
