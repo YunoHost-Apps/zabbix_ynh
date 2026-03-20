@@ -53,11 +53,11 @@ ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/z
 chmod 400 "/etc/zabbix/web/zabbix.conf.php"
 chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
 
-if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-    ynh_safe_rm "/usr/share/zabbix/conf/zabbix.conf.php"
+if [ -f "/usr/share/zabbix/ui/conf/zabbix.conf.php" ]; then
+    ynh_safe_rm "/usr/share/zabbix/ui/conf/zabbix.conf.php"
 fi
 
-ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
+ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.php"
 
 # ynh_remove_extra_repo --name=zabbix
 
@@ -146,11 +146,7 @@ fi
 if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
-    mkdir -p /usr/share/zabbix-cli
-    python3 -m venv /usr/share/zabbix-cli
     /usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
-    ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 fi
 
 #=================================================
