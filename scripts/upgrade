@@ -117,7 +117,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
     mkdir -p /usr/share/zabbix-cli
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
+    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
     ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
     enable_admin_user
     /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" ---firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
@@ -143,15 +143,27 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     done
 fi
 
-if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh3; then
+if ynh_app_upgrading_from_version_before_or_equal_to 6.4~ynh1; then
+        ynh_store_file_checksum "/usr/share/zabbix-cli/zabbix-cli.toml"
+        ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+        python3 -m venv /usr/share/zabbix-cli
+        /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
+        mkdir -p /usr/share/zabbix-cli
+        python3 -m venv /usr/share/zabbix-cli
+        /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+        ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+fi
+
+if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     python3 -m venv /usr/share/zabbix-cli
     /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
     mkdir -p /usr/share/zabbix-cli
     python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
+    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 fi
+
 
 #=================================================
 # START SYSTEMD SERVICE
