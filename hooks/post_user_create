@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 source /usr/share/yunohost/helpers
 
 user=$1
