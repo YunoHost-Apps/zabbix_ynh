@@ -143,6 +143,17 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     done
 fi
 
+if ynh_app_upgrading_from_version_before_or_equal_to 6.0.4~ynh; then
+        ynh_store_file_checksum "/usr/share/zabbix-cli/zabbix-cli.toml"
+        ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+        python3 -m venv /usr/share/zabbix-cli
+        /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
+        mkdir -p /usr/share/zabbix-cli
+        python3 -m venv /usr/share/zabbix-cli
+        /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
+        ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
+fi
+
 if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
     ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
     python3 -m venv /usr/share/zabbix-cli
@@ -153,9 +164,6 @@ if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 fi
 
-if ynh_app_upgrading_from_version_before_or_equal_to 6.0.4~ynh; then
-    ynh_store_file_checksum "/usr/share/zabbix-cli/zabbix-cli.toml"
-fi
 
 #=================================================
 # START SYSTEMD SERVICE
