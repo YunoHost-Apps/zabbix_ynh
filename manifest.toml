@@ -76,7 +76,7 @@ ram.runtime = "200M"
         "php8.4-xmlwriter",
         "php8.4-xmlreader",
         "php8.4-ctype",
-        "php8.4-session"
+        "php8.4-session",
         "php8.4-ldap",
         "php8.4-gettext",
         "php8.4-curl",
