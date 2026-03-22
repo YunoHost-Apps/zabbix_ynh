@@ -143,7 +143,7 @@ if [ ! -d "/usr/share/zabbix-cli" ]; then
     done
 fi
 
-if ynh_app_upgrading_from_version_before_or_equal_to 6.0.4~ynh; then
+if ynh_app_upgrading_from_version_before_or_equal_to 6.4~ynh1; then
         ynh_store_file_checksum "/usr/share/zabbix-cli/zabbix-cli.toml"
         ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
         python3 -m venv /usr/share/zabbix-cli
