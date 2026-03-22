@@ -67,19 +67,19 @@ ram.runtime = "200M"
 
     [resources.apt]
     packages = [
-        "php8.2-fpm",
-        "php8.2-bcmath",
-        "php8.2-mbstring",
-        "php8.2-net-socket",
-        "php8.2-gd",
-        "php8.2-xml",
-        "php8.2-xmlwriter"
-        "php8.2-xmlreader"
-        "php8.2-ctype",
-        "php8.2-session"
-        "php8.2-ldap",
-        "php8.2-gettext",
-        "php8.2-curl",
+        "php8.4-fpm",
+        "php8.4-bcmath",
+        "php8.4-mbstring",
+        "php8.4-net-socket",
+        "php8.4-gd",
+        "php8.4-xml",
+        "php8.4-xmlwriter",
+        "php8.4-xmlreader",
+        "php8.4-ctype",
+        "php8.4-session"
+        "php8.4-ldap",
+        "php8.4-gettext",
+        "php8.4-curl",
         "mariadb-server",
         "python3-venv",
     ]
