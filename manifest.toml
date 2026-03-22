@@ -63,7 +63,7 @@ ram.runtime = "200M"
     main.url = "/"
 
     [resources.ports]
-    active-checks.default = 10051
+    active_checks.default = 10051
 
     [resources.apt]
     packages = [
