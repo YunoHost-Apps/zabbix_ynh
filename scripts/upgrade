@@ -153,6 +153,10 @@ if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 fi
 
+if ynh_app_upgrading_from_version_before_or_equal_to 6.0.4~ynh
+    ynh_store_file_checksum /usr/share/zabbix-cli/zabbix-cli.toml
+fi
+
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
