@@ -66,7 +66,7 @@ chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
 chmod 440 "/etc/sudoers.d/zabbix"
 
-timezone=$(cat /etc/timezone)
+timezone=$(timedatectl show --value --property=Timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
 
 #=================================================

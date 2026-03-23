@@ -63,7 +63,7 @@ ynh_script_progression "Adding system configurations related to $app..."
 ynh_replace --match="# ${language}\.UTF-8 UTF-8" --replace="${language}\.UTF-8 UTF-8" --file="/etc/locale.gen"
 locale-gen
 
-timezone=$(cat /etc/timezone)
+timezone=$(timedatectl show --value --property=Timezone)
 ynh_app_setting_set_default --key="timezone" --value="$timezone"
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
