@@ -107,7 +107,7 @@ ynh_script_progression "Setting up application..."
 ynh_print_info "Installing zabbix-cli"
 mkdir -p /usr/share/zabbix-cli
 python3 -m venv /usr/share/zabbix-cli
-/usr/share/zabbix-cli/bin/pip install git+https://github.com/rodinux/zabbix-cli@fix-MarkupMode
+/usr/share/zabbix-cli/bin/pip install zabbix-cli
 # ldap zabbix user creation
 ynh_print_info "Creating ldap zabbix user"
 yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
