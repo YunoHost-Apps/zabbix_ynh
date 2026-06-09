@@ -1,5 +1,0 @@
-#!/bin/bash
-
-user=$1
-
-/usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml  remove_user $user

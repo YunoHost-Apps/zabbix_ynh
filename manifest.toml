@@ -41,7 +41,21 @@ ram.runtime = "200M"
     help.en = "A public app doesn't need SSO auth: the auth page is opened for everyone"
     help.fr = "Une application publique ne nécessite pas une authentification SSO : sa page d'authentication est ouverte à tous"
     type = "group"
-    default = "visitors"
+    default = "all_users"
+
+    [install.init_admin_permission]
+    help.en = "A group or user to allow the admins rights"
+    help.fr = "Un groupe ou utilisateur qui aura les droits admins"
+    type = "group"
+    default = "admins"
+
+    [install.init_superadmin_permission]
+    ask.en = "Which group will have access to Zabbix as superadmin ?"
+    ask.fr = "Quel groupe aura accès à l'administration de Zabbix en tant que superadmin ?"
+    help.en = "A group or user to allow the super admins rights"
+    help.fr = "Un groupe ou utilisateur qui aura les droits superadmins"
+    type = "group"
+    default = "admins"
 
     [install.language]
     ask.en = "Choose the application language"
@@ -50,17 +64,28 @@ ram.runtime = "200M"
     choices = ["en_GB", "en_US", "cz_CN", "cs_CZ", "fr_FR", "ko_KR", "ja_JP", "nb_NO", "pl_PL", "pt_BR", "pt_PT", "ru_RU", "sk_SK", "tr_TR", "uk_UA"]
     default = "en_GB"
 
-    [install.admin]
-    type = "user"
-
 [resources]
 
     [resources.system_user]
+    allow_email = true
 
     [resources.install_dir]
 
     [resources.permissions]
     main.url = "/"
+
+    api.url = "/api_jsonrpc.php"
+    api.show_tile = false
+    api.allowed = "visitors"
+    api.auth_header = false
+
+    admin.show_tile = false
+    admin.auth_header = false
+    admin.protected = true
+
+    superadmin.show_tile = false
+    superadmin.auth_header = false
+    superadmin.protected = true
 
     [resources.ports]
     active_checks.default = 10051
@@ -88,7 +113,7 @@ ram.runtime = "200M"
         "zabbix-server-mysql",
         "zabbix-frontend-php",
         "zabbix-sql-scripts",
-        "zabbix-agent",
+        "zabbix-agent"
         ]
 
     [resources.database]

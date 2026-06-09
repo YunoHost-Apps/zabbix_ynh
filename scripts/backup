@@ -36,9 +36,6 @@ ynh_backup "/etc/zabbix/zabbix_agentd.d"
 # Backup sudo file
 ynh_backup "/etc/sudoers.d/zabbix"
 
-# Backup zabbix-cli
-ynh_backup "/usr/share/zabbix-cli"
-
 # Backup pinning preferences repo
 ynh_backup "/etc/apt/preferences.d/zabbix_repo"
 

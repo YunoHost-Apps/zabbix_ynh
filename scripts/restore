@@ -52,9 +52,6 @@ fi
 # Restore sudo file
 ynh_restore "/etc/sudoers.d/zabbix"
 
-# Restore zabbix-cli
-ynh_restore "/usr/share/zabbix-cli"
-
 #=================================================
 # RESTORE SYSTEM CONFIGURATIONS
 #=================================================
