@@ -1,1 +1,1 @@
-DPkg::Post-Invoke {"/etc/zabbix/web/init.zabbix.conf.php.sh;"};
+DPkg::Post-Invoke {"__INSTALL_DIR__/scripts/init-zabbix-config.sh;"};

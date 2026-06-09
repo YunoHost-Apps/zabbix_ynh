@@ -40,34 +40,37 @@ if [ "$language" == "en" ]; then
     ynh_app_setting_set --key="language" --value="$language"
 fi
 
-export mysqlconn="mysql --user=$db_user --password=$db_pwd --database=$db_name"
-
 # patch to remove old zabbix-client service
 if yunohost service status | grep zabbix-client; then
     ynh_script_progression "remove zabbix-client old service"
     yunohost service remove zabbix-client
 fi
 
-ynh_config_add --template="etc_zabbix_web_zabbix.conf.php" --destination="/etc/zabbix/web/zabbix.conf.php"
-
-chmod 400 "/etc/zabbix/web/zabbix.conf.php"
-chown "$app:www-data" "/etc/zabbix/web/zabbix.conf.php"
-
-if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-    ynh_safe_rm "/usr/share/zabbix/conf/zabbix.conf.php"
+if [ -f "/usr/share/zabbix/ui/conf/zabbix.conf.php" ]; then
+    ynh_safe_rm "/usr/share/zabbix/ui/conf/zabbix.conf.php"
 fi
 
-ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php"
+ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/ui/conf/zabbix.conf.php"
 
-# ynh_remove_extra_repo --name=zabbix
+# TODO remove Yunohost zabbix user which is not needed any more
 
-chmod 750 "/usr/share/zabbix"
-chmod -R o-rwx "/usr/share/zabbix"
-chown -R "$app:www-data" "/usr/share/zabbix"
-chmod 440 "/etc/sudoers.d/zabbix"
+ynh_safe_rm /usr/share/zabbix-cli
+ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
+ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_session.json"
+ynh_safe_rm /usr/share/zabbix-cli/zabbix-cli.toml
 
-timezone=$(cat /etc/timezone)
-ynh_app_setting_set_default --key="timezone" --value="$timezone"
+#=================================================
+# SETUP Code
+#=================================================
+
+ynh_script_progression "Creating venv for zabbix ynh tools"
+python3 -m venv "$install_dir/zabbix_api"
+"$install_dir/zabbix_api/bin/pip" install -r "$YNH_APP_BASEDIR/conf/requirement.txt"
+
+ynh_script_progression 'Install scripts'
+
+cp '../sources/yunohost.sh' "$install_dir/scripts/yunohost.sh"
+ynh_config_add --template='../sources/init-zabbix-config.sh' --destination="$install_dir/scripts/init-zabbix-config.sh"
 
 #=================================================
 # CUSTOMIZE DATABASE
@@ -76,20 +79,48 @@ ynh_script_progression "Customize the database..."
 
 convert_ZabbixDB
 
-set_mediatype_default_yunohost
+#=================================================
+# SYSTEM CONFIGURATION
+#=================================================
+ynh_script_progression "Adding system configurations related to $app..."
 
-#=================================================
-# REAPPLY SYSTEM CONFIGURATIONS
-#=================================================
-ynh_script_progression "Upgrading system configurations related to $app..." --weight=1
+ynh_replace --match="# ${language}\.UTF-8 UTF-8" --replace="${language}\.UTF-8 UTF-8" --file="/etc/locale.gen"
+locale-gen
+
+ynh_app_setting_set_default --key="timezone" --value="$timezone"
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
+
+ynh_app_setting_set_default --key="php_process_management" --value="dynamic"
+ynh_app_setting_set_default --key="php_start_servers" --value="2"
+ynh_app_setting_set_default --key="php_min_spare_servers" --value="1"
+ynh_app_setting_set_default --key="php_max_spare_servers" --value="3"
+ynh_app_setting_set_default --key="php_slowlog" --value="/var/log/nginx/$app.slow.log"
+ynh_app_setting_set_default --key="php_request_slowlog_timeout" --value="5s"
+ynh_app_setting_set_default --key="php_chdir" --value="/usr/share/zabbix"
+ynh_app_setting_set_default --key="php_catch_workers_output" --value="yes"
 ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
 
+ynh_config_add --template=/etc_sudoers.d_zabbix --destination=/etc/sudoers.d/zabbix
 
+#=================================================
+# Zabbix configuration
+#=================================================
+ynh_script_progression "Adding $app's configuration files..."
+
+ynh_config_add --template="zabbix.conf.php" --destination='/etc/zabbix/web/zabbix.conf.php'
+
+ynh_config_add --template="etc_apt_preferences.d_zabbix" --destination="/etc/apt/preferences.d/zabbix_repo"
+
+# TODO we would like to use template instead of fixing the config file
+ynh_replace --match="DBName=zabbix" --replace="DBName=$db_name" --file="/etc/zabbix/zabbix_server.conf"
+ynh_replace --match="DBUser=zabbix" --replace="DBUser=$db_user" --file="/etc/zabbix/zabbix_server.conf"
+ynh_replace --match="# DBPassword=" --replace="# DBPassword=\nDBPassword=$db_pwd" --file="/etc/zabbix/zabbix_server.conf"
+
+# TODO we would like to use template instead of fixing the config file
 change_timeoutAgent
 
 systemctl enable zabbix-agent --quiet
@@ -100,70 +131,30 @@ yunohost service add zabbix-agent --description="Management Zabbix agent daemon 
 
 update_initZabbixConf
 
+set_permissions
+
+# Start a systemd service
+ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
+ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
+
 #=================================================
 # SETUP APPLICATION
 #=================================================
 ynh_script_progression "Setting up application..."
 
+$zabbix_tools enable_superadmin_ynh
 
-if [ ! -d "/usr/share/zabbix-cli" ]; then
-    ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-    zabbix_username="svc_${app}_ldap"
-    zabbix_password=$(ynh_string_random --length=32)
-    ynh_app_setting_set --app="$app" --key=zabbix_username --value="$zabbix_username"
-    ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
-    yunohost user create "$zabbix_username" --fullname "${zabbix_username//_}" --domain "$domain" --password "$zabbix_password" -q 0
-    python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
-    mkdir -p /usr/share/zabbix-cli
-    python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
-    ynh_add_config --template="zabbix-cli_default.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-    enable_admin_user
-    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$zabbix_username" ---firstname "$zabbix_username" --lastname "$zabbix_username" --passwd "$zabbix_password" --role superadmin --groups 7
-    disable_admin_user
-    ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-    ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_auth_token"
-    ynh_safe_rm "/usr/share/zabbix-cli/.zabbix-cli_session.json"
+$zabbix_tools configure_ldap_auth
 
-    # admin user creation
-    ynh_print_info "Creating admin user"
-    username=$(ynh_user_get_info --username="$admin" --key=username)
-    /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user "$admin" --firstname "$username" --lastname "$username" --role superadmin --groups 7
+$zabbix_tools disable_guest_user
 
-    # users creation
-    ynh_print_info "Creating all users"
-    for user in $(ynh_user_list);
-    do
-        if [ "$user" != "$admin" ] && [ "$user" != "$zabbix_username" ] && [ "$user" != "admin" ] && [ "$user" != "guest" ]
-        then
-            username=$(ynh_user_get_info --username="$user" --key=username)
-            /usr/share/zabbix-cli/bin/zabbix-cli --config /usr/share/zabbix-cli/zabbix-cli.toml create_user $user --firstname "$username" --lastname "$username" --role user --groups 8
-        fi
-    done
-fi
+$zabbix_tools configure_mediatype
 
-if ynh_app_upgrading_from_version_before_or_equal_to 6.4~ynh1; then
-        ynh_store_file_checksum "/usr/share/zabbix-cli/zabbix-cli.toml"
-        ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-        python3 -m venv /usr/share/zabbix-cli
-        /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
-        mkdir -p /usr/share/zabbix-cli
-        python3 -m venv /usr/share/zabbix-cli
-        /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
-        ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-fi
+import_template
 
-if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
-    ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
-    python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip uninstall zabbix-cli-uio -y
-    mkdir -p /usr/share/zabbix-cli
-    python3 -m venv /usr/share/zabbix-cli
-    /usr/share/zabbix-cli/bin/pip install zabbix-cli-uio
-    ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
-fi
+$zabbix_tools link_template
 
+$zabbix_tools disable_superadmin_ynh
 
 #=================================================
 # START SYSTEMD SERVICE
