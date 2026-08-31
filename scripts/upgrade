@@ -79,16 +79,15 @@ convert_ZabbixDB
 set_mediatype_default_yunohost
 
 #=================================================
-# REAPPLY SYSTEM CONFIGURATIONS
+# REAPPLY SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression "Upgrading system configurations related to $app..." --weight=1
+ynh_script_progression "Upgrading system configurations related to $app..."
 
 # Create a PHP-FPM config (with conf/extra_php-fpm.conf being appended to it)
 ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
-
 
 change_timeoutAgent
 
@@ -164,11 +163,10 @@ if ynh_app_upgrading_from_version_before_or_equal_to 7.0~ynh6; then
     ynh_config_add --template="zabbix-cli.toml" --destination="/usr/share/zabbix-cli/zabbix-cli.toml"
 fi
 
-
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression "Starting $app's systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
 ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$app/${app}_server.log"
