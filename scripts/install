@@ -17,6 +17,12 @@ zabbix_password=$(ynh_string_random --length=32)
 ynh_app_setting_set --app="$app" --key=zabbix_username --value="$zabbix_username"
 ynh_app_setting_set --app="$app" --key=zabbix_password --value="$zabbix_password"
 
+# Workaround for Package_check on Trixie
+FILE=/etc/timezone
+if [ ! -f "$FILE" ]; then
+    echo "Europe/Paris" > "$FILE"
+fi
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
