@@ -11,7 +11,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring the app main directory..."
+ynh_script_progression "Restoring the app main directory..."
 
 chmod -R o-rwx "/usr/share/zabbix"
 chown -R "$app:www-data" "/usr/share/zabbix"
@@ -56,7 +56,7 @@ ynh_restore "/etc/sudoers.d/zabbix"
 ynh_restore "/usr/share/zabbix-cli"
 
 #=================================================
-# RESTORE SYSTEM CONFIGURATIONS
+# RESTORE SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Restoring system configurations related to $app..."
 
@@ -87,10 +87,11 @@ ynh_systemctl --service="$app-server" --action="restart" --log_path="/var/log/$a
 ynh_systemctl --service="$app-agent" --action="restart" --log_path="/var/log/$app/${app}_agent.log"
 
 ynh_systemctl --service="php$php_version-fpm" --action=reload
+
 ynh_systemctl --service=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app"
+ynh_script_progression "Restoration completed for $app"
